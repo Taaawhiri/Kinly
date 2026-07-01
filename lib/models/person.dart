@@ -2,6 +2,25 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'sharing_mode.dart';
 
+/// Stato dinamico dedotto dall'ultima velocità nota: nessun sensore in più,
+/// solo delle soglie sulla velocità GPS che già tracciamo.
+enum ActivityStatus { stationary, walking, running, driving }
+
+extension ActivityStatusData on ActivityStatus {
+  IconData get icon {
+    switch (this) {
+      case ActivityStatus.stationary:
+        return Icons.circle;
+      case ActivityStatus.walking:
+        return Icons.directions_walk_rounded;
+      case ActivityStatus.running:
+        return Icons.directions_run_rounded;
+      case ActivityStatus.driving:
+        return Icons.directions_car_filled_rounded;
+    }
+  }
+}
+
 /// Un membro della tua cerchia (o tu stesso).
 class Person {
   const Person({
@@ -18,6 +37,8 @@ class Person {
     this.isMe = false,
     this.isPremium = false,
     this.speedAlertKmh,
+    this.isFuzzyLocation = false,
+    this.speedKmh,
   });
 
   final String id;
@@ -25,6 +46,7 @@ class Person {
   final Color color;
 
   /// Coordinate reali dell'ultima posizione nota, se disponibile e visibile.
+  /// Se [isFuzzyLocation] è vero, sono già arrotondate lato server.
   final double? lat;
   final double? lng;
 
@@ -43,6 +65,26 @@ class Person {
   /// Soglia di velocità (km/h) oltre la quale si registra un avviso di
   /// guida (Kinly+); null se questa persona non l'ha impostata.
   final int? speedAlertKmh;
+
+  /// True se questa persona condivide in modalità "approssimativa": [lat]/
+  /// [lng] sono già arrotondati dal server, non il punto esatto.
+  final bool isFuzzyLocation;
+
+  /// Ultima velocità nota (km/h), se disponibile: usata per mostrare lo
+  /// stato dinamico (fermo/a piedi/in corsa/in auto).
+  final double? speedKmh;
+
+  /// Dedotto dall'ultima velocità nota: nessuna soglia se non condivide o
+  /// non c'è ancora un dato di velocità.
+  ActivityStatus get activityStatus {
+    final kmh = speedKmh;
+    if (kmh == null || kmh < 1) return ActivityStatus.stationary;
+    if (kmh < 7) return ActivityStatus.walking;
+    if (kmh < 15) return ActivityStatus.running;
+    return ActivityStatus.driving;
+  }
+
+  bool get isBatteryLow => batteryPercent > 0 && batteryPercent <= 15;
 
   String get initials {
     final parts = name.trim().split(RegExp(r'\s+'));
@@ -73,6 +115,8 @@ class Person {
       isMe: isMe,
       isPremium: isPremium,
       speedAlertKmh: speedAlertKmh,
+      isFuzzyLocation: isFuzzyLocation,
+      speedKmh: speedKmh,
     );
   }
 }

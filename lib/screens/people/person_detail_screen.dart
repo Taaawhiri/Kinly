@@ -5,8 +5,10 @@ import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/kinly_map.dart';
 import '../../widgets/sharing_mode_badge.dart';
+import '../../widgets/weather_card.dart';
 import '../premium/location_history_screen.dart';
 import '../premium/speed_alerts_screen.dart';
+import 'radar_screen.dart';
 
 class PersonDetailScreen extends StatelessWidget {
   const PersonDetailScreen({super.key, required this.personId});
@@ -61,7 +63,20 @@ class PersonDetailScreen extends StatelessWidget {
                         if (canSee) _InfoRow(icon: Icons.access_time, label: 'Aggiornato ${person.lastUpdateLabel}'),
                         if (canSee) const SizedBox(height: 10),
                         if (canSee) _InfoRow(icon: _batteryIcon(person.batteryPercent), label: 'Batteria ${person.batteryPercent}%'),
+                        if (canSee && person.lat != null && person.lng != null) ...[
+                          const SizedBox(height: 14),
+                          WeatherCard(lat: person.lat!, lng: person.lng!),
+                        ],
                         const SizedBox(height: 20),
+                        if (!person.isMe && canSee && person.lat != null)
+                          _LinkTile(
+                            icon: Icons.explore_rounded,
+                            label: 'Radar di prossimità',
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => RadarScreen(person: person)),
+                            ),
+                          ),
+                        if (!person.isMe && canSee && person.lat != null) const SizedBox(height: 10),
                         _LinkTile(
                           icon: Icons.history_rounded,
                           label: 'Cronologia posizioni',

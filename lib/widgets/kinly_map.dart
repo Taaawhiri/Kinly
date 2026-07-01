@@ -53,7 +53,13 @@ class _KinlyMapState extends State<KinlyMap> {
   bool _samePeople(List<Person> a, List<Person> b) {
     if (a.length != b.length) return false;
     for (var i = 0; i < a.length; i++) {
-      if (a[i].id != b[i].id || a[i].lat != b[i].lat || a[i].lng != b[i].lng || a[i].color != b[i].color) return false;
+      if (a[i].id != b[i].id ||
+          a[i].lat != b[i].lat ||
+          a[i].lng != b[i].lng ||
+          a[i].color != b[i].color ||
+          a[i].isFuzzyLocation != b[i].isFuzzyLocation) {
+        return false;
+      }
     }
     return true;
   }
@@ -97,6 +103,25 @@ class _KinlyMapState extends State<KinlyMap> {
     final controller = _controller;
     if (controller == null) return;
     final people = _visiblePeople;
+
+    await controller.clearCircles();
+    // Chi condivide in modalità "approssimativa" ha già ricevuto una
+    // posizione arrotondata dal server: la "nuvola" comunica visivamente
+    // che quel punto non è quello esatto.
+    for (final person in people.where((p) => p.isFuzzyLocation)) {
+      await controller.addCircle(
+        CircleOptions(
+          geometry: LatLng(person.lat!, person.lng!),
+          circleRadius: 46,
+          circleColor: person.color.toHex(),
+          circleOpacity: 0.2,
+          circleBlur: 0.65,
+          circleStrokeWidth: 1.4,
+          circleStrokeColor: person.color.toHex(),
+          circleStrokeOpacity: 0.5,
+        ),
+      );
+    }
 
     await controller.clearSymbols();
     for (final person in people) {

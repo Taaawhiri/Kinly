@@ -14,6 +14,11 @@ class PersonAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = person.isMe || person.isSharingWithMe;
+    final canSeeLocation = person.isMe || person.isSharingWithMe;
+    final activity = person.activityStatus;
+    final showActivityBadge = canSeeLocation && activity != ActivityStatus.stationary;
+    final showLowBattery = canSeeLocation && person.isBatteryLow;
+
     return SizedBox(
       width: size,
       height: size,
@@ -47,6 +52,38 @@ class PersonAvatar extends StatelessWidget {
                   color: isActive ? AppTheme.accentGreen : AppTheme.textSecondary.withOpacity(0.5),
                   border: Border.all(color: Colors.white, width: size * 0.05),
                 ),
+              ),
+            ),
+          if (showActivityBadge)
+            Positioned(
+              left: -size * 0.04,
+              bottom: -size * 0.02,
+              child: Container(
+                width: size * 0.34,
+                height: size * 0.34,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.primary,
+                  border: Border.all(color: Colors.white, width: size * 0.05),
+                ),
+                alignment: Alignment.center,
+                child: Icon(activity.icon, size: size * 0.2, color: Colors.white),
+              ),
+            ),
+          if (showLowBattery)
+            Positioned(
+              right: -size * 0.04,
+              top: -size * 0.04,
+              child: Container(
+                width: size * 0.3,
+                height: size * 0.3,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.accentCoral,
+                  border: Border.all(color: Colors.white, width: size * 0.05),
+                ),
+                alignment: Alignment.center,
+                child: Icon(Icons.battery_alert_rounded, size: size * 0.18, color: Colors.white),
               ),
             ),
         ],

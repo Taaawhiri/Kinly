@@ -4,7 +4,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/circle_group.dart';
 import '../models/location_history_point.dart';
 import '../models/location_request.dart';
+import '../models/meeting_point.dart';
 import '../models/person.dart';
+import '../models/routine_anomaly.dart';
 import '../models/safe_zone.dart';
 import '../models/sharing_mode.dart';
 import '../models/speed_event.dart';
@@ -37,6 +39,10 @@ class AppState extends ChangeNotifier {
   List<SafeZone> _safeZones = [];
   List<SafeZoneEvent> _safeZoneEvents = [];
   List<SpeedEvent> _speedEvents = [];
+  List<MeetingPoint> _meetingPoints = [];
+  List<MeetingPointArrival> _meetingPointArrivals = [];
+  TimeOfDay? _autoGhostStart;
+  TimeOfDay? _autoGhostEnd;
 
   RealtimeChannel? _channel;
   Timer? _refreshDebounce;
@@ -52,6 +58,12 @@ class AppState extends ChangeNotifier {
   List<SafeZone> get safeZones => List.unmodifiable(_safeZones);
   List<SafeZoneEvent> get safeZoneEvents => List.unmodifiable(_safeZoneEvents);
   List<SpeedEvent> get speedEvents => List.unmodifiable(_speedEvents);
+  List<MeetingPoint> get meetingPoints => List.unmodifiable(_meetingPoints);
+
+  /// Orario di reperibilità (ora locale): fuori da questa finestra nessuno
+  /// vede la mia posizione. Null = nessuna limitazione.
+  TimeOfDay? get autoGhostStart => _autoGhostStart;
+  TimeOfDay? get autoGhostEnd => _autoGhostEnd;
 
   SharingMode get myMode => me.mode;
 
@@ -129,10 +141,36 @@ class AppState extends ChangeNotifier {
       final speedEventRows = await _repo.fetchSpeedEvents();
       _speedEvents = speedEventRows.map(SpeedEvent.fromRow).toList();
 
+      _autoGhostStart = _utcTimeStringToLocal(profileRow['auto_ghost_start'] as String?);
+      _autoGhostEnd = _utcTimeStringToLocal(profileRow['auto_ghost_end'] as String?);
+
+      final meetingPointRows = await _repo.fetchMeetingPoints();
+      _meetingPoints = meetingPointRows.map(MeetingPoint.fromRow).toList();
+
+      final arrivalRows = await _repo.fetchMeetingPointArrivals();
+      _meetingPointArrivals = arrivalRows.map(MeetingPointArrival.fromRow).toList();
+
       loadError = null;
     } catch (e) {
       loadError = e.toString();
     }
+  }
+
+  /// L'orario è salvato in UTC (formato "HH:MM:SS"); qui lo riportiamo
+  /// all'ora locale del dispositivo per mostrarlo nell'interfaccia.
+  TimeOfDay? _utcTimeStringToLocal(String? raw) {
+    if (raw == null) return null;
+    final parts = raw.split(':');
+    final utc = DateTime.utc(2000, 1, 1, int.parse(parts[0]), int.parse(parts[1]));
+    final local = utc.toLocal();
+    return TimeOfDay(hour: local.hour, minute: local.minute);
+  }
+
+  String _localTimeToUtcString(TimeOfDay t) {
+    final now = DateTime.now();
+    final local = DateTime(now.year, now.month, now.day, t.hour, t.minute);
+    final utc = local.toUtc();
+    return '${utc.hour.toString().padLeft(2, '0')}:${utc.minute.toString().padLeft(2, '0')}:00';
   }
 
   void _scheduleRefresh() {
@@ -165,6 +203,8 @@ class AppState extends ChangeNotifier {
       isMe: isMe,
       isPremium: profile['is_premium'] as bool? ?? false,
       speedAlertKmh: (profile['speed_alert_kmh'] as num?)?.toInt(),
+      isFuzzyLocation: location?['is_fuzzy'] as bool? ?? false,
+      speedKmh: (location?['speed_kmh'] as num?)?.toDouble(),
     );
   }
 
@@ -193,6 +233,10 @@ class AppState extends ChangeNotifier {
     _safeZones = [];
     _safeZoneEvents = [];
     _speedEvents = [];
+    _meetingPoints = [];
+    _meetingPointArrivals = [];
+    _autoGhostStart = null;
+    _autoGhostEnd = null;
     activeCircleId = null;
     hasLoadedOnce = false;
     loadError = null;
@@ -295,6 +339,65 @@ class AppState extends ChangeNotifier {
 
   List<SafeZoneEvent> eventsForZone(String zoneId) => _safeZoneEvents.where((e) => e.zoneId == zoneId).toList();
 
+  /// Anomalie di routine: qualcuno è ancora dentro un'area sicura oltre il
+  /// suo solito orario di uscita (mediana delle uscite passate). Calcolato
+  /// al volo dallo storico già disponibile, senza notifiche push: si vede
+  /// solo aprendo l'app.
+  List<RoutineAnomaly> get routineAnomalies {
+    const minHistory = 3;
+    const lateThresholdMinutes = 20;
+
+    final now = DateTime.now();
+    final nowMinutes = now.hour * 60 + now.minute;
+
+    final grouped = <String, List<SafeZoneEvent>>{};
+    for (final e in _safeZoneEvents) {
+      grouped.putIfAbsent('${e.zoneId}_${e.profileId}', () => []).add(e);
+    }
+
+    final anomalies = <RoutineAnomaly>[];
+    for (final events in grouped.values) {
+      events.sort((a, b) => a.occurredAt.compareTo(b.occurredAt));
+      final last = events.last;
+      if (last.type != SafeZoneEventType.enter) continue;
+
+      final lastLocal = last.occurredAt.toLocal();
+      final isToday = lastLocal.year == now.year && lastLocal.month == now.month && lastLocal.day == now.day;
+      if (!isToday) continue;
+
+      final exitMinutes = events
+          .where((e) => e.type == SafeZoneEventType.exit)
+          .map((e) => e.occurredAt.toLocal())
+          .map((dt) => dt.hour * 60 + dt.minute)
+          .toList()
+        ..sort();
+      if (exitMinutes.length < minHistory) continue;
+      final medianExit = exitMinutes[exitMinutes.length ~/ 2];
+
+      final enterMinutes = lastLocal.hour * 60 + lastLocal.minute;
+      if (enterMinutes >= medianExit) continue; // entrato dopo il solito orario di uscita: non è un ritardo
+
+      if (nowMinutes > medianExit + lateThresholdMinutes) {
+        SafeZone? zone;
+        for (final z in _safeZones) {
+          if (z.id == last.zoneId) {
+            zone = z;
+            break;
+          }
+        }
+        if (zone == null) continue;
+        anomalies.add(RoutineAnomaly(
+          zoneId: last.zoneId,
+          zoneName: zone.name,
+          profileId: last.profileId,
+          expectedExit: TimeOfDay(hour: medianExit ~/ 60, minute: medianExit % 60),
+          minutesLate: nowMinutes - medianExit,
+        ));
+      }
+    }
+    return anomalies;
+  }
+
   Future<void> createSafeZone({
     required String circleId,
     required String name,
@@ -322,6 +425,56 @@ class AppState extends ChangeNotifier {
   /// Imposta la mia soglia di velocità: null disattiva gli avvisi.
   Future<void> setSpeedAlert(int? kmh) async {
     await _repo.updateSpeedAlert(kmh);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  // ---------------------------------------------------------------------
+  // Orario di reperibilità
+  // ---------------------------------------------------------------------
+
+  /// Passa null a entrambi per disattivare la limitazione oraria.
+  Future<void> setAutoGhostSchedule(TimeOfDay? start, TimeOfDay? end) async {
+    await _repo.updateAutoGhostSchedule(
+      startUtc: start == null ? null : _localTimeToUtcString(start),
+      endUtc: end == null ? null : _localTimeToUtcString(end),
+    );
+    await _refreshData();
+    notifyListeners();
+  }
+
+  // ---------------------------------------------------------------------
+  // Punto d'incontro condiviso
+  // ---------------------------------------------------------------------
+
+  /// Il punto attivo (non scaduto) di una cerchia, se c'è.
+  MeetingPoint? meetingPointForCircle(String circleId) {
+    for (final p in _meetingPoints) {
+      if (p.circleId == circleId && !p.isExpired) return p;
+    }
+    return null;
+  }
+
+  List<MeetingPointArrival> arrivalsFor(String meetingPointId) =>
+      _meetingPointArrivals.where((a) => a.meetingPointId == meetingPointId).toList();
+
+  bool hasArrived(String meetingPointId, String profileId) =>
+      _meetingPointArrivals.any((a) => a.meetingPointId == meetingPointId && a.profileId == profileId);
+
+  Future<void> createMeetingPoint({required String circleId, required String name, required double lat, required double lng}) async {
+    await _repo.createMeetingPoint(circleId: circleId, name: name, lat: lat, lng: lng);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  Future<void> deleteMeetingPoint(String id) async {
+    await _repo.deleteMeetingPoint(id);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  Future<void> markArrivedAt(String meetingPointId) async {
+    await _repo.recordMeetingPointArrival(meetingPointId);
     await _refreshData();
     notifyListeners();
   }

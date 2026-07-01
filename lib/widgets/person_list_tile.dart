@@ -44,9 +44,16 @@ class PersonListTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
                   ),
-                  if (showBadge) ...[
+                  if (showBadge || (canSeeLocation && person.isBatteryLow)) ...[
                     const SizedBox(height: 6),
-                    SharingModeBadge(mode: person.mode, dense: true),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        if (showBadge) SharingModeBadge(mode: person.mode, dense: true),
+                        if (canSeeLocation && person.isBatteryLow) const _LowBatteryTag(),
+                      ],
+                    ),
                   ],
                 ],
               ),
@@ -54,6 +61,26 @@ class PersonListTile extends StatelessWidget {
             if (trailing != null) trailing!,
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _LowBatteryTag extends StatelessWidget {
+  const _LowBatteryTag();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(color: AppTheme.accentCoral.withOpacity(0.14), borderRadius: BorderRadius.circular(20)),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.battery_alert_rounded, size: 12, color: AppTheme.accentCoral),
+          SizedBox(width: 3),
+          Text('Batteria scarica', style: TextStyle(color: AppTheme.accentCoral, fontWeight: FontWeight.w700, fontSize: 10.5)),
+        ],
       ),
     );
   }

@@ -26,6 +26,10 @@ class LocationTracker {
   /// registrare un avviso solo alla transizione sotto → sopra soglia.
   bool _wasOverSpeedLimit = false;
 
+  /// Punti d'incontro per cui ho già registrato l'arrivo in questa sessione,
+  /// per non richiamare il server ad ogni aggiornamento di posizione.
+  final Set<String> _arrivedMeetingPointIds = {};
+
   bool get isTracking => _positionSub != null;
 
   /// Chiede i permessi di localizzazione al sistema. Ritorna true se
@@ -66,6 +70,7 @@ class LocationTracker {
     _batteryTimer = null;
     _zoneInsideState.clear();
     _wasOverSpeedLimit = false;
+    _arrivedMeetingPointIds.clear();
   }
 
   Future<void> _onPosition(Position position) async {
@@ -81,6 +86,7 @@ class LocationTracker {
     );
     unawaited(KinlyRepository.instance.appendLocationHistory(lat: position.latitude, lng: position.longitude, address: address));
     unawaited(_checkSafeZones(position));
+    unawaited(_checkMeetingPoints(position));
     if (speedKmh != null) unawaited(_checkSpeedAlert(speedKmh));
   }
 
@@ -118,6 +124,25 @@ class LocationTracker {
           await KinlyRepository.instance.recordSafeZoneEvent(zoneId: zone.id, entering: isInside);
         } catch (_) {
           // Non bloccare il tracciamento se la registrazione dell'evento fallisce.
+        }
+      }
+    }
+  }
+
+  /// Segna automaticamente l'arrivo a un punto d'incontro quando ci si
+  /// avvicina a meno di 100 metri, senza bisogno di aprire l'app.
+  static const _meetingPointArrivalRadiusMeters = 100;
+
+  Future<void> _checkMeetingPoints(Position position) async {
+    for (final point in AppState.instance.meetingPoints) {
+      if (point.isExpired || _arrivedMeetingPointIds.contains(point.id)) continue;
+      final distance = Geolocator.distanceBetween(position.latitude, position.longitude, point.lat, point.lng);
+      if (distance <= _meetingPointArrivalRadiusMeters) {
+        _arrivedMeetingPointIds.add(point.id);
+        try {
+          await KinlyRepository.instance.recordMeetingPointArrival(point.id);
+        } catch (_) {
+          _arrivedMeetingPointIds.remove(point.id);
         }
       }
     }

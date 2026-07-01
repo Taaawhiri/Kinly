@@ -38,6 +38,19 @@ alter table public.profiles add column if not exists
   -- di sé; a vederne gli avvisi sono i membri premium della sua cerchia.
   speed_alert_kmh integer check (speed_alert_kmh between 20 and 300);
 
+-- "fuzzy" (posizione approssimativa) si aggiunge ai valori validi di
+-- sharing_mode: il vincolo va ricreato perché non si può alterare in place.
+alter table public.profiles drop constraint if exists profiles_sharing_mode_check;
+alter table public.profiles add constraint profiles_sharing_mode_check
+  check (sharing_mode in ('automatic', 'on_request', 'paused', 'fuzzy'));
+
+-- Orario di reperibilità (in UTC): fuori da questa finestra, chi guarda non
+-- vede la posizione indipendentemente dalla modalità di condivisione. Se
+-- entrambi i valori sono null (default) non c'è nessuna limitazione oraria.
+-- Nota: gestisce solo finestre nello stesso giorno (inizio < fine).
+alter table public.profiles add column if not exists auto_ghost_start time;
+alter table public.profiles add column if not exists auto_ghost_end time;
+
 create table if not exists public.circles (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -132,6 +145,28 @@ create table if not exists public.support_messages (
   created_at timestamptz not null default now()
 );
 
+-- Punto d'incontro condiviso: chiunque nella cerchia può proporne uno (non è
+-- una funzione Kinly+). Gli altri membri vedono la propria distanza dal
+-- punto in tempo reale; l'arrivo si registra da solo quando ci si avvicina
+-- abbastanza (vedi meeting_point_arrivals), come per le aree sicure.
+create table if not exists public.meeting_points (
+  id uuid primary key default gen_random_uuid(),
+  circle_id uuid not null references public.circles (id) on delete cascade,
+  name text not null,
+  lat double precision not null,
+  lng double precision not null,
+  created_by uuid not null references public.profiles (id) on delete cascade,
+  expires_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.meeting_point_arrivals (
+  meeting_point_id uuid not null references public.meeting_points (id) on delete cascade,
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  arrived_at timestamptz not null default now(),
+  primary key (meeting_point_id, profile_id)
+);
+
 create index if not exists circle_members_profile_idx on public.circle_members (profile_id);
 create index if not exists location_requests_requester_idx on public.location_requests (requester_id);
 create index if not exists location_requests_target_idx on public.location_requests (target_id);
@@ -140,6 +175,8 @@ create index if not exists safe_zones_circle_idx on public.safe_zones (circle_id
 create index if not exists safe_zone_events_zone_idx on public.safe_zone_events (zone_id, occurred_at desc);
 create index if not exists speed_events_profile_idx on public.speed_events (profile_id, occurred_at desc);
 create index if not exists support_messages_profile_idx on public.support_messages (profile_id, created_at desc);
+create index if not exists meeting_points_circle_idx on public.meeting_points (circle_id);
+create index if not exists meeting_point_arrivals_point_idx on public.meeting_point_arrivals (meeting_point_id);
 
 -- =========================================================================
 -- Funzioni helper (security definer per evitare ricorsione nelle policy RLS)
@@ -171,6 +208,24 @@ as $$
   );
 $$;
 
+-- Orario di reperibilità: se impostato, fuori da questa finestra nessuno
+-- vede la posizione, qualunque sia la modalità di condivisione (è un "clock
+-- out" totale, pensato per il lavoro). Se non impostato, nessuna limitazione.
+create or replace function public.is_within_ghost_schedule(p_target_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    auto_ghost_start is null
+    or auto_ghost_end is null
+    or (now() at time zone 'utc')::time between auto_ghost_start and auto_ghost_end
+  from public.profiles
+  where id = p_target_id;
+$$;
+
 create or replace function public.can_view_location(p_target_id uuid)
 returns boolean
 language sql
@@ -182,8 +237,9 @@ as $$
     p_target_id = auth.uid()
     or (
       public.shares_circle_with(p_target_id)
+      and public.is_within_ghost_schedule(p_target_id)
       and (
-        (select sharing_mode from public.profiles where id = p_target_id) = 'automatic'
+        (select sharing_mode from public.profiles where id = p_target_id) in ('automatic', 'fuzzy')
         or exists (
           select 1 from public.location_requests
           where requester_id = auth.uid()
@@ -192,6 +248,44 @@ as $$
         )
       )
     );
+$$;
+
+-- Posizioni "visibili" per una lista di persone: applica l'arrotondamento
+-- per chi è in modalità fuzzy (circa 1 km di lato) prima di restituire i
+-- dati, così la posizione precisa non lascia mai il database in quel caso.
+create or replace function public.fetch_visible_locations(p_ids uuid[])
+returns table (
+  profile_id uuid,
+  lat double precision,
+  lng double precision,
+  address text,
+  speed_kmh double precision,
+  updated_at timestamptz,
+  is_fuzzy boolean
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    l.profile_id,
+    case when p.sharing_mode = 'fuzzy' and l.profile_id <> auth.uid()
+         then round(l.lat::numeric, 2)::double precision
+         else l.lat end,
+    case when p.sharing_mode = 'fuzzy' and l.profile_id <> auth.uid()
+         then round(l.lng::numeric, 2)::double precision
+         else l.lng end,
+    case when p.sharing_mode = 'fuzzy' and l.profile_id <> auth.uid()
+         then null
+         else l.address end,
+    l.speed_kmh,
+    l.updated_at,
+    (p.sharing_mode = 'fuzzy' and l.profile_id <> auth.uid())
+  from public.locations l
+  join public.profiles p on p.id = l.profile_id
+  where l.profile_id = any(p_ids)
+    and public.can_view_location(l.profile_id);
 $$;
 
 -- Crea automaticamente il profilo quando un utente si registra tramite
@@ -308,6 +402,8 @@ alter table public.safe_zones enable row level security;
 alter table public.safe_zone_events enable row level security;
 alter table public.speed_events enable row level security;
 alter table public.support_messages enable row level security;
+alter table public.meeting_points enable row level security;
+alter table public.meeting_point_arrivals enable row level security;
 
 -- Ogni policy è preceduta da un "drop if exists" così l'intero script è
 -- rieseguibile senza errori (es. dopo averlo modificato) anche se le
@@ -449,6 +545,32 @@ drop policy if exists "support_messages_insert_own" on public.support_messages;
 create policy "support_messages_insert_own" on public.support_messages
   for insert with check (profile_id = auth.uid());
 
+-- meeting_points: chiunque nella cerchia può proporne uno e vederli tutti;
+-- solo chi l'ha creato può eliminarlo.
+drop policy if exists "meeting_points_select" on public.meeting_points;
+create policy "meeting_points_select" on public.meeting_points
+  for select using (circle_id in (select public.my_circle_ids()));
+
+drop policy if exists "meeting_points_insert" on public.meeting_points;
+create policy "meeting_points_insert" on public.meeting_points
+  for insert with check (created_by = auth.uid() and circle_id in (select public.my_circle_ids()));
+
+drop policy if exists "meeting_points_delete_own" on public.meeting_points;
+create policy "meeting_points_delete_own" on public.meeting_points
+  for delete using (created_by = auth.uid());
+
+-- meeting_point_arrivals: vedo gli arrivi ai punti delle mie cerchie;
+-- registro solo il mio arrivo.
+drop policy if exists "meeting_point_arrivals_select" on public.meeting_point_arrivals;
+create policy "meeting_point_arrivals_select" on public.meeting_point_arrivals
+  for select using (
+    meeting_point_id in (select id from public.meeting_points where circle_id in (select public.my_circle_ids()))
+  );
+
+drop policy if exists "meeting_point_arrivals_insert_self" on public.meeting_point_arrivals;
+create policy "meeting_point_arrivals_insert_self" on public.meeting_point_arrivals
+  for insert with check (profile_id = auth.uid());
+
 -- =========================================================================
 -- Realtime (idempotente: evita errori se rilanci lo script)
 -- =========================================================================
@@ -457,7 +579,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events', 'speed_events']
+  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events', 'speed_events', 'meeting_points', 'meeting_point_arrivals']
   loop
     if not exists (
       select 1 from pg_publication_tables

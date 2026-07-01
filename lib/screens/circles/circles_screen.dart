@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/circle_group.dart';
 import '../../models/person.dart';
+import '../../models/routine_anomaly.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/person_avatar.dart';
@@ -9,6 +10,7 @@ import '../onboarding/create_circle_screen.dart';
 import '../onboarding/join_circle_screen.dart';
 import '../people/person_detail_screen.dart';
 import '../premium/safe_zones_screen.dart';
+import 'meeting_point_screen.dart';
 
 class CirclesScreen extends StatelessWidget {
   const CirclesScreen({super.key});
@@ -29,10 +31,12 @@ class CirclesScreen extends StatelessWidget {
               ),
             ],
           ),
-          body: ListView.builder(
+          body: ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-            itemCount: state.circles.length,
-            itemBuilder: (context, i) => _CircleCard(circle: state.circles[i]),
+            children: [
+              for (final anomaly in state.routineAnomalies) _RoutineAnomalyBanner(anomaly: anomaly),
+              for (final circle in state.circles) _CircleCard(circle: circle),
+            ],
           ),
         );
       },
@@ -81,6 +85,50 @@ class CirclesScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _RoutineAnomalyBanner extends StatelessWidget {
+  const _RoutineAnomalyBanner({required this.anomaly});
+  final RoutineAnomaly anomaly;
+
+  @override
+  Widget build(BuildContext context) {
+    final person = AppState.instance.personById(anomaly.profileId);
+    final name = person?.name ?? 'Qualcuno';
+    final expected = anomaly.expectedExit.format(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.accentAmber.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.accentAmber.withOpacity(0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.error_outline_rounded, color: AppTheme.accentAmber, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$name è ancora ${anomaly.zoneName}',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: AppTheme.textPrimary),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Di solito esce entro le $expected · ${anomaly.minutesLate} min di ritardo',
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -169,6 +217,11 @@ class _CircleCard extends StatelessWidget {
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SafeZonesScreen(circle: circle))),
                 icon: Icon(Icons.fence_rounded, size: 18, color: AppTheme.textSecondary),
                 tooltip: 'Aree sicure',
+              ),
+              IconButton(
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => MeetingPointScreen(circle: circle))),
+                icon: Icon(Icons.share_location_rounded, size: 18, color: AppTheme.textSecondary),
+                tooltip: 'Punto d\'incontro',
               ),
             ],
           ),

@@ -108,8 +108,10 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                     initialChildSize: _sheetInitialSize,
                     minChildSize: _sheetMinSize,
                     maxChildSize: _sheetMaxSize,
-                    snap: true,
-                    snapSizes: const [_sheetMinSize, _sheetInitialSize, _sheetMaxSize],
+                    // Niente snap: il pannello resta esattamente dove lo
+                    // lasci. Con lo snap attivo, un trascinamento verso il
+                    // basso non abbastanza deciso tornava indietro al punto
+                    // di partenza invece di ridursi — sembrava "bloccato".
                     builder: (context, scrollController) {
                       return Container(
                         decoration: BoxDecoration(

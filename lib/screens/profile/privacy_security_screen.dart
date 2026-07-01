@@ -69,12 +69,32 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     }
   }
 
+  Future<void> _pickGhostTime({required bool isStart}) async {
+    final state = AppState.instance;
+    final initial = (isStart ? state.autoGhostStart : state.autoGhostEnd) ?? const TimeOfDay(hour: 9, minute: 0);
+    final picked = await showTimePicker(context: context, initialTime: initial);
+    if (picked == null) return;
+    final start = isStart ? picked : (state.autoGhostStart ?? const TimeOfDay(hour: 9, minute: 0));
+    final end = isStart ? (state.autoGhostEnd ?? const TimeOfDay(hour: 18, minute: 0)) : picked;
+    await state.setAutoGhostSchedule(start, end);
+  }
+
+  Future<void> _toggleGhostSchedule(bool enabled) async {
+    if (!enabled) {
+      await AppState.instance.setAutoGhostSchedule(null, null);
+      return;
+    }
+    await AppState.instance.setAutoGhostSchedule(const TimeOfDay(hour: 9, minute: 0), const TimeOfDay(hour: 18, minute: 0));
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: AppState.instance,
       builder: (context, _) {
-        final speedAlertEnabled = AppState.instance.me.speedAlertKmh != null;
+        final state = AppState.instance;
+        final speedAlertEnabled = state.me.speedAlertKmh != null;
+        final ghostScheduleEnabled = state.autoGhostStart != null && state.autoGhostEnd != null;
         return Scaffold(
           appBar: AppBar(title: const Text('Privacy e sicurezza')),
           body: SafeArea(
@@ -136,6 +156,52 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ),
                 ],
                 const SizedBox(height: 24),
+                Text('Orario di reperibilità', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                const SizedBox(height: 6),
+                Text(
+                  'Utile per il lavoro: fuori da questa fascia oraria nessuno vede la tua posizione, in nessuna delle tue cerchie ("clock-out" automatico).',
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(16)),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text('Limita l\'orario', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                          ),
+                          Switch(value: ghostScheduleEnabled, onChanged: _toggleGhostSchedule),
+                        ],
+                      ),
+                      if (ghostScheduleEnabled) ...[
+                        const Divider(height: 24),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _TimeField(
+                                label: 'Dalle',
+                                time: state.autoGhostStart!,
+                                onTap: () => _pickGhostTime(isStart: true),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _TimeField(
+                                label: 'Alle',
+                                time: state.autoGhostEnd!,
+                                onTap: () => _pickGhostTime(isStart: false),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
                 Text('Avviso di velocità', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                 const SizedBox(height: 6),
                 Text(
@@ -186,6 +252,36 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+class _TimeField extends StatelessWidget {
+  const _TimeField({required this.label, required this.time, required this.onTap});
+  final String label;
+  final TimeOfDay time;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 2),
+            Text(
+              time.format(context),
+              style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

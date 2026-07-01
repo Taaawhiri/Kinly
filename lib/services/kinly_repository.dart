@@ -50,6 +50,16 @@ class KinlyRepository {
     await supabase.from('profiles').update({'speed_alert_kmh': kmh}).eq('id', _myId);
   }
 
+  /// Orario di reperibilità (valori già convertiti in UTC, formato
+  /// "HH:MM:SS"): fuori da questa finestra nessuno vede la mia posizione,
+  /// qualunque sia la modalità di condivisione. Null = nessuna limitazione.
+  Future<void> updateAutoGhostSchedule({String? startUtc, String? endUtc}) async {
+    await supabase.from('profiles').update({
+      'auto_ghost_start': startUtc,
+      'auto_ghost_end': endUtc,
+    }).eq('id', _myId);
+  }
+
   // ---------------------------------------------------------------------
   // Cerchie
   // ---------------------------------------------------------------------
@@ -138,9 +148,14 @@ class KinlyRepository {
   // Posizione
   // ---------------------------------------------------------------------
 
+  /// Usa la RPC `fetch_visible_locations` (non una select diretta) perché
+  /// applica l'arrotondamento della posizione per chi è in modalità fuzzy
+  /// lato server: il punto esatto di chi è "approssimativo" non arriva mai
+  /// al client di chi guarda.
   Future<List<Map<String, dynamic>>> fetchLocations(List<String> ids) async {
     if (ids.isEmpty) return [];
-    return supabase.from('locations').select().inFilter('profile_id', ids);
+    final result = await supabase.rpc('fetch_visible_locations', params: {'p_ids': ids});
+    return List<Map<String, dynamic>>.from(result as List);
   }
 
   Future<void> upsertMyLocation({required double lat, required double lng, String? address, double? speedKmh}) async {
@@ -234,6 +249,41 @@ class KinlyRepository {
   }
 
   // ---------------------------------------------------------------------
+  // Punto d'incontro condiviso (non è una funzione Kinly+)
+  // ---------------------------------------------------------------------
+
+  Future<List<Map<String, dynamic>>> fetchMeetingPoints() async {
+    return supabase.from('meeting_points').select();
+  }
+
+  Future<void> createMeetingPoint({required String circleId, required String name, required double lat, required double lng}) async {
+    await supabase.from('meeting_points').insert({
+      'circle_id': circleId,
+      'name': name,
+      'lat': lat,
+      'lng': lng,
+      'created_by': _myId,
+    });
+  }
+
+  Future<void> deleteMeetingPoint(String id) async {
+    await supabase.from('meeting_points').delete().eq('id', id);
+  }
+
+  Future<List<Map<String, dynamic>>> fetchMeetingPointArrivals() async {
+    return supabase.from('meeting_point_arrivals').select();
+  }
+
+  /// Idempotente: se ho già segnato l'arrivo a questo punto non fa nulla.
+  Future<void> recordMeetingPointArrival(String meetingPointId) async {
+    await supabase.from('meeting_point_arrivals').upsert(
+      {'meeting_point_id': meetingPointId, 'profile_id': _myId},
+      onConflict: 'meeting_point_id,profile_id',
+      ignoreDuplicates: true,
+    );
+  }
+
+  // ---------------------------------------------------------------------
   // Assistenza
   // ---------------------------------------------------------------------
 
@@ -288,6 +338,8 @@ class KinlyRepository {
       'safe_zones',
       'safe_zone_events',
       'speed_events',
+      'meeting_points',
+      'meeting_point_arrivals',
     ]) {
       channel.onPostgresChanges(
         event: PostgresChangeEvent.all,
