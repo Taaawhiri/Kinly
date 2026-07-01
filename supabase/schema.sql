@@ -24,6 +24,10 @@ create table if not exists public.profiles (
   -- sistema di pagamento collegato: questa colonna è pronta per quando
   -- ci sarà (es. un webhook che la aggiorna dopo un pagamento riuscito).
   is_premium boolean not null default false,
+  -- Soglia di velocità (km/h) oltre la quale si registra un avviso di
+  -- guida (Kinly+): null = avvisi disattivati. La imposta chi guida, su
+  -- di sé; a vederne gli avvisi sono i membri premium della sua cerchia.
+  speed_alert_kmh integer check (speed_alert_kmh between 20 and 300),
   created_at timestamptz not null default now()
 );
 
@@ -49,6 +53,7 @@ create table if not exists public.locations (
   lat double precision not null,
   lng double precision not null,
   address text,
+  speed_kmh double precision,
   updated_at timestamptz not null default now()
 );
 
@@ -97,12 +102,36 @@ create table if not exists public.safe_zone_events (
   occurred_at timestamptz not null default now()
 );
 
+-- Avvisi di guida (Kinly+): un evento ogni volta che qualcuno supera la
+-- propria soglia di velocità (`profiles.speed_alert_kmh`), passando da
+-- sotto a sopra soglia (non un evento per ogni aggiornamento posizione).
+create table if not exists public.speed_events (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  speed_kmh double precision not null,
+  threshold_kmh double precision not null,
+  occurred_at timestamptz not null default now()
+);
+
+-- Richieste di assistenza: chi è Kinly+ ha la priorità (colonna decisa dal
+-- server in base all'abbonamento al momento dell'invio, non dal client).
+create table if not exists public.support_messages (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  message text not null,
+  is_priority boolean not null default false,
+  status text not null default 'open' check (status in ('open', 'answered', 'closed')),
+  created_at timestamptz not null default now()
+);
+
 create index if not exists circle_members_profile_idx on public.circle_members (profile_id);
 create index if not exists location_requests_requester_idx on public.location_requests (requester_id);
 create index if not exists location_requests_target_idx on public.location_requests (target_id);
 create index if not exists location_history_profile_idx on public.location_history (profile_id, recorded_at desc);
 create index if not exists safe_zones_circle_idx on public.safe_zones (circle_id);
 create index if not exists safe_zone_events_zone_idx on public.safe_zone_events (zone_id, occurred_at desc);
+create index if not exists speed_events_profile_idx on public.speed_events (profile_id, occurred_at desc);
+create index if not exists support_messages_profile_idx on public.support_messages (profile_id, created_at desc);
 
 -- =========================================================================
 -- Funzioni helper (security definer per evitare ricorsione nelle policy RLS)
@@ -237,6 +266,26 @@ create trigger enforce_circle_limits_trigger
   before insert on public.circle_members
   for each row execute function public.enforce_circle_limits();
 
+-- La "priorità" di una richiesta di assistenza la decide il server in base
+-- all'abbonamento di chi scrive al momento dell'invio, non un valore che
+-- il client potrebbe falsificare.
+create or replace function public.set_support_message_priority()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  new.is_priority := coalesce((select is_premium from public.profiles where id = new.profile_id), false);
+  return new;
+end;
+$$;
+
+drop trigger if exists set_support_message_priority_trigger on public.support_messages;
+create trigger set_support_message_priority_trigger
+  before insert on public.support_messages
+  for each row execute function public.set_support_message_priority();
+
 -- =========================================================================
 -- Row Level Security
 -- =========================================================================
@@ -249,6 +298,8 @@ alter table public.location_requests enable row level security;
 alter table public.location_history enable row level security;
 alter table public.safe_zones enable row level security;
 alter table public.safe_zone_events enable row level security;
+alter table public.speed_events enable row level security;
+alter table public.support_messages enable row level security;
 
 -- Ogni policy è preceduta da un "drop if exists" così l'intero script è
 -- rieseguibile senza errori (es. dopo averlo modificato) anche se le
@@ -367,6 +418,29 @@ drop policy if exists "safe_zone_events_insert_self" on public.safe_zone_events;
 create policy "safe_zone_events_insert_self" on public.safe_zone_events
   for insert with check (profile_id = auth.uid());
 
+-- speed_events (Kinly+): stessa regola di location_history — vedo gli
+-- avvisi di chi condivide con me solo se IO sono premium; l'inserimento
+-- (fatto da chi guida, su di sé) non richiede invece di essere premium.
+drop policy if exists "speed_events_select" on public.speed_events;
+create policy "speed_events_select" on public.speed_events
+  for select using (
+    public.can_view_location(profile_id)
+    and exists (select 1 from public.profiles where id = auth.uid() and is_premium)
+  );
+
+drop policy if exists "speed_events_insert_self" on public.speed_events;
+create policy "speed_events_insert_self" on public.speed_events
+  for insert with check (profile_id = auth.uid());
+
+-- support_messages: ognuno vede e scrive solo i propri messaggi.
+drop policy if exists "support_messages_select_own" on public.support_messages;
+create policy "support_messages_select_own" on public.support_messages
+  for select using (profile_id = auth.uid());
+
+drop policy if exists "support_messages_insert_own" on public.support_messages;
+create policy "support_messages_insert_own" on public.support_messages
+  for insert with check (profile_id = auth.uid());
+
 -- =========================================================================
 -- Realtime (idempotente: evita errori se rilanci lo script)
 -- =========================================================================
@@ -375,7 +449,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events']
+  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events', 'speed_events']
   loop
     if not exists (
       select 1 from pg_publication_tables

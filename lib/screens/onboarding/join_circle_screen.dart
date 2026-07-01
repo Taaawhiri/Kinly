@@ -71,12 +71,12 @@ class _JoinCircleScreenState extends State<JoinCircleScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Inserisci il codice di invito',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
               ),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 'Te lo manda chi ha creato la cerchia, ad esempio via messaggio.',
                 style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5),
               ),
@@ -116,7 +116,7 @@ class _JoinCircleScreenState extends State<JoinCircleScreen> {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(14)),
-                child: const Row(
+                child: Row(
                   children: [
                     Icon(Icons.info_outline, size: 18, color: AppTheme.textSecondary),
                     SizedBox(width: 10),

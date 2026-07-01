@@ -7,6 +7,8 @@ import '../models/location_request.dart';
 import '../models/person.dart';
 import '../models/safe_zone.dart';
 import '../models/sharing_mode.dart';
+import '../models/speed_event.dart';
+import '../models/support_message.dart';
 import '../services/auth_service.dart';
 import '../services/kinly_repository.dart';
 import '../services/location_tracker.dart';
@@ -34,6 +36,7 @@ class AppState extends ChangeNotifier {
   List<LocationRequest> _requests = [];
   List<SafeZone> _safeZones = [];
   List<SafeZoneEvent> _safeZoneEvents = [];
+  List<SpeedEvent> _speedEvents = [];
 
   RealtimeChannel? _channel;
   Timer? _refreshDebounce;
@@ -48,6 +51,7 @@ class AppState extends ChangeNotifier {
   List<LocationRequest> get requests => List.unmodifiable(_requests);
   List<SafeZone> get safeZones => List.unmodifiable(_safeZones);
   List<SafeZoneEvent> get safeZoneEvents => List.unmodifiable(_safeZoneEvents);
+  List<SpeedEvent> get speedEvents => List.unmodifiable(_speedEvents);
 
   SharingMode get myMode => me.mode;
 
@@ -122,6 +126,9 @@ class AppState extends ChangeNotifier {
       final eventRows = await _repo.fetchSafeZoneEvents();
       _safeZoneEvents = eventRows.map(SafeZoneEvent.fromRow).toList();
 
+      final speedEventRows = await _repo.fetchSpeedEvents();
+      _speedEvents = speedEventRows.map(SpeedEvent.fromRow).toList();
+
       loadError = null;
     } catch (e) {
       loadError = e.toString();
@@ -157,6 +164,7 @@ class AppState extends ChangeNotifier {
       mode: SharingModeData.fromDb(profile['sharing_mode'] as String? ?? 'automatic'),
       isMe: isMe,
       isPremium: profile['is_premium'] as bool? ?? false,
+      speedAlertKmh: (profile['speed_alert_kmh'] as num?)?.toInt(),
     );
   }
 
@@ -184,6 +192,7 @@ class AppState extends ChangeNotifier {
     _requests = [];
     _safeZones = [];
     _safeZoneEvents = [];
+    _speedEvents = [];
     activeCircleId = null;
     hasLoadedOnce = false;
     loadError = null;
@@ -302,5 +311,29 @@ class AppState extends ChangeNotifier {
     await _repo.deleteSafeZone(zoneId);
     await _refreshData();
     notifyListeners();
+  }
+
+  // ---------------------------------------------------------------------
+  // Kinly+ : avvisi di guida
+  // ---------------------------------------------------------------------
+
+  List<SpeedEvent> speedEventsFor(String personId) => _speedEvents.where((e) => e.profileId == personId).toList();
+
+  /// Imposta la mia soglia di velocità: null disattiva gli avvisi.
+  Future<void> setSpeedAlert(int? kmh) async {
+    await _repo.updateSpeedAlert(kmh);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  // ---------------------------------------------------------------------
+  // Assistenza
+  // ---------------------------------------------------------------------
+
+  Future<void> sendSupportMessage(String message) => _repo.sendSupportMessage(message);
+
+  Future<List<SupportMessage>> fetchMySupportMessages() async {
+    final rows = await _repo.fetchMySupportMessages();
+    return rows.map(SupportMessage.fromRow).toList();
   }
 }

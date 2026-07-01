@@ -51,11 +51,11 @@ class CirclesScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Aggiungi una cerchia', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+              Text('Aggiungi una cerchia', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
               const SizedBox(height: 16),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const CircleAvatar(backgroundColor: AppTheme.surfaceAlt, child: Icon(Icons.add_rounded, color: AppTheme.primary)),
+                leading: CircleAvatar(backgroundColor: AppTheme.surfaceAlt, child: Icon(Icons.add_rounded, color: AppTheme.primary)),
                 title: const Text('Crea una nuova cerchia'),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
@@ -66,7 +66,7 @@ class CirclesScreen extends StatelessWidget {
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const CircleAvatar(backgroundColor: AppTheme.surfaceAlt, child: Icon(Icons.qr_code_rounded, color: AppTheme.primary)),
+                leading: CircleAvatar(backgroundColor: AppTheme.surfaceAlt, child: Icon(Icons.qr_code_rounded, color: AppTheme.primary)),
                 title: const Text('Ho un codice di invito'),
                 onTap: () async {
                   Navigator.of(sheetContext).pop();
@@ -118,8 +118,8 @@ class _CircleCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(circle.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5, color: AppTheme.textPrimary)),
-                    Text('${members.length} persone', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                    Text(circle.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5, color: AppTheme.textPrimary)),
+                    Text('${members.length} persone', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
                   ],
                 ),
               ),
@@ -152,7 +152,7 @@ class _CircleCard extends StatelessWidget {
                   decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(10)),
                   child: Text(
                     circle.inviteCode,
-                    style: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1, fontSize: 13, color: AppTheme.textPrimary),
+                    style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1, fontSize: 13, color: AppTheme.textPrimary),
                   ),
                 ),
               ),
@@ -162,12 +162,12 @@ class _CircleCard extends StatelessWidget {
                   Clipboard.setData(ClipboardData(text: circle.inviteCode));
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Codice invito copiato')));
                 },
-                icon: const Icon(Icons.copy_rounded, size: 18, color: AppTheme.textSecondary),
+                icon: Icon(Icons.copy_rounded, size: 18, color: AppTheme.textSecondary),
                 tooltip: 'Copia codice invito',
               ),
               IconButton(
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SafeZonesScreen(circle: circle))),
-                icon: const Icon(Icons.fence_rounded, size: 18, color: AppTheme.textSecondary),
+                icon: Icon(Icons.fence_rounded, size: 18, color: AppTheme.textSecondary),
                 tooltip: 'Aree sicure',
               ),
             ],

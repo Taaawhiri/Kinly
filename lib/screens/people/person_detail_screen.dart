@@ -6,6 +6,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/kinly_map.dart';
 import '../../widgets/sharing_mode_badge.dart';
 import '../premium/location_history_screen.dart';
+import '../premium/speed_alerts_screen.dart';
 
 class PersonDetailScreen extends StatelessWidget {
   const PersonDetailScreen({super.key, required this.personId});
@@ -35,7 +36,7 @@ class PersonDetailScreen extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(18),
                             decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
-                            child: const Icon(Icons.location_off_outlined, color: AppTheme.textSecondary, size: 30),
+                            child: Icon(Icons.location_off_outlined, color: AppTheme.textSecondary, size: 30),
                           ),
                         ),
                 ),
@@ -50,7 +51,7 @@ class PersonDetailScreen extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 canSee ? person.address : 'Posizione non condivisa',
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
                               ),
                             ),
                             SharingModeBadge(mode: person.mode),
@@ -61,24 +62,19 @@ class PersonDetailScreen extends StatelessWidget {
                         if (canSee) const SizedBox(height: 10),
                         if (canSee) _InfoRow(icon: _batteryIcon(person.batteryPercent), label: 'Batteria ${person.batteryPercent}%'),
                         const SizedBox(height: 20),
-                        InkWell(
+                        _LinkTile(
+                          icon: Icons.history_rounded,
+                          label: 'Cronologia posizioni',
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => LocationHistoryScreen(person: person)),
                           ),
-                          borderRadius: BorderRadius.circular(14),
-                          child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(14)),
-                            child: const Row(
-                              children: [
-                                Icon(Icons.history_rounded, size: 19, color: AppTheme.textPrimary),
-                                SizedBox(width: 12),
-                                Expanded(
-                                  child: Text('Cronologia posizioni', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5, color: AppTheme.textPrimary)),
-                                ),
-                                Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary),
-                              ],
-                            ),
+                        ),
+                        const SizedBox(height: 10),
+                        _LinkTile(
+                          icon: Icons.speed_rounded,
+                          label: 'Avvisi di guida',
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => SpeedAlertsScreen(person: person)),
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -102,7 +98,7 @@ class PersonDetailScreen extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(color: AppTheme.accentGreen.withOpacity(0.12), borderRadius: BorderRadius.circular(14)),
-        child: const Row(
+        child: Row(
           children: [
             Icon(Icons.check_circle, color: AppTheme.accentGreen, size: 18),
             SizedBox(width: 10),
@@ -116,7 +112,7 @@ class PersonDetailScreen extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(14)),
-        child: const Row(
+        child: Row(
           children: [
             Icon(Icons.visibility_off_outlined, color: AppTheme.textSecondary, size: 18),
             SizedBox(width: 10),
@@ -143,6 +139,33 @@ class PersonDetailScreen extends StatelessWidget {
   }
 }
 
+class _LinkTile extends StatelessWidget {
+  const _LinkTile({required this.icon, required this.label, required this.onTap});
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(14)),
+        child: Row(
+          children: [
+            Icon(icon, size: 19, color: AppTheme.textPrimary),
+            const SizedBox(width: 12),
+            Expanded(child: Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5, color: AppTheme.textPrimary))),
+            Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _InfoRow extends StatelessWidget {
   const _InfoRow({required this.icon, required this.label});
   final IconData icon;
@@ -154,7 +177,7 @@ class _InfoRow extends StatelessWidget {
       children: [
         Icon(icon, size: 17, color: AppTheme.textSecondary),
         const SizedBox(width: 10),
-        Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13.5)),
+        Text(label, style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5)),
       ],
     );
   }

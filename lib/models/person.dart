@@ -17,6 +17,7 @@ class Person {
     required this.mode,
     this.isMe = false,
     this.isPremium = false,
+    this.speedAlertKmh,
   });
 
   final String id;
@@ -38,6 +39,10 @@ class Person {
 
   /// Abbonamento Kinly+ attivo.
   final bool isPremium;
+
+  /// Soglia di velocità (km/h) oltre la quale si registra un avviso di
+  /// guida (Kinly+); null se questa persona non l'ha impostata.
+  final int? speedAlertKmh;
 
   String get initials {
     final parts = name.trim().split(RegExp(r'\s+'));
@@ -67,6 +72,7 @@ class Person {
       mode: mode ?? this.mode,
       isMe: isMe,
       isPremium: isPremium,
+      speedAlertKmh: speedAlertKmh,
     );
   }
 }

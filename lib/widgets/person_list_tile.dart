@@ -36,13 +36,13 @@ class PersonListTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(person.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.textPrimary)),
+                  Text(person.name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.textPrimary)),
                   const SizedBox(height: 2),
                   Text(
                     canSeeLocation ? '${person.address} · ${person.lastUpdateLabel}' : person.address,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
+                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
                   ),
                   if (showBadge) ...[
                     const SizedBox(height: 6),

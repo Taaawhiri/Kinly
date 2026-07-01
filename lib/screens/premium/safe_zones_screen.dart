@@ -56,7 +56,7 @@ class SafeZonesScreen extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             isPremium ? 'Nessuna area sicura' : 'Funzione Kinly+',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
           ),
           const SizedBox(height: 8),
           Text(
@@ -64,7 +64,7 @@ class SafeZonesScreen extends StatelessWidget {
                 ? 'Crea un\'area (ad esempio casa o scuola) per ricevere una notifica quando qualcuno entra o esce.'
                 : 'Passa a Kinly+ per creare aree sicure e ricevere una notifica quando qualcuno arriva o esce da un luogo.',
             textAlign: TextAlign.center,
-            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13.5, height: 1.4),
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5, height: 1.4),
           ),
           const SizedBox(height: 24),
           FilledButton(
@@ -128,8 +128,8 @@ class _SafeZoneCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(zone.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
-                    Text('Raggio ${zone.radiusMeters} m', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                    Text(zone.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                    Text('Raggio ${zone.radiusMeters} m', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
                   ],
                 ),
               ),
@@ -154,7 +154,7 @@ class _SafeZoneCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   lastEvent.type == SafeZoneEventType.enter ? 'Ultimo ingresso registrato' : 'Ultima uscita registrata',
-                  style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
               ],
             ),
@@ -256,7 +256,7 @@ class _CreateSafeZoneSheetState extends State<_CreateSafeZoneSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Nuova area sicura', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+            Text('Nuova area sicura', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
             const SizedBox(height: 16),
             TextField(
               controller: _nameController,
@@ -270,7 +270,7 @@ class _CreateSafeZoneSheetState extends State<_CreateSafeZoneSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            Text('Raggio: ${_radius.round()} m', style: const TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+            Text('Raggio: ${_radius.round()} m', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
             Slider(
               value: _radius,
               min: 30,
@@ -292,7 +292,7 @@ class _CreateSafeZoneSheetState extends State<_CreateSafeZoneSheet> {
               const SizedBox(height: 8),
               Text(
                 _addressLabel ?? '${_lat!.toStringAsFixed(4)}, ${_lng!.toStringAsFixed(4)}',
-                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
               ),
             ],
             if (_error != null) ...[

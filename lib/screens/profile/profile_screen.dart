@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../models/sharing_mode.dart';
 import '../../state/app_state.dart';
+import '../../state/theme_controller.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/person_avatar.dart';
 import '../circles/circles_screen.dart';
 import '../premium/paywall_screen.dart';
+import 'help_support_screen.dart';
+import 'privacy_security_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -12,7 +15,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: AppState.instance,
+      listenable: Listenable.merge([AppState.instance, ThemeController.instance]),
       builder: (context, _) {
         final state = AppState.instance;
         return Scaffold(
@@ -27,13 +30,17 @@ class ProfileScreen extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(state.me.name, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
-                      Text('${state.circles.length} cerchie attive', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+                      Text(state.me.name, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+                      Text('${state.circles.length} cerchie attive', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
                     ],
                   ),
                 ],
               ),
               const SizedBox(height: 28),
+              const _Header('Aspetto'),
+              const SizedBox(height: 10),
+              _AppearancePicker(preference: ThemeController.instance.preference),
+              const SizedBox(height: 24),
               const _Header('Modalità di condivisione'),
               const SizedBox(height: 10),
               for (final mode in SharingMode.values)
@@ -81,9 +88,17 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 24),
               const _Header('Altro'),
               const SizedBox(height: 10),
-              _NavCard(icon: Icons.shield_outlined, label: 'Privacy e sicurezza', onTap: () {}),
+              _NavCard(
+                icon: Icons.shield_outlined,
+                label: 'Privacy e sicurezza',
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PrivacySecurityScreen())),
+              ),
               const SizedBox(height: 10),
-              _NavCard(icon: Icons.help_outline_rounded, label: 'Aiuto e assistenza', onTap: () {}),
+              _NavCard(
+                icon: Icons.help_outline_rounded,
+                label: 'Aiuto e assistenza',
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpSupportScreen())),
+              ),
               const SizedBox(height: 10),
               _NavCard(
                 icon: Icons.logout_rounded,
@@ -108,7 +123,65 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary));
+    return Text(text, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary));
+  }
+}
+
+class _AppearancePicker extends StatelessWidget {
+  const _AppearancePicker({required this.preference});
+  final AppThemePreference preference;
+
+  static const _options = [
+    (AppThemePreference.system, Icons.brightness_auto_rounded, 'Sistema'),
+    (AppThemePreference.light, Icons.light_mode_rounded, 'Chiaro'),
+    (AppThemePreference.dark, Icons.dark_mode_rounded, 'Scuro'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (final option in _options) ...[
+          Expanded(child: _AppearanceOption(option: option, selected: preference == option.$1)),
+          if (option != _options.last) const SizedBox(width: 10),
+        ],
+      ],
+    );
+  }
+}
+
+class _AppearanceOption extends StatelessWidget {
+  const _AppearanceOption({required this.option, required this.selected});
+  final (AppThemePreference, IconData, String) option;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => ThemeController.instance.setPreference(option.$1),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: selected ? AppTheme.primary : Colors.transparent, width: 1.6),
+        ),
+        child: Column(
+          children: [
+            Icon(option.$2, size: 20, color: selected ? AppTheme.primary : AppTheme.textSecondary),
+            const SizedBox(height: 6),
+            Text(
+              option.$3,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: selected ? AppTheme.primary : AppTheme.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -145,8 +218,8 @@ class _ModeCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(mode.label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
-                  Text(mode.description, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.3)),
+                  Text(mode.label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
+                  Text(mode.description, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.3)),
                 ],
               ),
             ),
@@ -223,8 +296,8 @@ class _PremiumTeaser extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(f.$2, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary)),
-                        Text(f.$3, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, height: 1.3)),
+                        Text(f.$2, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary)),
+                        Text(f.$3, style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, height: 1.3)),
                       ],
                     ),
                   ),

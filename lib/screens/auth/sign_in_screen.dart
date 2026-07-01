@@ -77,12 +77,12 @@ class _SignInScreenState extends State<SignInScreen> {
               const SizedBox(height: 24),
               const KinlyLogo(size: 96),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Kinly',
                 style: TextStyle(fontSize: 34, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -0.5),
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 'La tua posizione, solo con chi conta davvero.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 15.5, color: AppTheme.textSecondary, height: 1.4),

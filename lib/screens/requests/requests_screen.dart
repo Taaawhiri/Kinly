@@ -55,7 +55,7 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
-      child: Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
+      child: Text(title, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
     );
   }
 }
@@ -79,7 +79,7 @@ class _IncomingCard extends StatelessWidget {
               Expanded(
                 child: RichText(
                   text: TextSpan(
-                    style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
+                    style: TextStyle(color: AppTheme.textPrimary, fontSize: 14),
                     children: [
                       TextSpan(text: person.name, style: const TextStyle(fontWeight: FontWeight.w800)),
                       const TextSpan(text: ' vuole vedere dove sei'),
@@ -133,8 +133,8 @@ class _OutgoingCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('In attesa di ${person.name}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
-                    const Text('Riceverai una notifica alla risposta', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                    Text('In attesa di ${person.name}', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
+                    Text('Riceverai una notifica alla risposta', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
                   ],
                 ),
               ),
@@ -164,7 +164,7 @@ class _HistoryTile extends StatelessWidget {
           PersonAvatar(person: person, size: 36, showStatusDot: false),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(directionLabel, style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary)),
+            child: Text(directionLabel, style: TextStyle(fontSize: 13, color: AppTheme.textPrimary)),
           ),
           Icon(
             accepted ? Icons.check_circle_outline : Icons.cancel_outlined,
@@ -209,9 +209,9 @@ class _EmptyState extends StatelessWidget {
           children: [
             Icon(Icons.mail_outline_rounded, size: 48, color: AppTheme.textSecondary.withOpacity(0.5)),
             const SizedBox(height: 14),
-            const Text('Nessuna richiesta', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
+            Text('Nessuna richiesta', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Quando qualcuno vorrà vedere la tua posizione, o tu quella di qualcun altro, la richiesta apparirà qui.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),

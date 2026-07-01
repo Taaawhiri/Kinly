@@ -23,9 +23,9 @@ class SplashScreen extends StatelessWidget {
               if (error == null) ...[
                 const CircularProgressIndicator(),
               ] else ...[
-                const Icon(Icons.wifi_off_rounded, size: 32, color: AppTheme.textSecondary),
+                Icon(Icons.wifi_off_rounded, size: 32, color: AppTheme.textSecondary),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'Non riusciamo a contattare Kinly. Controlla la connessione e riprova.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5, height: 1.4),

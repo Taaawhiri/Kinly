@@ -1,5 +1,7 @@
 package com.kinly.app
 
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-class MainActivity: FlutterActivity()
+// local_auth (sblocco biometrico) richiede una FlutterFragmentActivity su
+// Android invece della normale FlutterActivity.
+class MainActivity: FlutterFragmentActivity()

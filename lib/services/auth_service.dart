@@ -30,4 +30,13 @@ class AuthService {
   }
 
   Future<void> signOut() => supabase.auth.signOut();
+
+  /// Cambia la password dell'account già autenticato.
+  Future<void> updatePassword(String newPassword) async {
+    await supabase.auth.updateUser(UserAttributes(password: newPassword));
+  }
+
+  /// Chiude tutte le sessioni tranne quella corrente (es. se hai fatto
+  /// accesso da un altro telefono e vuoi disconnetterlo da qui).
+  Future<void> signOutOtherSessions() => supabase.auth.signOut(scope: SignOutScope.others);
 }

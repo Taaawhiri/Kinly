@@ -47,10 +47,17 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                       MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: personId)),
                     ),
                   ),
+                  // Align forza dei vincoli "loose" sul figlio: senza, lo
+                  // Stack (fit: expand) costringerebbe il CustomPaint del
+                  // logo a riempire tutto lo schermo (e a "rubare" i gesti
+                  // di pan/zoom destinati alla mappa sottostante).
                   const SafeArea(
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
-                      child: KinlyLogo(size: 34),
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(16, 12, 0, 0),
+                        child: KinlyLogo(size: 34),
+                      ),
                     ),
                   ),
                   // La barra delle cerchie segue il bordo superiore del
@@ -105,7 +112,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                     snapSizes: const [_sheetMinSize, _sheetInitialSize, _sheetMaxSize],
                     builder: (context, scrollController) {
                       return Container(
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppTheme.surface,
                           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                           boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 16, offset: Offset(0, -4))],
@@ -119,9 +126,9 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                               padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                               child: Row(
                                 children: [
-                                  const Text('La tua cerchia', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
+                                  Text('La tua cerchia', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
                                   const Spacer(),
-                                  Text('${people.length} persone', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                                  Text('${people.length} persone', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
                                 ],
                               ),
                             ),

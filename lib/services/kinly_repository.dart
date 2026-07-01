@@ -44,6 +44,12 @@ class KinlyRepository {
     await supabase.from('profiles').update({'battery_percent': percent}).eq('id', _myId);
   }
 
+  /// Imposta la mia soglia di velocità (Kinly+ per chi la guarda): null
+  /// disattiva gli avvisi.
+  Future<void> updateSpeedAlert(int? kmh) async {
+    await supabase.from('profiles').update({'speed_alert_kmh': kmh}).eq('id', _myId);
+  }
+
   // ---------------------------------------------------------------------
   // Cerchie
   // ---------------------------------------------------------------------
@@ -137,12 +143,13 @@ class KinlyRepository {
     return supabase.from('locations').select().inFilter('profile_id', ids);
   }
 
-  Future<void> upsertMyLocation({required double lat, required double lng, String? address}) async {
+  Future<void> upsertMyLocation({required double lat, required double lng, String? address, double? speedKmh}) async {
     await supabase.from('locations').upsert({
       'profile_id': _myId,
       'lat': lat,
       'lng': lng,
       'address': address,
+      'speed_kmh': speedKmh,
       'updated_at': DateTime.now().toIso8601String(),
     });
   }
@@ -209,6 +216,36 @@ class KinlyRepository {
   }
 
   // ---------------------------------------------------------------------
+  // Avvisi di guida (Kinly+)
+  // ---------------------------------------------------------------------
+
+  /// Avvisi registrati: se non sono premium, la RLS ritorna una lista
+  /// vuota invece di un errore (stessa logica di fetchLocationHistory).
+  Future<List<Map<String, dynamic>>> fetchSpeedEvents({int limit = 50}) async {
+    return supabase.from('speed_events').select().order('occurred_at', ascending: false).limit(limit);
+  }
+
+  Future<void> recordSpeedEvent({required double speedKmh, required double thresholdKmh}) async {
+    await supabase.from('speed_events').insert({
+      'profile_id': _myId,
+      'speed_kmh': speedKmh,
+      'threshold_kmh': thresholdKmh,
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Assistenza
+  // ---------------------------------------------------------------------
+
+  Future<List<Map<String, dynamic>>> fetchMySupportMessages() async {
+    return supabase.from('support_messages').select().order('created_at', ascending: false);
+  }
+
+  Future<void> sendSupportMessage(String message) async {
+    await supabase.from('support_messages').insert({'profile_id': _myId, 'message': message});
+  }
+
+  // ---------------------------------------------------------------------
   // Richieste di posizione
   // ---------------------------------------------------------------------
 
@@ -250,6 +287,7 @@ class KinlyRepository {
       'location_requests',
       'safe_zones',
       'safe_zone_events',
+      'speed_events',
     ]) {
       channel.onPostgresChanges(
         event: PostgresChangeEvent.all,

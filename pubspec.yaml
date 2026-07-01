@@ -15,6 +15,8 @@ dependencies:
   geocoding: ^4.0.0
   battery_plus: ^6.1.1
   maplibre_gl: ^0.26.2
+  local_auth: ^3.0.1
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:

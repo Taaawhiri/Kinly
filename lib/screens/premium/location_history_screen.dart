@@ -51,12 +51,12 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
             child: const Icon(Icons.history_rounded, color: AppTheme.primary, size: 32),
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Funzione Kinly+',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Passa a Kinly+ per rivedere dove sono stati i membri della cerchia nei giorni passati.',
             textAlign: TextAlign.center,
             style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5, height: 1.4),
@@ -80,7 +80,7 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
         }
         final points = snapshot.data ?? const [];
         if (points.isEmpty) {
-          return const Center(
+          return Center(
             child: Text('Ancora nessuno storico disponibile.', style: TextStyle(color: AppTheme.textSecondary)),
           );
         }
@@ -111,7 +111,7 @@ class _HistoryTile extends StatelessWidget {
             height: 36,
             decoration: BoxDecoration(shape: BoxShape.circle, color: AppTheme.surfaceAlt),
             alignment: Alignment.center,
-            child: const Icon(Icons.place_outlined, size: 17, color: AppTheme.textSecondary),
+            child: Icon(Icons.place_outlined, size: 17, color: AppTheme.textSecondary),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -120,9 +120,9 @@ class _HistoryTile extends StatelessWidget {
               children: [
                 Text(
                   point.address ?? '${point.lat.toStringAsFixed(4)}, ${point.lng.toStringAsFixed(4)}',
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary),
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary),
                 ),
-                Text(_formatTimestamp(point.recordedAt), style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                Text(_formatTimestamp(point.recordedAt), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
               ],
             ),
           ),

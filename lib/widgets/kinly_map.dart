@@ -65,7 +65,7 @@ class _KinlyMapState extends State<KinlyMap> {
       return Container(
         color: const Color(0xFFEEF1FA),
         alignment: Alignment.center,
-        child: const Text(
+        child: Text(
           'In attesa della posizione…',
           style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
         ),

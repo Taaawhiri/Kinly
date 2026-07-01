@@ -22,6 +22,10 @@ class LocationTracker {
   /// controllo dopo l'avvio (che non è una transizione reale).
   final Map<String, bool> _zoneInsideState = {};
 
+  /// Se ero già sopra la mia soglia di velocità all'ultimo controllo, per
+  /// registrare un avviso solo alla transizione sotto → sopra soglia.
+  bool _wasOverSpeedLimit = false;
+
   bool get isTracking => _positionSub != null;
 
   /// Chiede i permessi di localizzazione al sistema. Ritorna true se
@@ -61,13 +65,42 @@ class LocationTracker {
     _batteryTimer?.cancel();
     _batteryTimer = null;
     _zoneInsideState.clear();
+    _wasOverSpeedLimit = false;
   }
 
   Future<void> _onPosition(Position position) async {
     final address = await _reverseGeocode(position.latitude, position.longitude);
-    await KinlyRepository.instance.upsertMyLocation(lat: position.latitude, lng: position.longitude, address: address);
+    // Position.speed è in m/s e può essere impreciso/negativo da fermi:
+    // lo consideriamo solo se il GPS lo ritiene valido (>= 0).
+    final speedKmh = (position.speed.isFinite && position.speed >= 0) ? position.speed * 3.6 : null;
+    await KinlyRepository.instance.upsertMyLocation(
+      lat: position.latitude,
+      lng: position.longitude,
+      address: address,
+      speedKmh: speedKmh,
+    );
     unawaited(KinlyRepository.instance.appendLocationHistory(lat: position.latitude, lng: position.longitude, address: address));
     unawaited(_checkSafeZones(position));
+    if (speedKmh != null) unawaited(_checkSpeedAlert(speedKmh));
+  }
+
+  /// Confronta la velocità attuale con la mia soglia impostata e registra
+  /// un avviso solo quando la supero (non ad ogni aggiornamento).
+  Future<void> _checkSpeedAlert(double speedKmh) async {
+    final threshold = AppState.instance.me.speedAlertKmh;
+    if (threshold == null) {
+      _wasOverSpeedLimit = false;
+      return;
+    }
+    final isOver = speedKmh > threshold;
+    if (isOver && !_wasOverSpeedLimit) {
+      try {
+        await KinlyRepository.instance.recordSpeedEvent(speedKmh: speedKmh, thresholdKmh: threshold.toDouble());
+      } catch (_) {
+        // Non bloccare il tracciamento se la registrazione dell'evento fallisce.
+      }
+    }
+    _wasOverSpeedLimit = isOver;
   }
 
   /// Confronta la posizione attuale con le aree sicure delle mie cerchie e,

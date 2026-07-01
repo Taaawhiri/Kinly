@@ -52,7 +52,7 @@ class PaywallScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            const Text('Cosa include', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+            Text('Cosa include', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
             const SizedBox(height: 12),
             for (final f in _features)
               Container(
@@ -73,8 +73,8 @@ class PaywallScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(f.$2, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
-                          Text(f.$3, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.3)),
+                          Text(f.$2, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                          Text(f.$3, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.3)),
                         ],
                       ),
                     ),
@@ -92,7 +92,7 @@ class PaywallScreen extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -109,7 +109,7 @@ class PaywallScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Text('Disdici quando vuoi', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5)),
+                  Text('Disdici quando vuoi', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5)),
                 ],
               ),
             ),
@@ -120,7 +120,7 @@ class PaywallScreen extends StatelessWidget {
               child: const Text('Passa a Kinly+'),
             ),
             const SizedBox(height: 10),
-            const Center(
+            Center(
               child: Text(
                 'Anteprima del design: i pagamenti non sono ancora attivi.',
                 textAlign: TextAlign.center,

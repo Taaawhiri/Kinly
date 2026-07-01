@@ -99,9 +99,9 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Come si chiama?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+        Text('Come si chiama?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
         const SizedBox(height: 6),
-        const Text('Ad esempio "Famiglia" o "Weekend in montagna".', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5)),
+        Text('Ad esempio "Famiglia" o "Weekend in montagna".', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5)),
         const SizedBox(height: 20),
         TextField(
           controller: _nameController,
@@ -116,7 +116,7 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 28),
-        const Text('Icona', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+        Text('Icona', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
         const SizedBox(height: 10),
         Wrap(
           spacing: 12,
@@ -131,7 +131,7 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
           ],
         ),
         const SizedBox(height: 24),
-        const Text('Colore', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+        Text('Colore', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
         const SizedBox(height: 10),
         Wrap(
           spacing: 12,
@@ -186,9 +186,9 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
           child: Icon(circle.icon, color: Colors.white, size: 30),
         ),
         const SizedBox(height: 20),
-        Text('"${circle.name}" è pronta!', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+        Text('"${circle.name}" è pronta!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
         const SizedBox(height: 6),
-        const Text(
+        Text(
           'Condividi questo codice con chi vuoi invitare. Solo chi lo ha può entrare.',
           style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5, height: 1.4),
         ),
@@ -202,7 +202,7 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
             children: [
               Text(
                 circle.inviteCode,
-                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, letterSpacing: 2, color: AppTheme.textPrimary),
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, letterSpacing: 2, color: AppTheme.textPrimary),
               ),
               const SizedBox(height: 10),
               TextButton.icon(
