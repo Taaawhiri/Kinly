@@ -15,6 +15,7 @@ import '../models/support_message.dart';
 import '../services/auth_service.dart';
 import '../services/kinly_repository.dart';
 import '../services/location_tracker.dart';
+import '../services/push_notification_service.dart';
 import '../utils/circle_icons.dart';
 import '../utils/color_hex.dart';
 
@@ -102,6 +103,7 @@ class AppState extends ChangeNotifier {
 
     _channel ??= _repo.subscribeToChanges(_scheduleRefresh);
     unawaited(LocationTracker.instance.start());
+    unawaited(PushNotificationService.instance.initialize());
   }
 
   Future<void> _refreshData() async {
@@ -256,6 +258,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> logOut() async {
     await LocationTracker.instance.stop();
+    await PushNotificationService.instance.unregister();
     await _channel?.unsubscribe();
     _channel = null;
     _refreshDebounce?.cancel();

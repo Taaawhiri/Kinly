@@ -215,6 +215,18 @@ create table if not exists public.sos_trusted_contacts (
   check (profile_id <> contact_id)
 );
 
+-- Token FCM (Firebase Cloud Messaging) per dispositivo, per l'invio di
+-- notifiche push reali (SOS, aree sicure, richieste di posizione). Un
+-- profilo può avere più righe (più dispositivi); l'invio effettivo lo fa
+-- una Edge Function con la service_role key, non il client.
+create table if not exists public.device_tokens (
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  token text not null,
+  platform text not null default 'android' check (platform in ('android', 'ios', 'web')),
+  updated_at timestamptz not null default now(),
+  primary key (profile_id, token)
+);
+
 create index if not exists circle_members_profile_idx on public.circle_members (profile_id);
 create index if not exists location_requests_requester_idx on public.location_requests (requester_id);
 create index if not exists location_requests_target_idx on public.location_requests (target_id);
@@ -455,6 +467,7 @@ alter table public.meeting_points enable row level security;
 alter table public.meeting_point_arrivals enable row level security;
 alter table public.sos_alerts enable row level security;
 alter table public.sos_trusted_contacts enable row level security;
+alter table public.device_tokens enable row level security;
 
 -- Ogni policy è preceduta da un "drop if exists" così l'intero script è
 -- rieseguibile senza errori (es. dopo averlo modificato) anche se le
@@ -675,6 +688,24 @@ create policy "sos_trusted_contacts_insert_own" on public.sos_trusted_contacts
 
 drop policy if exists "sos_trusted_contacts_delete_own" on public.sos_trusted_contacts;
 create policy "sos_trusted_contacts_delete_own" on public.sos_trusted_contacts
+  for delete using (profile_id = auth.uid());
+
+-- device_tokens: ognuno gestisce solo i propri token. La Edge Function che
+-- invia le notifiche usa la service_role key, che scavalca la RLS.
+drop policy if exists "device_tokens_select_own" on public.device_tokens;
+create policy "device_tokens_select_own" on public.device_tokens
+  for select using (profile_id = auth.uid());
+
+drop policy if exists "device_tokens_insert_own" on public.device_tokens;
+create policy "device_tokens_insert_own" on public.device_tokens
+  for insert with check (profile_id = auth.uid());
+
+drop policy if exists "device_tokens_update_own" on public.device_tokens;
+create policy "device_tokens_update_own" on public.device_tokens
+  for update using (profile_id = auth.uid()) with check (profile_id = auth.uid());
+
+drop policy if exists "device_tokens_delete_own" on public.device_tokens;
+create policy "device_tokens_delete_own" on public.device_tokens
   for delete using (profile_id = auth.uid());
 
 -- =========================================================================

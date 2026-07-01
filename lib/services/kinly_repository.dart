@@ -323,6 +323,21 @@ class KinlyRepository {
   }
 
   // ---------------------------------------------------------------------
+  // Token per le notifiche push (Firebase Cloud Messaging)
+  // ---------------------------------------------------------------------
+
+  Future<void> upsertDeviceToken(String token) async {
+    await supabase.from('device_tokens').upsert(
+      {'profile_id': _myId, 'token': token, 'updated_at': DateTime.now().toIso8601String()},
+      onConflict: 'profile_id,token',
+    );
+  }
+
+  Future<void> deleteDeviceToken(String token) async {
+    await supabase.from('device_tokens').delete().eq('profile_id', _myId).eq('token', token);
+  }
+
+  // ---------------------------------------------------------------------
   // Contatti SOS di fiducia
   // ---------------------------------------------------------------------
 

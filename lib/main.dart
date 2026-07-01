@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/auth/biometric_lock_screen.dart';
@@ -14,6 +15,14 @@ import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    // Configurato via android/app/google-services.json: su piattaforme
+    // senza quel file (es. web/desktop in sviluppo) fallisce in modo
+    // innocuo e l'app parte comunque, solo senza notifiche push.
+    await Firebase.initializeApp();
+  } catch (_) {
+    // Vedi PushNotificationService.initialize per lo stesso principio.
+  }
   await initSupabase();
   await ThemeController.instance.load();
   runApp(const KinlyApp());
