@@ -10,6 +10,7 @@ import '../onboarding/create_circle_screen.dart';
 import '../onboarding/join_circle_screen.dart';
 import '../people/person_detail_screen.dart';
 import '../premium/safe_zones_screen.dart';
+import 'circle_expenses_screen.dart';
 import 'circle_messages_screen.dart';
 import 'meeting_point_screen.dart';
 
@@ -228,6 +229,11 @@ class _CircleCard extends StatelessWidget {
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleMessagesScreen(circle: circle))),
                 icon: Icon(Icons.forum_outlined, size: 18, color: AppTheme.textSecondary),
                 tooltip: 'Messaggi',
+              ),
+              IconButton(
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleExpensesScreen(circle: circle))),
+                icon: Icon(Icons.receipt_long_outlined, size: 18, color: AppTheme.textSecondary),
+                tooltip: 'Spese di gruppo',
               ),
             ],
           ),

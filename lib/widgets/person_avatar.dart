@@ -76,6 +76,21 @@ class PersonAvatar extends StatelessWidget {
                 child: Icon(activity.icon, size: size * 0.2, color: Colors.white),
               ),
             ),
+          if (canSeeLocation && (person.isBirthdayToday || person.hasActiveStatus))
+            Positioned(
+              left: -size * 0.04,
+              top: -size * 0.04,
+              child: Container(
+                width: size * 0.34,
+                height: size * 0.34,
+                decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+                alignment: Alignment.center,
+                child: Text(
+                  person.isBirthdayToday ? '🎂' : person.statusEmoji!,
+                  style: TextStyle(fontSize: size * 0.22),
+                ),
+              ),
+            ),
           if (showLowBattery)
             Positioned(
               right: -size * 0.04,

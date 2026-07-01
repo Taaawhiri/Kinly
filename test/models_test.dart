@@ -13,7 +13,7 @@ void main() {
   group('CircleGroup.fromRow', () {
     test('converte icon_key e color dal formato del database', () {
       final circle = CircleGroup.fromRow(
-        {'id': 'c1', 'name': 'Famiglia', 'icon_key': 'favorite', 'color': '#E8608A', 'invite_code': 'FAM-7Q2K'},
+        {'id': 'c1', 'name': 'Famiglia', 'icon_key': 'favorite', 'color': '#E8608A', 'invite_code': 'FAM-7Q2K', 'created_by': 'me'},
         memberIds: const ['me', 'mamma'],
       );
 
@@ -24,7 +24,7 @@ void main() {
 
     test('usa dei valori di default se icon_key o color mancano', () {
       final circle = CircleGroup.fromRow(
-        {'id': 'c1', 'name': 'Amici', 'invite_code': 'AMI-P91X'},
+        {'id': 'c1', 'name': 'Amici', 'invite_code': 'AMI-P91X', 'created_by': 'me'},
         memberIds: const [],
       );
 

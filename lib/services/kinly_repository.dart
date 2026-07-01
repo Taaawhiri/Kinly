@@ -28,13 +28,43 @@ class KinlyRepository {
   // Profilo
   // ---------------------------------------------------------------------
 
+  /// Legge da `profiles_view` (non dalla tabella grezza): stesse colonne di
+  /// `profiles`, più `effective_is_premium` calcolato lato server (tiene
+  /// conto anche del beneficio ereditato dal piano Family di chi ha creato
+  /// la cerchia, vedi `is_effectively_premium` nello schema).
   Future<Map<String, dynamic>> fetchMyProfile() async {
-    return supabase.from('profiles').select().eq('id', _myId).single();
+    return supabase.from('profiles_view').select().eq('id', _myId).single();
   }
 
   Future<List<Map<String, dynamic>>> fetchProfiles(List<String> ids) async {
     if (ids.isEmpty) return [];
-    return supabase.from('profiles').select().inFilter('id', ids);
+    return supabase.from('profiles_view').select().inFilter('id', ids);
+  }
+
+  Future<void> updateBirthday(DateTime? birthday) async {
+    await supabase.from('profiles').update({
+      'birthday': birthday == null ? null : '${birthday.year.toString().padLeft(4, '0')}-${birthday.month.toString().padLeft(2, '0')}-${birthday.day.toString().padLeft(2, '0')}',
+    }).eq('id', _myId);
+  }
+
+  Future<void> updatePaymentLink(String? link) async {
+    await supabase.from('profiles').update({'payment_link': link}).eq('id', _myId);
+  }
+
+  /// Imposta il mio stato del momento: scade automaticamente a mezzanotte
+  /// locale, senza bisogno di un'azione per toglierlo.
+  Future<void> updateStatus({required String emoji, String? text}) async {
+    final now = DateTime.now();
+    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    await supabase.from('profiles').update({
+      'status_emoji': emoji,
+      'status_text': text,
+      'status_expires_at': endOfDay.toUtc().toIso8601String(),
+    }).eq('id', _myId);
+  }
+
+  Future<void> clearStatus() async {
+    await supabase.from('profiles').update({'status_emoji': null, 'status_text': null, 'status_expires_at': null}).eq('id', _myId);
   }
 
   Future<void> setSharingMode(SharingMode mode) async {
@@ -474,6 +504,104 @@ class KinlyRepository {
   }
 
   // ---------------------------------------------------------------------
+  // Ping contestuali e incontri (High five)
+  // ---------------------------------------------------------------------
+
+  Future<List<Map<String, dynamic>>> fetchPings({int limit = 30}) async {
+    return supabase.from('pings').select().order('created_at', ascending: false).limit(limit);
+  }
+
+  Future<void> sendPing({required String toId, required String kind}) async {
+    await supabase.from('pings').insert({'from_id': _myId, 'to_id': toId, 'kind': kind});
+  }
+
+  Future<List<Map<String, dynamic>>> fetchEncounters({int limit = 20}) async {
+    return supabase.from('encounters').select().order('created_at', ascending: false).limit(limit);
+  }
+
+  // ---------------------------------------------------------------------
+  // "Portami qualcosa": cache POI + soste + richieste
+  // ---------------------------------------------------------------------
+
+  /// Cella di ~11m (4 decimali) usata come chiave della cache condivisa.
+  String poiCellKey(double lat, double lng) => '${lat.toStringAsFixed(4)},${lng.toStringAsFixed(4)}';
+
+  Future<Map<String, dynamic>?> fetchPoiCache(String cellKey) async {
+    final rows = await supabase.from('poi_cache').select().eq('cell_key', cellKey).limit(1);
+    return rows.isEmpty ? null : rows.first;
+  }
+
+  Future<void> upsertPoiCache({required String cellKey, required String category, String? placeName}) async {
+    await supabase.from('poi_cache').upsert({
+      'cell_key': cellKey,
+      'category': category,
+      'place_name': placeName,
+      'fetched_at': DateTime.now().toIso8601String(),
+    }, onConflict: 'cell_key');
+  }
+
+  Future<List<Map<String, dynamic>>> fetchShoppingStops() async {
+    return supabase.from('shopping_stops').select().order('created_at', ascending: false).limit(50);
+  }
+
+  Future<void> recordShoppingStop({
+    required String circleId,
+    required String category,
+    String? placeName,
+    required double lat,
+    required double lng,
+  }) async {
+    await supabase.from('shopping_stops').insert({
+      'profile_id': _myId,
+      'circle_id': circleId,
+      'category': category,
+      'place_name': placeName,
+      'lat': lat,
+      'lng': lng,
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> fetchShoppingRequests() async {
+    return supabase.from('shopping_requests').select().order('created_at', ascending: false).limit(50);
+  }
+
+  Future<void> sendShoppingRequest({required String stopId, required String note}) async {
+    await supabase.from('shopping_requests').insert({'stop_id': stopId, 'from_id': _myId, 'note': note});
+  }
+
+  // ---------------------------------------------------------------------
+  // Spese di gruppo (Splitwise)
+  // ---------------------------------------------------------------------
+
+  Future<List<Map<String, dynamic>>> fetchCircleExpenses() async {
+    return supabase.from('circle_expenses').select().order('created_at', ascending: false).limit(200);
+  }
+
+  Future<List<Map<String, dynamic>>> fetchExpenseShares() async {
+    return supabase.from('expense_shares').select();
+  }
+
+  Future<void> createExpense({
+    required String circleId,
+    required String description,
+    required double amount,
+    required Map<String, double> sharesByProfileId,
+  }) async {
+    final expense = await supabase
+        .from('circle_expenses')
+        .insert({'circle_id': circleId, 'paid_by': _myId, 'description': description, 'amount': amount})
+        .select()
+        .single();
+    await supabase.from('expense_shares').insert([
+      for (final entry in sharesByProfileId.entries) {'expense_id': expense['id'], 'profile_id': entry.key, 'share_amount': entry.value},
+    ]);
+  }
+
+  Future<void> deleteExpense(String id) async {
+    await supabase.from('circle_expenses').delete().eq('id', id);
+  }
+
+  // ---------------------------------------------------------------------
   // Realtime: un unico canale che avvisa di qualunque cambiamento
   // rilevante, così l'app può ricaricare i dati e restare aggiornata.
   // ---------------------------------------------------------------------
@@ -494,6 +622,12 @@ class KinlyRepository {
       'sos_alerts',
       'circle_messages',
       'help_requests',
+      'pings',
+      'encounters',
+      'shopping_stops',
+      'shopping_requests',
+      'circle_expenses',
+      'expense_shares',
     ]) {
       channel.onPostgresChanges(
         event: PostgresChangeEvent.all,

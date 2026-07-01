@@ -21,6 +21,19 @@ extension ActivityStatusData on ActivityStatus {
   }
 }
 
+/// Livello di abbonamento posseduto DIRETTAMENTE dal profilo (non tiene
+/// conto del beneficio ereditato da un piano Family altrui: per quello vedi
+/// [Person.isPremium], già "effettivo").
+enum PremiumTier { none, individual, family }
+
+extension PremiumTierData on PremiumTier {
+  static PremiumTier fromDb(String? value) => switch (value) {
+        'individual' => PremiumTier.individual,
+        'family' => PremiumTier.family,
+        _ => PremiumTier.none,
+      };
+}
+
 /// Un membro della tua cerchia (o tu stesso).
 class Person {
   const Person({
@@ -41,6 +54,12 @@ class Person {
     this.speedKmh,
     this.avatarKey,
     this.isAdmin = false,
+    this.birthday,
+    this.statusEmoji,
+    this.statusText,
+    this.statusExpiresAt,
+    this.paymentLink,
+    this.premiumTier = PremiumTier.none,
   });
 
   final String id;
@@ -83,6 +102,34 @@ class Person {
   /// supporto (vedi AdminSupportInboxScreen), non solo ai propri.
   final bool isAdmin;
 
+  /// Data di nascita (opzionale, la sceglie l'utente): solo mese e giorno
+  /// contano, per mostrare un'iconcina di compleanno nel giorno giusto.
+  final DateTime? birthday;
+
+  /// Stato personalizzato del momento (emoji + testo breve, es. "🎉" +
+  /// "con gli amici"): valido solo finché [statusExpiresAt] non è passato.
+  final String? statusEmoji;
+  final String? statusText;
+  final DateTime? statusExpiresAt;
+
+  /// Link personale di pagamento (Satispay, PayPal.me...), usato solo per
+  /// "Spese di gruppo": null se non l'ha impostato.
+  final String? paymentLink;
+
+  /// Livello di abbonamento posseduto direttamente (non l'effettivo: vedi
+  /// [isPremium]). Usato solo dalla pagina Kinly+ per mostrare quale piano
+  /// è davvero attivo.
+  final PremiumTier premiumTier;
+
+  bool get hasActiveStatus => statusEmoji != null && statusExpiresAt != null && statusExpiresAt!.isAfter(DateTime.now());
+
+  bool get isBirthdayToday {
+    final b = birthday;
+    if (b == null) return false;
+    final now = DateTime.now();
+    return b.month == now.month && b.day == now.day;
+  }
+
   /// Dedotto dall'ultima velocità nota: nessuna soglia se non condivide o
   /// non c'è ancora un dato di velocità.
   ActivityStatus get activityStatus {
@@ -116,6 +163,12 @@ class Person {
     bool clearSpeedAlertKmh = false,
     String? avatarKey,
     bool clearAvatarKey = false,
+    DateTime? birthday,
+    String? statusEmoji,
+    String? statusText,
+    DateTime? statusExpiresAt,
+    bool clearStatus = false,
+    String? paymentLink,
   }) {
     return Person(
       id: id,
@@ -135,6 +188,12 @@ class Person {
       speedKmh: speedKmh,
       avatarKey: clearAvatarKey ? null : (avatarKey ?? this.avatarKey),
       isAdmin: isAdmin,
+      birthday: birthday ?? this.birthday,
+      statusEmoji: clearStatus ? null : (statusEmoji ?? this.statusEmoji),
+      statusText: clearStatus ? null : (statusText ?? this.statusText),
+      statusExpiresAt: clearStatus ? null : (statusExpiresAt ?? this.statusExpiresAt),
+      paymentLink: paymentLink ?? this.paymentLink,
+      premiumTier: premiumTier,
     );
   }
 }

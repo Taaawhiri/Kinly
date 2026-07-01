@@ -1,16 +1,20 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/circle_expense.dart';
 import '../models/circle_group.dart';
 import '../models/circle_message.dart';
+import '../models/encounter.dart';
 import '../models/help_request.dart';
 import '../models/location_history_point.dart';
 import '../models/location_request.dart';
 import '../models/meeting_point.dart';
 import '../models/person.dart';
+import '../models/ping.dart';
 import '../models/routine_anomaly.dart';
 import '../models/safe_zone.dart';
 import '../models/sharing_mode.dart';
+import '../models/shopping_stop.dart';
 import '../models/sos_alert.dart';
 import '../models/speed_event.dart';
 import '../models/support_message.dart';
@@ -49,6 +53,14 @@ class AppState extends ChangeNotifier {
   Set<String> _sosTrustedContactIds = {};
   List<CircleMessage> _circleMessages = [];
   List<HelpRequest> _helpRequests = [];
+  List<Ping> _pings = [];
+  List<Encounter> _encounters = [];
+  List<ShoppingStop> _shoppingStops = [];
+  List<ShoppingRequest> _shoppingRequests = [];
+  List<CircleExpense> _circleExpenses = [];
+  List<ExpenseShare> _expenseShares = [];
+  final Set<String> _dismissedPingIds = {};
+  final Set<String> _dismissedEncounterIds = {};
   TimeOfDay? _autoGhostStart;
   TimeOfDay? _autoGhostEnd;
 
@@ -59,6 +71,26 @@ class AppState extends ChangeNotifier {
   bool get hasCircles => _circles.isNotEmpty;
   bool get isPremium => me.isPremium;
   bool get isAdmin => me.isAdmin;
+
+  /// Piano posseduto direttamente (non l'effettivo): usato dalla pagina
+  /// Kinly+ per capire quale dei tre livelli è davvero il mio, distinto dal
+  /// beneficio Family eventualmente ereditato da qualcun altro.
+  PremiumTier get myPremiumTier => me.premiumTier;
+
+  /// Vero se sono Kinly+ solo perché membro di una cerchia il cui creatore
+  /// ha il piano Family (non ho un abbonamento mio).
+  bool get isFamilyBeneficiary => me.premiumTier == PremiumTier.none && me.isPremium;
+
+  /// Nome di chi paga il piano Family da cui beneficio, se è così.
+  String? get familyPlanOwnerName {
+    if (!isFamilyBeneficiary) return null;
+    for (final circle in _circles) {
+      if (circle.createdBy == me.id) continue;
+      final owner = personById(circle.createdBy);
+      if (owner?.premiumTier == PremiumTier.family) return owner!.name;
+    }
+    return null;
+  }
 
   Person get me => _me ?? _placeholderMe();
   List<Person> get others => List.unmodifiable(_others);
@@ -198,6 +230,24 @@ class AppState extends ChangeNotifier {
       final helpRequestRows = await _repo.fetchHelpRequests();
       _helpRequests = helpRequestRows.map(HelpRequest.fromRow).toList();
 
+      final pingRows = await _repo.fetchPings();
+      _pings = pingRows.map(Ping.fromRow).toList();
+
+      final encounterRows = await _repo.fetchEncounters();
+      _encounters = encounterRows.map(Encounter.fromRow).toList();
+
+      final shoppingStopRows = await _repo.fetchShoppingStops();
+      _shoppingStops = shoppingStopRows.map(ShoppingStop.fromRow).toList();
+
+      final shoppingRequestRows = await _repo.fetchShoppingRequests();
+      _shoppingRequests = shoppingRequestRows.map(ShoppingRequest.fromRow).toList();
+
+      final expenseRows = await _repo.fetchCircleExpenses();
+      _circleExpenses = expenseRows.map(CircleExpense.fromRow).toList();
+
+      final expenseShareRows = await _repo.fetchExpenseShares();
+      _expenseShares = expenseShareRows.map(ExpenseShare.fromRow).toList();
+
       loadError = null;
     } catch (e) {
       loadError = e.toString();
@@ -256,12 +306,18 @@ class AppState extends ChangeNotifier {
       isSharingWithMe: isSharingWithMe,
       mode: SharingModeData.fromDb(profile['sharing_mode'] as String? ?? 'automatic'),
       isMe: isMe,
-      isPremium: profile['is_premium'] as bool? ?? false,
+      isPremium: profile['effective_is_premium'] as bool? ?? profile['is_premium'] as bool? ?? false,
       speedAlertKmh: (profile['speed_alert_kmh'] as num?)?.toInt(),
       isFuzzyLocation: location?['is_fuzzy'] as bool? ?? false,
       speedKmh: (location?['speed_kmh'] as num?)?.toDouble(),
       avatarKey: profile['avatar_key'] as String?,
       isAdmin: profile['is_admin'] as bool? ?? false,
+      birthday: profile['birthday'] != null ? DateTime.parse(profile['birthday'] as String) : null,
+      statusEmoji: profile['status_emoji'] as String?,
+      statusText: profile['status_text'] as String?,
+      statusExpiresAt: profile['status_expires_at'] != null ? DateTime.parse(profile['status_expires_at'] as String) : null,
+      paymentLink: profile['payment_link'] as String?,
+      premiumTier: PremiumTierData.fromDb(profile['premium_tier'] as String?),
     );
   }
 
@@ -297,6 +353,14 @@ class AppState extends ChangeNotifier {
     _sosTrustedContactIds = {};
     _circleMessages = [];
     _helpRequests = [];
+    _pings = [];
+    _encounters = [];
+    _shoppingStops = [];
+    _shoppingRequests = [];
+    _circleExpenses = [];
+    _expenseShares = [];
+    _dismissedPingIds.clear();
+    _dismissedEncounterIds.clear();
     _autoGhostStart = null;
     _autoGhostEnd = null;
     activeCircleId = null;
@@ -341,6 +405,21 @@ class AppState extends ChangeNotifier {
     final circle = circleById(activeCircleId!);
     if (circle == null) return others;
     return _others.where((p) => circle.memberIds.contains(p.id)).toList();
+  }
+
+  /// Aree sicure visibili nella mappa live per la cerchia attiva, o tutte
+  /// se nessuna cerchia è selezionata.
+  List<SafeZone> visibleSafeZones() {
+    if (activeCircleId == null) return safeZones;
+    return _safeZones.where((z) => z.circleId == activeCircleId).toList();
+  }
+
+  /// Punti d'incontro ancora attivi (non scaduti) per la cerchia attiva, o
+  /// tutti se nessuna cerchia è selezionata.
+  List<MeetingPoint> visibleMeetingPoints() {
+    final active = _meetingPoints.where((p) => !p.isExpired);
+    if (activeCircleId == null) return active.toList();
+    return active.where((p) => p.circleId == activeCircleId).toList();
   }
 
   List<LocationRequest> get pendingIncoming =>
@@ -659,6 +738,148 @@ class AppState extends ChangeNotifier {
 
   Future<void> resolveHelpRequest(String id) async {
     await _repo.resolveHelpRequest(id);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  // ---------------------------------------------------------------------
+  // Compleanno, stato personalizzato, link di pagamento
+  // ---------------------------------------------------------------------
+
+  Future<void> setBirthday(DateTime? birthday) async {
+    if (_me != null) _me = _me!.copyWith(birthday: birthday);
+    notifyListeners();
+    await _repo.updateBirthday(birthday);
+    unawaited(_refreshData().then((_) => notifyListeners()));
+  }
+
+  Future<void> setPaymentLink(String? link) async {
+    if (_me != null) _me = _me!.copyWith(paymentLink: link);
+    notifyListeners();
+    await _repo.updatePaymentLink(link);
+    unawaited(_refreshData().then((_) => notifyListeners()));
+  }
+
+  /// Imposta il mio stato del momento (emoji + testo breve, opzionale):
+  /// scade da solo a fine giornata.
+  Future<void> setStatus({required String emoji, String? text}) async {
+    await _repo.updateStatus(emoji: emoji, text: text);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  Future<void> clearStatus() async {
+    await _repo.clearStatus();
+    await _refreshData();
+    notifyListeners();
+  }
+
+  // ---------------------------------------------------------------------
+  // Ping contestuali e incontri (High five)
+  // ---------------------------------------------------------------------
+
+  Future<void> sendPing({required String toId, required PingKind kind}) async {
+    await _repo.sendPing(toId: toId, kind: kind.dbValue);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  /// Ping ricevuti non ancora mostrati (non fatti sparire con [dismissPing]),
+  /// più recenti di 5 minuti: passata questa finestra non ha più senso
+  /// mostrare un banner per un tocco così effimero.
+  List<Ping> get incomingPings => _pings
+      .where((p) =>
+          p.toId == me.id && !_dismissedPingIds.contains(p.id) && DateTime.now().difference(p.createdAt) < const Duration(minutes: 5))
+      .toList();
+
+  void dismissPing(String id) {
+    _dismissedPingIds.add(id);
+    notifyListeners();
+  }
+
+  /// I miei incontri recenti (ultime 2 ore) non ancora fatti sparire.
+  List<Encounter> get recentEncounters => _encounters
+      .where((e) =>
+          (e.profileA == me.id || e.profileB == me.id) &&
+          !_dismissedEncounterIds.contains(e.id) &&
+          DateTime.now().difference(e.createdAt) < const Duration(hours: 2))
+      .toList();
+
+  void dismissEncounter(String id) {
+    _dismissedEncounterIds.add(id);
+    notifyListeners();
+  }
+
+  // ---------------------------------------------------------------------
+  // "Portami qualcosa"
+  // ---------------------------------------------------------------------
+
+  /// La mia sosta attiva più recente (se c'è), per mostrarmi le richieste
+  /// ricevute.
+  ShoppingStop? get myActiveShoppingStop {
+    for (final s in _shoppingStops) {
+      if (s.profileId == me.id && s.isActive) return s;
+    }
+    return null;
+  }
+
+  /// Soste attive (recenti) di altri membri delle mie cerchie, per proporre
+  /// "hai bisogno di qualcosa?".
+  List<ShoppingStop> get othersActiveShoppingStops => _shoppingStops.where((s) => s.profileId != me.id && s.isActive).toList();
+
+  List<ShoppingRequest> requestsForStop(String stopId) => _shoppingRequests.where((r) => r.stopId == stopId).toList();
+
+  Future<void> sendShoppingRequest({required String stopId, required String note}) async {
+    await _repo.sendShoppingRequest(stopId: stopId, note: note);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  // ---------------------------------------------------------------------
+  // Spese di gruppo (Splitwise)
+  // ---------------------------------------------------------------------
+
+  List<CircleExpense> expensesForCircle(String circleId) =>
+      _circleExpenses.where((e) => e.circleId == circleId).toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+  List<ExpenseShare> sharesForExpense(String expenseId) => _expenseShares.where((s) => s.expenseId == expenseId).toList();
+
+  /// Saldo netto per ciascun membro della cerchia rispetto a me: positivo
+  /// se quella persona mi deve soldi, negativo se li devo io a lei. Calcolo
+  /// semplice fatto lato client (le cerchie sono piccole), senza bisogno di
+  /// una funzione dedicata sul database.
+  Map<String, double> netBalancesForCircle(String circleId) {
+    final balances = <String, double>{};
+    for (final expense in expensesForCircle(circleId)) {
+      final shares = sharesForExpense(expense.id);
+      for (final share in shares) {
+        if (share.profileId == me.id && expense.paidBy == me.id) continue;
+        if (share.profileId == me.id) {
+          // Ho una quota di una spesa pagata da qualcun altro: gli devo la
+          // mia quota.
+          balances[expense.paidBy] = (balances[expense.paidBy] ?? 0) - share.shareAmount;
+        } else if (expense.paidBy == me.id) {
+          // Ho pagato io: chi ha una quota mi deve quella cifra.
+          balances[share.profileId] = (balances[share.profileId] ?? 0) + share.shareAmount;
+        }
+      }
+    }
+    return balances;
+  }
+
+  Future<void> createExpense({
+    required String circleId,
+    required String description,
+    required double amount,
+    required Map<String, double> sharesByProfileId,
+  }) async {
+    await _repo.createExpense(circleId: circleId, description: description, amount: amount, sharesByProfileId: sharesByProfileId);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  Future<void> deleteExpense(String id) async {
+    await _repo.deleteExpense(id);
     await _refreshData();
     notifyListeners();
   }

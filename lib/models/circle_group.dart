@@ -13,6 +13,7 @@ class CircleGroup {
     required this.color,
     required this.memberIds,
     required this.inviteCode,
+    required this.createdBy,
   });
 
   factory CircleGroup.fromRow(Map<String, dynamic> row, {required List<String> memberIds}) {
@@ -23,6 +24,7 @@ class CircleGroup {
       color: ColorHex.fromHex(row['color'] as String? ?? '#4A63E7'),
       memberIds: memberIds,
       inviteCode: row['invite_code'] as String,
+      createdBy: row['created_by'] as String,
     );
   }
 
@@ -32,6 +34,7 @@ class CircleGroup {
   final Color color;
   final List<String> memberIds;
   final String inviteCode;
+  final String createdBy;
 
   CircleGroup copyWith({List<String>? memberIds}) {
     return CircleGroup(
@@ -41,6 +44,7 @@ class CircleGroup {
       color: color,
       memberIds: memberIds ?? this.memberIds,
       inviteCode: inviteCode,
+      createdBy: createdBy,
     );
   }
 }

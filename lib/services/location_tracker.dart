@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import '../state/app_state.dart';
 import 'background_tracking_settings.dart';
 import 'kinly_repository.dart';
@@ -56,6 +58,13 @@ class LocationTracker {
   static const _minHistoryInterval = Duration(minutes: 3);
   DateTime? _lastProcessedAt;
   DateTime? _lastHistoryAppendAt;
+
+  /// "Portami qualcosa": ultimo controllo del punto di interesse, per non
+  /// richiamare Nominatim (o anche solo la cache Supabase) ad ogni singolo
+  /// aggiornamento di posizione.
+  DateTime? _lastPoiCheckAt;
+  DateTime? _lastShoppingStopRecordedAt;
+  static const _shoppingCategories = {'supermarket', 'fast_food', 'cafe'};
 
   bool get isTracking => _positionSub != null;
 
@@ -167,6 +176,8 @@ class LocationTracker {
     _arrivedMeetingPointIds.clear();
     _lastProcessedAt = null;
     _lastHistoryAppendAt = null;
+    _lastPoiCheckAt = null;
+    _lastShoppingStopRecordedAt = null;
   }
 
   Future<void> _onPosition(Position position) async {
@@ -196,6 +207,85 @@ class LocationTracker {
     unawaited(_checkSafeZones(position));
     unawaited(_checkMeetingPoints(position));
     if (speedKmh != null) unawaited(_checkSpeedAlert(speedKmh));
+    unawaited(_checkPoi(position, speedKmh));
+  }
+
+  /// "Portami qualcosa": se sono fermo/a da un po' (probabilmente in un
+  /// negozio), guarda che tipo di posto è — prima nella cache condivisa,
+  /// poi via Nominatim solo se non l'ha ancora vista nessuno — e se è un
+  /// supermercato/bar/fast-food segnala una sosta alla cerchia.
+  Future<void> _checkPoi(Position position, double? speedKmh) async {
+    final isStationary = speedKmh == null || speedKmh < 3;
+    if (!isStationary) return;
+
+    final now = DateTime.now();
+    if (_lastPoiCheckAt != null && now.difference(_lastPoiCheckAt!) < const Duration(minutes: 10)) return;
+    _lastPoiCheckAt = now;
+
+    if (_lastShoppingStopRecordedAt != null && now.difference(_lastShoppingStopRecordedAt!) < const Duration(minutes: 30)) return;
+
+    try {
+      final repo = KinlyRepository.instance;
+      final cellKey = repo.poiCellKey(position.latitude, position.longitude);
+      final cached = await repo.fetchPoiCache(cellKey);
+
+      String category;
+      String? placeName;
+      if (cached != null && now.difference(DateTime.parse(cached['fetched_at'] as String)) < const Duration(days: 7)) {
+        category = cached['category'] as String;
+        placeName = cached['place_name'] as String?;
+      } else {
+        final result = await _reverseGeocodePoi(position.latitude, position.longitude);
+        category = result?.$1 ?? 'other';
+        placeName = result?.$2;
+        unawaited(repo.upsertPoiCache(cellKey: cellKey, category: category, placeName: placeName));
+      }
+
+      if (_shoppingCategories.contains(category)) {
+        _lastShoppingStopRecordedAt = now;
+        for (final circle in AppState.instance.circles) {
+          await repo.recordShoppingStop(
+            circleId: circle.id,
+            category: category,
+            placeName: placeName,
+            lat: position.latitude,
+            lng: position.longitude,
+          );
+        }
+      }
+    } catch (_) {
+      // Non bloccare il tracciamento se il rilevamento del punto di
+      // interesse fallisce (es. Nominatim non raggiungibile).
+    }
+  }
+
+  /// Interroga Nominatim per la categoria del luogo a queste coordinate.
+  /// Torna (categoria, nome del luogo) oppure null se non determinabile.
+  Future<(String, String?)?> _reverseGeocodePoi(double lat, double lng) async {
+    final uri = Uri.parse('https://nominatim.openstreetmap.org/reverse').replace(queryParameters: {
+      'lat': lat.toString(),
+      'lon': lng.toString(),
+      'format': 'jsonv2',
+      'zoom': '18',
+    });
+    final response = await http.get(uri, headers: {'User-Agent': 'KinlyApp/1.0'});
+    if (response.statusCode != 200) return null;
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final osmCategory = data['category'] as String?;
+    final osmType = data['type'] as String?;
+    final name = data['name'] as String?;
+
+    String category;
+    if (osmCategory == 'shop' && (osmType == 'supermarket' || osmType == 'convenience' || osmType == 'grocery')) {
+      category = 'supermarket';
+    } else if (osmCategory == 'amenity' && osmType == 'fast_food') {
+      category = 'fast_food';
+    } else if (osmCategory == 'amenity' && osmType == 'cafe') {
+      category = 'cafe';
+    } else {
+      category = 'other';
+    }
+    return (category, name);
   }
 
   /// Confronta la velocità attuale con la mia soglia impostata e registra

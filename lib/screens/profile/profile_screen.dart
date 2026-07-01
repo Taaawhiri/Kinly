@@ -11,6 +11,89 @@ import 'avatar_picker_screen.dart';
 import 'help_support_screen.dart';
 import 'privacy_security_screen.dart';
 
+const _statusPresets = [
+  ('🎉', 'Con amici'),
+  ('🏠', 'A casa'),
+  ('🟢', 'Libero/a'),
+  ('🔋', 'Giornata pesante'),
+];
+
+void _openStatusPicker(BuildContext context) {
+  final controller = TextEditingController(text: AppState.instance.me.statusText ?? '');
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: AppTheme.surface,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+    builder: (sheetContext) => Padding(
+      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(sheetContext).viewInsets.bottom + 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Il tuo stato di oggi', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+          const SizedBox(height: 6),
+          Text('Visibile alla tua cerchia sulla mappa fino a stanotte.', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final preset in _statusPresets)
+                ActionChip(
+                  avatar: Text(preset.$1, style: const TextStyle(fontSize: 16)),
+                  label: Text(preset.$2),
+                  onPressed: () {
+                    AppState.instance.setStatus(emoji: preset.$1, text: preset.$2);
+                    Navigator.of(sheetContext).pop();
+                  },
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  maxLength: 30,
+                  decoration: InputDecoration(
+                    hintText: 'Oppure scrivi il tuo (con emoji 🙂)',
+                    filled: true,
+                    fillColor: AppTheme.surfaceAlt,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton.filled(
+                onPressed: () {
+                  final text = controller.text.trim();
+                  if (text.isEmpty) return;
+                  AppState.instance.setStatus(emoji: '💬', text: text);
+                  Navigator.of(sheetContext).pop();
+                },
+                icon: const Icon(Icons.check_rounded),
+              ),
+            ],
+          ),
+          if (AppState.instance.me.hasActiveStatus) ...[
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () {
+                AppState.instance.clearStatus();
+                Navigator.of(sheetContext).pop();
+              },
+              child: const Text('Rimuovi stato'),
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
+}
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -42,12 +125,25 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(state.me.name, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
-                      Text('${state.circles.length} cerchie attive', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(state.me.name, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+                        Text('${state.circles.length} cerchie attive', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => _openStatusPicker(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(20)),
+                      child: Text(
+                        state.me.hasActiveStatus ? '${state.me.statusEmoji} ${state.me.statusText ?? ''}'.trim() : 'Il tuo stato',
+                        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                      ),
+                    ),
                   ),
                 ],
               ),

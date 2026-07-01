@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import '../../models/help_request.dart';
+import '../../models/ping.dart';
+import '../../models/shopping_stop.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_logo.dart';
 import '../../widgets/circle_chip.dart';
 import '../../widgets/kinly_map.dart';
 import '../../widgets/person_list_tile.dart';
+import '../circles/meeting_point_screen.dart';
 import '../people/help_request_screen.dart';
 import '../people/person_detail_screen.dart';
 import '../people/sos_alert_screen.dart';
@@ -78,6 +81,56 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     }
   }
 
+  void _openMeetingPointEntry() {
+    final state = AppState.instance;
+    final circle = state.activeCircleId != null
+        ? state.circleById(state.activeCircleId!)
+        : (state.circles.length == 1 ? state.circles.first : null);
+    if (circle != null) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => MeetingPointScreen(circle: circle)));
+      return;
+    }
+    if (state.circles.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Crea o entra in una cerchia prima.')));
+      return;
+    }
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 4),
+              child: Align(alignment: Alignment.centerLeft, child: Text('Per quale cerchia?', style: TextStyle(fontWeight: FontWeight.w800))),
+            ),
+            for (final c in state.circles)
+              ListTile(
+                leading: Icon(c.icon, color: c.color),
+                title: Text(c.name),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => MeetingPointScreen(circle: c)));
+                },
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool _hasAnyBanner(AppState state) {
+    return state.activeSosAlerts.any((a) => a.profileId != state.me.id) ||
+        state.activeHelpRequests.any((h) => h.profileId != state.me.id) ||
+        state.recentEncounters.isNotEmpty ||
+        state.incomingPings.isNotEmpty ||
+        state.othersActiveShoppingStops.isNotEmpty ||
+        (state.myActiveShoppingStop != null && state.requestsForStop(state.myActiveShoppingStop!.id).isNotEmpty);
+  }
+
   void _openHelpRequestSheet() {
     showModalBottomSheet(
       context: context,
@@ -104,6 +157,8 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                 children: [
                   KinlyMap(
                     people: [state.me, ...people.where((p) => p.isSharingWithMe)],
+                    safeZones: state.visibleSafeZones(),
+                    meetingPoints: state.visibleMeetingPoints(),
                     onPersonTap: (personId) => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: personId)),
                     ),
@@ -113,37 +168,16 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                   // Stack (fit: expand) costringerebbe il CustomPaint del
                   // logo a riempire tutto lo schermo (e a "rubare" i gesti
                   // di pan/zoom destinati alla mappa sottostante).
-                  const SafeArea(
+                  SafeArea(
                     child: Align(
                       alignment: Alignment.topLeft,
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(16, 12, 0, 0),
-                        child: KinlyLogo(size: 34),
-                      ),
-                    ),
-                  ),
-                  SafeArea(
-                    child: Align(
-                      alignment: Alignment.topRight,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 12, 16, 0),
+                        padding: const EdgeInsets.fromLTRB(16, 12, 0, 0),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _SosButton(
-                              active: state.myActiveSos != null,
-                              onTap: () {
-                                final mySos = state.myActiveSos;
-                                if (mySos != null) {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => SosAlertScreen(alert: mySos, person: state.me)),
-                                  );
-                                } else {
-                                  _confirmAndTriggerSos();
-                                }
-                              },
-                            ),
-                            const SizedBox(height: 8),
+                            const KinlyLogo(size: 34),
+                            const SizedBox(height: 10),
                             _HelpButton(
                               active: state.myActiveHelpRequest != null,
                               onTap: () {
@@ -162,11 +196,31 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                       ),
                     ),
                   ),
-                  if (state.activeSosAlerts.any((a) => a.profileId != state.me.id) ||
-                      state.activeHelpRequests.any((h) => h.profileId != state.me.id))
+                  SafeArea(
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 12, 16, 0),
+                        child: _SosButton(
+                          active: state.myActiveSos != null,
+                          onTap: () {
+                            final mySos = state.myActiveSos;
+                            if (mySos != null) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => SosAlertScreen(alert: mySos, person: state.me)),
+                              );
+                            } else {
+                              _confirmAndTriggerSos();
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (_hasAnyBanner(state))
                     SafeArea(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 56, 16, 0),
+                        padding: const EdgeInsets.fromLTRB(16, 112, 16, 0),
                         child: Column(
                           children: [
                             for (final alert in state.activeSosAlerts.where((a) => a.profileId != state.me.id))
@@ -194,13 +248,40 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                                   }
                                 },
                               ),
+                            for (final encounter in state.recentEncounters)
+                              _EncounterBanner(
+                                personName: state.personById(encounter.otherPersonId(state.me.id))?.name ?? 'Qualcuno',
+                                onHighFive: () {
+                                  state.sendPing(toId: encounter.otherPersonId(state.me.id), kind: PingKind.highFive);
+                                  state.dismissEncounter(encounter.id);
+                                },
+                                onDismiss: () => state.dismissEncounter(encounter.id),
+                              ),
+                            for (final ping in state.incomingPings)
+                              _PingBanner(
+                                personName: state.personById(ping.fromId)?.name ?? 'Qualcuno',
+                                kind: ping.kind,
+                                onDismiss: () => state.dismissPing(ping.id),
+                              ),
+                            for (final stop in state.othersActiveShoppingStops)
+                              _ShoppingStopBanner(
+                                personName: state.personById(stop.profileId)?.name ?? 'Qualcuno',
+                                stop: stop,
+                                onSend: (note) => state.sendShoppingRequest(stopId: stop.id, note: note),
+                              ),
+                            if (state.myActiveShoppingStop != null && state.requestsForStop(state.myActiveShoppingStop!.id).isNotEmpty)
+                              _MyShoppingRequestsBanner(
+                                requests: state.requestsForStop(state.myActiveShoppingStop!.id),
+                                nameFor: (id) => state.personById(id)?.name ?? 'Qualcuno',
+                              ),
                           ],
                         ),
                       ),
                     ),
-                  // La barra delle cerchie segue il bordo superiore del
-                  // pannello: quando lo trascini giù, scende anche lei,
-                  // invece di restare ferma in mezzo alla mappa.
+                  // La barra delle cerchie e il pulsante GPS seguono insieme
+                  // il bordo superiore del pannello, alla stessa altezza:
+                  // quando lo trascini giù, scendono anche loro, invece di
+                  // restare fermi in mezzo alla mappa.
                   AnimatedBuilder(
                     animation: _sheetController,
                     builder: (context, child) {
@@ -214,48 +295,42 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                       );
                     },
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.only(left: 16),
                       child: SizedBox(
                         height: 40,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
+                        child: Row(
                           children: [
-                            CircleChip(
-                              label: 'Tutte',
-                              isSelected: state.activeCircleId == null,
-                              onTap: () => state.setActiveCircle(null),
-                            ),
-                            const SizedBox(width: 8),
-                            for (final c in state.circles) ...[
-                              CircleChip(
-                                label: c.name,
-                                icon: c.icon,
-                                color: c.color,
-                                isSelected: state.activeCircleId == c.id,
-                                onTap: () => state.setActiveCircle(c.id),
+                            Expanded(
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                children: [
+                                  CircleChip(
+                                    label: 'Tutte',
+                                    isSelected: state.activeCircleId == null,
+                                    onTap: () => state.setActiveCircle(null),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  for (final c in state.circles) ...[
+                                    CircleChip(
+                                      label: c.name,
+                                      icon: c.icon,
+                                      color: c.color,
+                                      isSelected: state.activeCircleId == c.id,
+                                      onTap: () => state.setActiveCircle(c.id),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                            ],
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 16),
+                              child: _CenterOnMeButton(loading: _centering, onTap: _centerOnMyLocation),
+                            ),
                           ],
                         ),
                       ),
                     ),
-                  ),
-                  // Il pulsante "centra su di me" segue anche lui il bordo
-                  // del pannello, per restare sempre visibile e non finire
-                  // coperto quando lo trascini verso l'alto.
-                  AnimatedBuilder(
-                    animation: _sheetController,
-                    builder: (context, child) {
-                      final extent = _sheetController.isAttached ? _sheetController.size : _sheetInitialSize;
-                      final sheetTop = constraints.maxHeight * (1 - extent);
-                      return Positioned(
-                        right: 16,
-                        top: sheetTop - 112,
-                        child: child!,
-                      );
-                    },
-                    child: _CenterOnMeButton(loading: _centering, onTap: _centerOnMyLocation),
                   ),
                   DraggableScrollableSheet(
                     controller: _sheetController,
@@ -285,6 +360,12 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                                   Text('La tua cerchia', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
                                   const Spacer(),
                                   Text('${people.length} persone', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                                  IconButton(
+                                    icon: const Icon(Icons.add_location_alt_outlined, size: 20),
+                                    tooltip: 'Nuovo punto d\'incontro',
+                                    visualDensity: VisualDensity.compact,
+                                    onPressed: _openMeetingPointEntry,
+                                  ),
                                 ],
                               ),
                             ),
@@ -330,22 +411,18 @@ class _SosButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        width: 60,
+        height: 60,
         decoration: BoxDecoration(
+          shape: BoxShape.circle,
           color: AppTheme.accentCoral,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: AppTheme.accentCoral.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 3))],
+          border: active ? Border.all(color: Colors.white, width: 3) : null,
+          boxShadow: [BoxShadow(color: AppTheme.accentCoral.withOpacity(0.45), blurRadius: 14, offset: const Offset(0, 4))],
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.emergency_rounded, color: Colors.white, size: 16),
-            const SizedBox(width: 6),
-            Text(
-              active ? 'SOS attivo' : 'SOS',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12),
-            ),
-          ],
+        alignment: Alignment.center,
+        child: Semantics(
+          label: active ? 'SOS attivo' : 'Attiva SOS',
+          child: Icon(Icons.emergency_rounded, color: Colors.white, size: active ? 30 : 26),
         ),
       ),
     );
@@ -396,22 +473,18 @@ class _HelpButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        width: 46,
+        height: 46,
         decoration: BoxDecoration(
+          shape: BoxShape.circle,
           color: AppTheme.accentAmber,
-          borderRadius: BorderRadius.circular(20),
+          border: active ? Border.all(color: Colors.white, width: 2.4) : null,
           boxShadow: [BoxShadow(color: AppTheme.accentAmber.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 3))],
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.pan_tool_alt_rounded, color: Colors.white, size: 16),
-            const SizedBox(width: 6),
-            Text(
-              active ? 'Aiuto richiesto' : 'Aiuto',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12),
-            ),
-          ],
+        alignment: Alignment.center,
+        child: Semantics(
+          label: active ? 'Aiuto richiesto' : 'Chiedi aiuto',
+          child: const Icon(Icons.pan_tool_alt_rounded, color: Colors.white, size: 20),
         ),
       ),
     );
@@ -444,6 +517,224 @@ class _HelpBanner extends StatelessWidget {
               child: Text(
                 '$personName ha bisogno di aiuto ($reasonLabel) · tocca per i dettagli',
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12.5),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EncounterBanner extends StatelessWidget {
+  const _EncounterBanner({required this.personName, required this.onHighFive, required this.onDismiss});
+  final String personName;
+  final VoidCallback onHighFive;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(16), boxShadow: [
+        BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, 3)),
+      ]),
+      child: Row(
+        children: [
+          const Text('🖐️', style: TextStyle(fontSize: 20)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Ti sei incrociato con $personName!',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AppTheme.textPrimary),
+            ),
+          ),
+          TextButton(onPressed: onHighFive, child: const Text('High five')),
+          IconButton(icon: const Icon(Icons.close_rounded, size: 18), onPressed: onDismiss, visualDensity: VisualDensity.compact),
+        ],
+      ),
+    );
+  }
+}
+
+class _PingBanner extends StatelessWidget {
+  const _PingBanner({required this.personName, required this.kind, required this.onDismiss});
+  final String personName;
+  final PingKind kind;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(16), boxShadow: [
+        BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, 3)),
+      ]),
+      child: Row(
+        children: [
+          Text(kind.emoji, style: const TextStyle(fontSize: 20)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '$personName: ${kind.label}',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AppTheme.textPrimary),
+            ),
+          ),
+          IconButton(icon: const Icon(Icons.close_rounded, size: 18), onPressed: onDismiss, visualDensity: VisualDensity.compact),
+        ],
+      ),
+    );
+  }
+}
+
+class _ShoppingStopBanner extends StatefulWidget {
+  const _ShoppingStopBanner({required this.personName, required this.stop, required this.onSend});
+  final String personName;
+  final ShoppingStop stop;
+  final ValueChanged<String> onSend;
+
+  @override
+  State<_ShoppingStopBanner> createState() => _ShoppingStopBannerState();
+}
+
+class _ShoppingStopBannerState extends State<_ShoppingStopBanner> {
+  final _controller = TextEditingController();
+  bool _expanded = false;
+  bool _sent = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _send() {
+    final note = _controller.text.trim();
+    if (note.isEmpty) return;
+    widget.onSend(note);
+    setState(() => _sent = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final place = widget.stop.placeName != null ? ' (${widget.stop.placeName})' : '';
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(16), boxShadow: [
+        BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, 3)),
+      ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('🛒', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '${widget.personName} è al negozio$place',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AppTheme.textPrimary),
+                ),
+              ),
+              if (_sent)
+                const Icon(Icons.check_circle_rounded, color: AppTheme.accentGreen, size: 18)
+              else
+                TextButton(onPressed: () => setState(() => _expanded = !_expanded), child: const Text('Chiedi qualcosa')),
+            ],
+          ),
+          if (_expanded && !_sent) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: 'Es. Latte!',
+                      filled: true,
+                      fillColor: AppTheme.surfaceAlt,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    onSubmitted: (_) => _send(),
+                  ),
+                ),
+                IconButton(icon: const Icon(Icons.send_rounded, size: 18), onPressed: _send),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _MyShoppingRequestsBanner extends StatelessWidget {
+  const _MyShoppingRequestsBanner({required this.requests, required this.nameFor});
+  final List<ShoppingRequest> requests;
+  final String Function(String) nameFor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.primary.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.primary.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Ti hanno chiesto:', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5, color: AppTheme.textPrimary)),
+          const SizedBox(height: 4),
+          for (final r in requests)
+            Text('${nameFor(r.fromId)}: ${r.note}', style: TextStyle(fontSize: 12.5, color: AppTheme.textPrimary)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReasonCard extends StatelessWidget {
+  const _ReasonCard({required this.reason, required this.selected, required this.onTap});
+  final HelpRequestReason reason;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? AppTheme.accentAmber.withOpacity(0.14) : AppTheme.surfaceAlt,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: selected ? AppTheme.accentAmber : Colors.transparent, width: 1.6),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: AppTheme.accentAmber.withOpacity(selected ? 0.3 : 0.15)),
+              alignment: Alignment.center,
+              child: Icon(reason.icon, size: 17, color: AppTheme.accentAmber),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                reason.label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AppTheme.textPrimary),
               ),
             ),
           ],
@@ -567,18 +858,16 @@ class _HelpRequestSheetState extends State<_HelpRequestSheet> {
               const SizedBox(height: 16),
             ],
             Text('Motivo', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            const SizedBox(height: 10),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 2.6,
               children: [
-                for (final reason in HelpRequestReason.values)
-                  ChoiceChip(
-                    label: Text(reason.label),
-                    avatar: Icon(reason.icon, size: 16),
-                    selected: _reason == reason,
-                    onSelected: (_) => setState(() => _reason = reason),
-                  ),
+                for (final reason in HelpRequestReason.values) _ReasonCard(reason: reason, selected: _reason == reason, onTap: () => setState(() => _reason = reason)),
               ],
             ),
             const SizedBox(height: 16),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/person.dart';
+import '../../models/ping.dart';
 import '../../models/sharing_mode.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
@@ -59,6 +60,21 @@ class PersonDetailScreen extends StatelessWidget {
                             SharingModeBadge(mode: person.mode),
                           ],
                         ),
+                        if (person.isBirthdayToday) ...[
+                          const SizedBox(height: 8),
+                          Text('🎂 Oggi è il suo compleanno!', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary)),
+                        ],
+                        if (person.hasActiveStatus) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            '${person.statusEmoji} ${person.statusText ?? ''}'.trim(),
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary),
+                          ),
+                        ],
+                        if (!person.isMe && canSee && person.lat != null) ...[
+                          const SizedBox(height: 14),
+                          _PingRow(person: person),
+                        ],
                         const SizedBox(height: 14),
                         if (canSee) _InfoRow(icon: Icons.access_time, label: 'Aggiornato ${person.lastUpdateLabel}'),
                         if (canSee) const SizedBox(height: 10),
@@ -177,6 +193,47 @@ class _LinkTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Tocco rapido senza scrivere: un'emoji con un significato preciso invece
+/// di un messaggio (vedi PingKind).
+class _PingRow extends StatefulWidget {
+  const _PingRow({required this.person});
+  final Person person;
+
+  @override
+  State<_PingRow> createState() => _PingRowState();
+}
+
+class _PingRowState extends State<_PingRow> {
+  PingKind? _sent;
+
+  Future<void> _send(PingKind kind) async {
+    setState(() => _sent = kind);
+    try {
+      await AppState.instance.sendPing(toId: widget.person.id, kind: kind);
+    } catch (_) {
+      if (mounted) setState(() => _sent = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (final kind in [PingKind.coffee, PingKind.traffic])
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: OutlinedButton.icon(
+              onPressed: _sent != null ? null : () => _send(kind),
+              icon: Text(kind.emoji, style: const TextStyle(fontSize: 16)),
+              label: Text(_sent == kind ? 'Inviato' : kind.label),
+              style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
+            ),
+          ),
+      ],
     );
   }
 }

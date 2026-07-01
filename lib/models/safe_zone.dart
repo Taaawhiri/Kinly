@@ -39,6 +39,15 @@ extension SafeZoneKindData on SafeZoneKind {
         SafeZoneKind.school => Icons.school_rounded,
         SafeZoneKind.other => Icons.fence_rounded,
       };
+
+  /// Colore usato per disegnare l'area sulla mappa (mini mappa aree sicure e
+  /// mappa live), coerente con l'icona.
+  Color get mapColor => switch (this) {
+        SafeZoneKind.home => const Color(0xFF4A63E7),
+        SafeZoneKind.work => const Color(0xFFE7A54A),
+        SafeZoneKind.school => const Color(0xFF17924E),
+        SafeZoneKind.other => const Color(0xFF8A6DE7),
+      };
 }
 
 /// Un'area sicura definita per una cerchia (funzione Kinly+): un luogo con

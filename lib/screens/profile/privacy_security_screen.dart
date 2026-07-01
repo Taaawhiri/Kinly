@@ -178,6 +178,39 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     await AppState.instance.setAutoGhostSchedule(const TimeOfDay(hour: 9, minute: 0), const TimeOfDay(hour: 18, minute: 0));
   }
 
+  Future<void> _pickBirthday() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: AppState.instance.me.birthday ?? DateTime(now.year - 25, now.month, now.day),
+      firstDate: DateTime(now.year - 110),
+      lastDate: now,
+    );
+    if (picked != null) await AppState.instance.setBirthday(picked);
+  }
+
+  Future<void> _editPaymentLink() async {
+    final controller = TextEditingController(text: AppState.instance.me.paymentLink ?? '');
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Link di pagamento'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.url,
+          decoration: const InputDecoration(hintText: 'Es. link Satispay, PayPal.me/...'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(''), child: const Text('Rimuovi')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text.trim()), child: const Text('Salva')),
+        ],
+      ),
+    );
+    if (result == null) return;
+    await AppState.instance.setPaymentLink(result.isEmpty ? null : result);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
@@ -223,6 +256,27 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   label: 'Esci dagli altri dispositivi',
                   loading: _signingOutOthers,
                   onTap: _signingOutOthers ? null : _signOutOthers,
+                ),
+                const SizedBox(height: 24),
+                Text('Info personali', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                const SizedBox(height: 6),
+                Text(
+                  'Facoltative: usate solo per un\'iconcina di compleanno tra i membri della cerchia e per aprire un pagamento diretto dalle spese di gruppo.',
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
+                ),
+                const SizedBox(height: 10),
+                _ActionTile(
+                  icon: Icons.cake_outlined,
+                  label: state.me.birthday == null
+                      ? 'Aggiungi data di nascita'
+                      : 'Compleanno: ${state.me.birthday!.day.toString().padLeft(2, '0')}/${state.me.birthday!.month.toString().padLeft(2, '0')}',
+                  onTap: _pickBirthday,
+                ),
+                const SizedBox(height: 10),
+                _ActionTile(
+                  icon: Icons.payments_outlined,
+                  label: state.me.paymentLink == null ? 'Aggiungi link di pagamento' : 'Link di pagamento impostato',
+                  onTap: _editPaymentLink,
                 ),
                 if (!_biometricLoading && _biometricSupported) ...[
                   const SizedBox(height: 24),

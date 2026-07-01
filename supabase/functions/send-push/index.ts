@@ -163,6 +163,21 @@ function zoneNotificationText(
   }
 }
 
+/// Testo per un ping contestuale (tocco rapido su una persona, senza
+/// scrivere): un'emoji con un significato preciso.
+function pingText(kind: string, fromName: string): { title: string; body: string } {
+  switch (kind) {
+    case 'coffee':
+      return { title: `☕ ${fromName}`, body: `${fromName} ti chiede: ci prendiamo un caffè?` };
+    case 'traffic':
+      return { title: `🚨 ${fromName}`, body: `${fromName} ti avvisa: occhio al traffico dove stai andando.` };
+    case 'high_five':
+      return { title: `🖐️ ${fromName}`, body: `${fromName} ti ha mandato un High Five!` };
+    default:
+      return { title: fromName, body: 'Ti ha mandato un saluto.' };
+  }
+}
+
 /// Testo per le richieste di aiuto: un gradino sotto l'SOS, con un'emoji e
 /// un'etichetta per motivo predefinito.
 function helpRequestReasonText(reason: string): { emoji: string; label: string } {
@@ -216,6 +231,43 @@ async function buildNotification(supabase: SupabaseClient, table: string, record
       const { emoji, label } = helpRequestReasonText(record.reason);
       const note = record.note ? ` "${record.note}"` : '';
       return { recipients, title: `${emoji} ${name} ha bisogno di aiuto`, body: `${label}.${note}` };
+    }
+    case 'pings': {
+      const name = await fetchName(supabase, record.from_id);
+      const { title, body } = pingText(record.kind, name);
+      return { recipients: [record.to_id], title, body };
+    }
+    case 'encounters': {
+      // Testo generico uguale per entrambi: personalizzarlo per destinatario
+      // richiederebbe più chiamate FCM separate, non necessarie per un
+      // messaggio così semplice.
+      return {
+        recipients: [record.profile_a, record.profile_b],
+        title: '🖐️ Vi siete incrociati!',
+        body: 'Hai incrociato qualcuno della tua cerchia nelle vicinanze: apri Kinly per un High Five.',
+      };
+    }
+    case 'shopping_stops': {
+      const [name, recipients] = await Promise.all([
+        fetchName(supabase, record.profile_id),
+        circleRecipients(supabase, record.circle_id, record.profile_id),
+      ]);
+      const place = record.place_name ? ` (${record.place_name})` : '';
+      return { recipients, title: `🛒 ${name} è al negozio${place}`, body: 'Hai bisogno di qualcosa? Rispondi nell\'app.' };
+    }
+    case 'shopping_requests': {
+      const { data: stop } = await supabase.from('shopping_stops').select('profile_id').eq('id', record.stop_id).single();
+      if (!stop) return null;
+      const name = await fetchName(supabase, record.from_id);
+      return { recipients: [stop.profile_id], title: `${name} ti ha chiesto:`, body: record.note };
+    }
+    case 'circle_expenses': {
+      const [name, recipients] = await Promise.all([
+        fetchName(supabase, record.paid_by),
+        circleRecipients(supabase, record.circle_id, record.paid_by),
+      ]);
+      const amount = Number(record.amount).toFixed(2).replace('.', ',');
+      return { recipients, title: '💶 Nuova spesa di gruppo', body: `${name} ha aggiunto "${record.description}" · ${amount} €` };
     }
     default:
       return null;

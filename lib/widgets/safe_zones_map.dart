@@ -20,13 +20,6 @@ class SafeZonesMap extends StatefulWidget {
 class _SafeZonesMapState extends State<SafeZonesMap> {
   MapLibreMapController? _controller;
 
-  static const _colorsByKind = {
-    SafeZoneKind.home: Color(0xFF4A63E7),
-    SafeZoneKind.work: Color(0xFFE7A54A),
-    SafeZoneKind.school: Color(0xFF17924E),
-    SafeZoneKind.other: Color(0xFF8A6DE7),
-  };
-
   @override
   void didUpdateWidget(covariant SafeZonesMap oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -59,7 +52,7 @@ class _SafeZonesMapState extends State<SafeZonesMap> {
     if (controller == null) return;
     await controller.clearFills();
     for (final zone in widget.zones) {
-      final color = _colorsByKind[zone.kind] ?? _colorsByKind[SafeZoneKind.other]!;
+      final color = zone.kind.mapColor;
       final ring = circlePolygonPoints(zone.lat, zone.lng, zone.radiusMeters.toDouble());
       await controller.addFill(
         FillOptions(

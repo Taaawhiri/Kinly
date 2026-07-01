@@ -3,10 +3,13 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
+import '../models/meeting_point.dart';
 import '../models/person.dart';
+import '../models/safe_zone.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar_catalog.dart';
 import '../utils/color_hex.dart';
+import '../utils/geo_circle.dart';
 
 /// La mappa vera di Kinly: dati OpenStreetMap via OpenFreeMap (nessuna
 /// chiave, nessun limite d'uso), con uno stile personalizzato nei colori
@@ -20,12 +23,20 @@ class KinlyMap extends StatefulWidget {
     this.onPersonTap,
     this.interactive = true,
     this.onMapReady,
+    this.safeZones = const [],
+    this.meetingPoints = const [],
   });
 
   /// Le persone da mostrare come marcatori: solo quelle con una posizione
   /// nota (`lat`/`lng` non nulli) vengono effettivamente disegnate.
   final List<Person> people;
   final ValueChanged<String>? onPersonTap;
+
+  /// Aree sicure da disegnare come cerchi colorati in scala reale (metri).
+  final List<SafeZone> safeZones;
+
+  /// Punti d'incontro attivi da mostrare come marcatori a bandiera.
+  final List<MeetingPoint> meetingPoints;
 
   /// Chiamato quando la mappa è pronta: utile a chi la usa per aggiungere
   /// controlli propri (es. un pulsante "centra sulla mia posizione").
@@ -65,8 +76,11 @@ class _KinlyMapState extends State<KinlyMap> {
   void didUpdateWidget(covariant KinlyMap oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_styleLoaded) return;
-    if (!_samePeople(oldWidget.people, widget.people)) {
+    if (!_samePeople(oldWidget.people, widget.people) || !_sameMeetingPoints(oldWidget.meetingPoints, widget.meetingPoints)) {
       unawaited(_syncSymbols(fitCamera: false));
+    }
+    if (!_sameSafeZones(oldWidget.safeZones, widget.safeZones)) {
+      unawaited(_syncSafeZoneFills());
     }
     if (!_autoCenteredOnFreshFix) {
       final oldMe = _meIn(oldWidget.people);
@@ -79,6 +93,28 @@ class _KinlyMapState extends State<KinlyMap> {
         }
       }
     }
+  }
+
+  bool _sameMeetingPoints(List<MeetingPoint> a, List<MeetingPoint> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].id != b[i].id || a[i].lat != b[i].lat || a[i].lng != b[i].lng) return false;
+    }
+    return true;
+  }
+
+  bool _sameSafeZones(List<SafeZone> a, List<SafeZone> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].id != b[i].id ||
+          a[i].lat != b[i].lat ||
+          a[i].lng != b[i].lng ||
+          a[i].radiusMeters != b[i].radiusMeters ||
+          a[i].kind != b[i].kind) {
+        return false;
+      }
+    }
+    return true;
   }
 
   bool _samePeople(List<Person> a, List<Person> b) {
@@ -121,6 +157,7 @@ class _KinlyMapState extends State<KinlyMap> {
       onStyleLoadedCallback: () async {
         _styleLoaded = true;
         await _syncSymbols(fitCamera: true);
+        await _syncSafeZoneFills();
       },
       compassEnabled: false,
       logoEnabled: false,
@@ -170,7 +207,37 @@ class _KinlyMapState extends State<KinlyMap> {
       );
     }
 
+    if (widget.meetingPoints.isNotEmpty) {
+      final meetingImageName = await _ensureMeetingPointImage(controller);
+      for (final point in widget.meetingPoints) {
+        await controller.addSymbol(
+          SymbolOptions(
+            geometry: LatLng(point.lat, point.lng),
+            iconImage: meetingImageName,
+            iconSize: 1,
+            iconAnchor: 'bottom',
+          ),
+          {'meetingPointId': point.id},
+        );
+      }
+    }
+
     if (fitCamera) await _fitCamera(controller, people);
+  }
+
+  /// Disegna le aree sicure come cerchi in scala reale (metri, non pixel):
+  /// livello separato dai simboli, così non viene toccato da clearSymbols.
+  Future<void> _syncSafeZoneFills() async {
+    final controller = _controller;
+    if (controller == null) return;
+    await controller.clearFills();
+    for (final zone in widget.safeZones) {
+      final color = zone.kind.mapColor;
+      final ring = circlePolygonPoints(zone.lat, zone.lng, zone.radiusMeters.toDouble());
+      await controller.addFill(
+        FillOptions(geometry: [ring], fillColor: color.toHex(), fillOpacity: 0.18, fillOutlineColor: color.toHex()),
+      );
+    }
   }
 
   void _handleSymbolTap(Symbol symbol) {
@@ -210,6 +277,17 @@ class _KinlyMapState extends State<KinlyMap> {
     return name;
   }
 
+  static const _meetingPointImageName = 'kinly_meeting_point_pin';
+
+  Future<String> _ensureMeetingPointImage(MapLibreMapController controller) async {
+    if (!_registeredImages.contains(_meetingPointImageName)) {
+      final bytes = await _renderFlagPin();
+      await controller.addImage(_meetingPointImageName, bytes);
+      _registeredImages.add(_meetingPointImageName);
+    }
+    return _meetingPointImageName;
+  }
+
   @override
   void dispose() {
     _controller?.onSymbolTapped.remove(_handleSymbolTap);
@@ -247,6 +325,44 @@ Future<Uint8List> _renderAvatarPin(Color color, String initials) async {
       text: initials,
       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: radius * 0.72),
     ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+  textPainter.paint(canvas, center - Offset(textPainter.width / 2, textPainter.height / 2));
+
+  final picture = recorder.endRecording();
+  final image = await picture.toImage(width.round(), height.round());
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  return byteData!.buffer.asUint8List();
+}
+
+/// Marcatore a bandiera per un punto d'incontro: stessa forma a goccia dei
+/// pin persona (punta verso il basso, ancorata alla coordinata esatta), ma
+/// viola per distinguerlo a colpo d'occhio dagli avatar.
+Future<Uint8List> _renderFlagPin() async {
+  const double circleSize = 64;
+  const double tailHeight = 20;
+  const double pixelRatio = 2.0;
+  const width = circleSize * pixelRatio;
+  const height = (circleSize + tailHeight) * pixelRatio;
+  const color = Color(0xFF8A6DE7);
+
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder);
+  const center = Offset(width / 2, (circleSize / 2) * pixelRatio);
+  const radius = (circleSize / 2) * pixelRatio;
+
+  final tail = Path()
+    ..moveTo(center.dx - radius * 0.42, center.dy + radius * 0.82)
+    ..lineTo(center.dx + radius * 0.42, center.dy + radius * 0.82)
+    ..lineTo(center.dx, height)
+    ..close();
+  canvas.drawPath(tail, Paint()..color = color);
+
+  canvas.drawCircle(center, radius, Paint()..color = Colors.white);
+  canvas.drawCircle(center, radius * 0.92, Paint()..color = color);
+
+  final textPainter = TextPainter(
+    text: const TextSpan(text: '🚩', style: TextStyle(fontSize: radius * 0.85)),
     textDirection: TextDirection.ltr,
   )..layout();
   textPainter.paint(canvas, center - Offset(textPainter.width / 2, textPainter.height / 2));
