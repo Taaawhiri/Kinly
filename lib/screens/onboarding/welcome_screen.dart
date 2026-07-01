@@ -18,10 +18,10 @@ class WelcomeScreen extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(),
-              const CerchiaLogo(size: 108),
+              const KinlyLogo(size: 108),
               const SizedBox(height: 28),
               const Text(
-                'Cerchia',
+                'Kinly',
                 style: TextStyle(fontSize: 34, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -0.5),
               ),
               const SizedBox(height: 10),

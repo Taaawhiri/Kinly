@@ -2,10 +2,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
-/// Marchio di Cerchia: un pin di posizione al centro di un anello con tre
+/// Marchio di Kinly: un pin di posizione al centro di un anello con tre
 /// punti colorati — le persone della tua cerchia che ti stanno vicino.
-class CerchiaLogo extends StatelessWidget {
-  const CerchiaLogo({super.key, this.size = 96, this.squareBackground = false, this.transparent = false});
+class KinlyLogo extends StatelessWidget {
+  const KinlyLogo({super.key, this.size = 96, this.squareBackground = false, this.transparent = false});
 
   final double size;
   final bool squareBackground;
@@ -15,13 +15,13 @@ class CerchiaLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size.square(size),
-      painter: _CerchiaLogoPainter(squareBackground: squareBackground, transparent: transparent),
+      painter: _KinlyLogoPainter(squareBackground: squareBackground, transparent: transparent),
     );
   }
 }
 
-class _CerchiaLogoPainter extends CustomPainter {
-  _CerchiaLogoPainter({required this.squareBackground, required this.transparent});
+class _KinlyLogoPainter extends CustomPainter {
+  _KinlyLogoPainter({required this.squareBackground, required this.transparent});
   final bool squareBackground;
   final bool transparent;
 

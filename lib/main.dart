@@ -5,16 +5,16 @@ import 'state/app_state.dart';
 import 'theme/app_theme.dart';
 
 void main() {
-  runApp(const CerchiaApp());
+  runApp(const KinlyApp());
 }
 
-class CerchiaApp extends StatelessWidget {
-  const CerchiaApp({super.key});
+class KinlyApp extends StatelessWidget {
+  const KinlyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Cerchia',
+      title: 'Kinly',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       home: AppState.instance.hasOnboarded ? const RootShell() : const WelcomeScreen(),

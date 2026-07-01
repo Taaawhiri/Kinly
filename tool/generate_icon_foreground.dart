@@ -7,7 +7,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:cerchia/widgets/app_logo.dart';
+import 'package:kinly/widgets/app_logo.dart';
 
 void main() {
   testWidgets('genera assets/icon/icon_foreground.png', (tester) async {
@@ -23,7 +23,7 @@ void main() {
           child: const SizedBox(
             width: 1024,
             height: 1024,
-            child: CerchiaLogo(size: 1024, transparent: true),
+            child: KinlyLogo(size: 1024, transparent: true),
           ),
         ),
       ),

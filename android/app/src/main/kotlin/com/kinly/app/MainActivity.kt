@@ -1,4 +1,4 @@
-package com.cerchia.app
+package com.kinly.app
 
 import io.flutter.embedding.android.FlutterActivity
 

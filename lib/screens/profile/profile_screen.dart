@@ -49,7 +49,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 24),
               Row(
                 children: [
-                  const Expanded(child: _Header('Cerchia+')),
+                  const Expanded(child: _Header('Kinly+')),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(color: AppTheme.accentAmber.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),

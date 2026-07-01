@@ -47,7 +47,7 @@ class MapHomeScreen extends StatelessWidget {
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                         child: Row(
                           children: [
-                            const CerchiaLogo(size: 34),
+                            const KinlyLogo(size: 34),
                             const SizedBox(width: 10),
                             Expanded(
                               child: SizedBox(

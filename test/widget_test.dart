@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:cerchia/main.dart';
-import 'package:cerchia/state/app_state.dart';
+import 'package:kinly/main.dart';
+import 'package:kinly/state/app_state.dart';
 
 void main() {
   testWidgets('primo avvio mostra la schermata di benvenuto', (tester) async {
     AppState.instance.logOut();
-    await tester.pumpWidget(const CerchiaApp());
+    await tester.pumpWidget(const KinlyApp());
     await tester.pump();
 
-    expect(find.text('Cerchia'), findsOneWidget);
+    expect(find.text('Kinly'), findsOneWidget);
     expect(find.text('Crea la tua cerchia'), findsOneWidget);
     expect(find.text('Ho un codice di invito'), findsOneWidget);
   });
 
   testWidgets('un codice di invito valido apre la mappa della cerchia', (tester) async {
     AppState.instance.logOut();
-    await tester.pumpWidget(const CerchiaApp());
+    await tester.pumpWidget(const KinlyApp());
     await tester.pump();
 
     await tester.tap(find.text('Ho un codice di invito'));
@@ -35,7 +35,7 @@ void main() {
 
   testWidgets('un codice di invito inventato mostra un errore', (tester) async {
     AppState.instance.logOut();
-    await tester.pumpWidget(const CerchiaApp());
+    await tester.pumpWidget(const KinlyApp());
     await tester.pump();
 
     await tester.tap(find.text('Ho un codice di invito'));

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:cerchia/main.dart';
-import 'package:cerchia/state/app_state.dart';
+import 'package:kinly/main.dart';
+import 'package:kinly/state/app_state.dart';
 
 /// Attraversa tutte le schermate principali per scovare errori di layout
 /// (overflow, vincoli infiniti...) che i test più mirati non toccano.
 void main() {
   testWidgets('si può navigare in tutte le tab principali senza errori', (tester) async {
     AppState.instance.logOut();
-    await tester.pumpWidget(const CerchiaApp());
+    await tester.pumpWidget(const KinlyApp());
     await tester.pump();
 
     await tester.tap(find.text('Ho un codice di invito'));

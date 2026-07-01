@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:cerchia/state/app_state.dart';
+import 'package:kinly/state/app_state.dart';
 
 void main() {
   test('joinCircleByCode riconosce i codici esistenti (case-insensitive) e rifiuta gli altri', () {

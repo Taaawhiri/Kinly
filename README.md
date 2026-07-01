@@ -1,4 +1,4 @@
-# Cerchia
+# Kinly
 
 Mockup Flutter di un'app per condividere la posizione con la famiglia, gli
 amici o i colleghi. Accesso solo su invito: niente registrazione pubblica,
@@ -36,7 +36,7 @@ lib/
     circles/     Gestione cerchie e inviti
     people/      Dettaglio persona
     requests/    Richieste di posizione in arrivo/uscita
-    profile/     Modalità di condivisione, cerchie, anteprima Cerchia+
+    profile/     Modalità di condivisione, cerchie, anteprima Kinly+
 ```
 
 ## Avvio

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Palette e tema di Cerchia: chiaro, morbido, moderno — l'opposto del
+/// Palette e tema di Kinly: chiaro, morbido, moderno — l'opposto del
 /// "notte da gioco di carte": qui deve sembrare un'app di fiducia che usi
 /// ogni giorno con la famiglia.
 class AppTheme {
