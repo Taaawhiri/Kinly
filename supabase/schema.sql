@@ -160,50 +160,67 @@ alter table public.circle_members enable row level security;
 alter table public.locations enable row level security;
 alter table public.location_requests enable row level security;
 
+-- Ogni policy è preceduta da un "drop if exists" così l'intero script è
+-- rieseguibile senza errori (es. dopo averlo modificato) anche se le
+-- policy esistono già da un'esecuzione precedente.
+
 -- profiles: vedo il mio profilo e quello di chi è in una mia cerchia.
+drop policy if exists "profiles_select" on public.profiles;
 create policy "profiles_select" on public.profiles
   for select using (id = auth.uid() or public.shares_circle_with(id));
 
+drop policy if exists "profiles_insert_self" on public.profiles;
 create policy "profiles_insert_self" on public.profiles
   for insert with check (id = auth.uid());
 
+drop policy if exists "profiles_update_self" on public.profiles;
 create policy "profiles_update_self" on public.profiles
   for update using (id = auth.uid()) with check (id = auth.uid());
 
 -- circles: vedo le cerchie di cui sono membro o che ho creato.
+drop policy if exists "circles_select_member" on public.circles;
 create policy "circles_select_member" on public.circles
   for select using (created_by = auth.uid() or id in (select public.my_circle_ids()));
 
+drop policy if exists "circles_insert_self" on public.circles;
 create policy "circles_insert_self" on public.circles
   for insert with check (created_by = auth.uid());
 
 -- circle_members: vedo i membri delle mie cerchie; posso aggiungermi da
 -- solo (il codice invito è già stato verificato lato client tramite
 -- find_circle_by_code, che è security definer).
+drop policy if exists "circle_members_select" on public.circle_members;
 create policy "circle_members_select" on public.circle_members
   for select using (profile_id = auth.uid() or circle_id in (select public.my_circle_ids()));
 
+drop policy if exists "circle_members_insert_self" on public.circle_members;
 create policy "circle_members_insert_self" on public.circle_members
   for insert with check (profile_id = auth.uid());
 
+drop policy if exists "circle_members_delete_self" on public.circle_members;
 create policy "circle_members_delete_self" on public.circle_members
   for delete using (profile_id = auth.uid());
 
 -- locations: la mia posizione, o quella di chi la condivide con me secondo
 -- la sua modalità (automatica / su richiesta approvata).
+drop policy if exists "locations_select_visible" on public.locations;
 create policy "locations_select_visible" on public.locations
   for select using (public.can_view_location(profile_id));
 
+drop policy if exists "locations_upsert_self" on public.locations;
 create policy "locations_upsert_self" on public.locations
   for insert with check (profile_id = auth.uid());
 
+drop policy if exists "locations_update_self" on public.locations;
 create policy "locations_update_self" on public.locations
   for update using (profile_id = auth.uid()) with check (profile_id = auth.uid());
 
 -- location_requests: vedo le richieste in cui sono coinvolto.
+drop policy if exists "location_requests_select" on public.location_requests;
 create policy "location_requests_select" on public.location_requests
   for select using (requester_id = auth.uid() or target_id = auth.uid());
 
+drop policy if exists "location_requests_insert" on public.location_requests;
 create policy "location_requests_insert" on public.location_requests
   for insert with check (
     requester_id = auth.uid()
@@ -211,6 +228,7 @@ create policy "location_requests_insert" on public.location_requests
     and (select sharing_mode from public.profiles where id = target_id) <> 'paused'
   );
 
+drop policy if exists "location_requests_respond" on public.location_requests;
 create policy "location_requests_respond" on public.location_requests
   for update using (target_id = auth.uid()) with check (target_id = auth.uid());
 
