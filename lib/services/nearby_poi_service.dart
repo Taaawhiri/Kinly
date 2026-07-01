@@ -9,7 +9,14 @@ class NearbyPoiService {
   NearbyPoiService._();
   static final instance = NearbyPoiService._();
 
-  static const _endpoint = 'https://overpass-api.de/api/interpreter';
+  // Il server pubblico principale (overpass-api.de) è spesso sovraccarico o
+  // lento nelle ore di punta: proviamo prima un mirror alternativo e
+  // ripieghiamo sul principale solo se il primo non risponde, invece di
+  // affidarci a un solo server.
+  static const _endpoints = [
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://overpass-api.de/api/interpreter',
+  ];
 
   Future<List<NearbyPoi>> nearby(double lat, double lng, {int radiusMeters = 600}) async {
     final query = '''
@@ -20,14 +27,26 @@ class NearbyPoiService {
 );
 out center 25;
 ''';
-    final response = await http.post(
-      Uri.parse(_endpoint),
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {'data': query},
-    );
-    if (response.statusCode != 200) return [];
 
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    for (final endpoint in _endpoints) {
+      try {
+        final response = await http
+            .post(
+              Uri.parse(endpoint),
+              headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+              body: {'data': query},
+            )
+            .timeout(const Duration(seconds: 12));
+        if (response.statusCode == 200) return _parse(response.body);
+      } catch (_) {
+        // Prova il prossimo server prima di arrenderti.
+      }
+    }
+    return [];
+  }
+
+  List<NearbyPoi> _parse(String body) {
+    final data = jsonDecode(body) as Map<String, dynamic>;
     final elements = (data['elements'] as List?) ?? [];
     final results = <NearbyPoi>[];
     for (final raw in elements) {

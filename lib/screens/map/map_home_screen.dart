@@ -10,6 +10,7 @@ import '../../models/shopping_stop.dart';
 import '../../services/nearby_poi_service.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/blurred_bottom_sheet.dart';
 import '../../widgets/circle_chip.dart';
 import '../../widgets/kinly_map.dart';
 import '../../widgets/person_list_tile.dart';
@@ -65,8 +66,11 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     try {
       final pois = await NearbyPoiService.instance.nearby(lat, lng);
       if (mounted) setState(() => _nearbyPois = pois);
-    } catch (_) {
+    } catch (e) {
       // Solo un livello informativo: se fallisce non deve rompere la mappa.
+      // Il debugPrint aiuta solo chi guarda i log (flutter run/logcat), non
+      // è mai visibile all'utente finale.
+      debugPrint('Punti di interesse vicini non disponibili: $e');
     }
   }
 
@@ -127,7 +131,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Crea o entra in una cerchia prima.')));
       return;
     }
-    showModalBottomSheet(
+    showBlurredModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
@@ -179,7 +183,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     final zone = state.safeZoneById(zoneId);
     if (zone == null) return;
     final circle = state.circleById(zone.circleId);
-    showModalBottomSheet(
+    showBlurredModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
@@ -231,7 +235,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   }
 
   void _openHelpRequestSheet() {
-    showModalBottomSheet(
+    showBlurredModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppTheme.surface,
