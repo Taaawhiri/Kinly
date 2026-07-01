@@ -4,7 +4,6 @@ import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/person_avatar.dart';
 import '../circles/circles_screen.dart';
-import '../onboarding/welcome_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -70,12 +69,9 @@ class ProfileScreen extends StatelessWidget {
                 icon: Icons.logout_rounded,
                 label: 'Esci',
                 destructive: true,
-                onTap: () {
-                  state.logOut();
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-                    (route) => false,
-                  );
+                onTap: () async {
+                  await state.logOut();
+                  if (context.mounted) Navigator.of(context).popUntil((route) => route.isFirst);
                 },
               ),
             ],

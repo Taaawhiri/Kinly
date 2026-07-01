@@ -6,6 +6,7 @@ enum RequestStatus { pending, accepted, declined }
 
 /// Una richiesta puntuale "posso vedere dove sei?" tra due persone della
 /// stessa cerchia. Usata quando qualcuno non condivide in automatico.
+/// Corrisponde a una riga della tabella `location_requests` su Supabase.
 class LocationRequest {
   const LocationRequest({
     required this.id,
@@ -14,6 +15,31 @@ class LocationRequest {
     required this.status,
     required this.timestamp,
   });
+
+  factory LocationRequest.fromRow(Map<String, dynamic> row, {required String myId}) {
+    final requesterId = row['requester_id'] as String;
+    final targetId = row['target_id'] as String;
+    final direction = requesterId == myId ? RequestDirection.outgoing : RequestDirection.incoming;
+    return LocationRequest(
+      id: row['id'] as String,
+      personId: direction == RequestDirection.outgoing ? targetId : requesterId,
+      direction: direction,
+      status: _statusFromDb(row['status'] as String),
+      timestamp: DateTime.parse(row['created_at'] as String),
+    );
+  }
+
+  static RequestStatus _statusFromDb(String value) {
+    switch (value) {
+      case 'accepted':
+        return RequestStatus.accepted;
+      case 'declined':
+        return RequestStatus.declined;
+      case 'pending':
+      default:
+        return RequestStatus.pending;
+    }
+  }
 
   final String id;
 

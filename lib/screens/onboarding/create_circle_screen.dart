@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import '../../models/circle_group.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
-import '../root_shell.dart';
 
 class CreateCircleScreen extends StatefulWidget {
   const CreateCircleScreen({super.key, this.isOnboarding = true});
@@ -37,6 +36,8 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
   IconData _icon = _iconChoices.first;
   Color _color = _colorChoices.first;
   CircleGroup? _created;
+  bool _creating = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -44,20 +45,27 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
     super.dispose();
   }
 
-  void _create() {
+  Future<void> _create() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
-    final circle = AppState.instance.createCircle(name, _icon, _color);
-    setState(() => _created = circle);
+    setState(() {
+      _creating = true;
+      _error = null;
+    });
+    try {
+      final circle = await AppState.instance.createCircle(name, _icon, _color);
+      if (!mounted) return;
+      setState(() => _created = circle);
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Non siamo riusciti a creare la cerchia. Riprova.');
+    } finally {
+      if (mounted) setState(() => _creating = false);
+    }
   }
 
   void _finish() {
     if (widget.isOnboarding) {
-      AppState.instance.completeOnboarding();
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const RootShell()),
-        (route) => false,
-      );
+      Navigator.of(context).popUntil((route) => route.isFirst);
     } else {
       Navigator.of(context).pop(_created);
     }
@@ -132,11 +140,17 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
               ),
           ],
         ),
+        if (_error != null) ...[
+          const SizedBox(height: 12),
+          Text(_error!, style: const TextStyle(color: AppTheme.accentCoral, fontSize: 13)),
+        ],
         const Spacer(),
         FilledButton(
-          onPressed: _create,
+          onPressed: _creating ? null : _create,
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
-          child: const Text('Crea la cerchia'),
+          child: _creating
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
+              : const Text('Crea la cerchia'),
         ),
       ],
     );

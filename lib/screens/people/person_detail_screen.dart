@@ -7,21 +7,16 @@ import '../../widgets/person_avatar.dart';
 import '../../widgets/sharing_mode_badge.dart';
 import '../../widgets/stylized_map_painter.dart';
 
-class PersonDetailScreen extends StatefulWidget {
+class PersonDetailScreen extends StatelessWidget {
   const PersonDetailScreen({super.key, required this.personId});
   final String personId;
 
-  @override
-  State<PersonDetailScreen> createState() => _PersonDetailScreenState();
-}
-
-class _PersonDetailScreenState extends State<PersonDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: AppState.instance,
       builder: (context, _) {
-        final person = AppState.instance.personById(widget.personId);
+        final person = AppState.instance.personById(personId);
         if (person == null) return const SizedBox.shrink();
         final canSee = person.isMe || person.isSharingWithMe;
 
@@ -117,7 +112,7 @@ class _PersonDetailScreenState extends State<PersonDetailScreen> {
 
     final alreadyRequested = AppState.instance.hasPendingOutgoingTo(person.id);
     return FilledButton.icon(
-      onPressed: alreadyRequested ? null : () => setState(() => AppState.instance.sendLocationRequest(person.id)),
+      onPressed: alreadyRequested ? null : () => AppState.instance.sendLocationRequest(person.id),
       icon: Icon(alreadyRequested ? Icons.hourglass_top_rounded : Icons.location_searching_rounded, size: 18),
       label: Text(alreadyRequested ? 'Richiesta inviata' : 'Richiedi posizione'),
       style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),

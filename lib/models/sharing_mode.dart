@@ -5,6 +5,30 @@ import '../theme/app_theme.dart';
 enum SharingMode { automatic, onRequest, paused }
 
 extension SharingModeData on SharingMode {
+  /// Valore salvato in `profiles.sharing_mode` su Supabase.
+  String get dbValue {
+    switch (this) {
+      case SharingMode.automatic:
+        return 'automatic';
+      case SharingMode.onRequest:
+        return 'on_request';
+      case SharingMode.paused:
+        return 'paused';
+    }
+  }
+
+  static SharingMode fromDb(String value) {
+    switch (value) {
+      case 'on_request':
+        return SharingMode.onRequest;
+      case 'paused':
+        return SharingMode.paused;
+      case 'automatic':
+      default:
+        return SharingMode.automatic;
+    }
+  }
+
   String get label {
     switch (this) {
       case SharingMode.automatic:

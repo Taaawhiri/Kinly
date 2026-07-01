@@ -141,28 +141,6 @@ class _OutgoingCard extends StatelessWidget {
               const Icon(Icons.hourglass_top_rounded, color: AppTheme.accentAmber, size: 18),
             ],
           ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(10)),
-            child: Row(
-              children: [
-                const Icon(Icons.science_outlined, size: 15, color: AppTheme.textSecondary),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text('Demo: simula la risposta di questa persona', style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary)),
-                ),
-                TextButton(
-                  onPressed: () => AppState.instance.simulateOutgoingResponse(request.id, false),
-                  child: const Text('Rifiuta', style: TextStyle(fontSize: 12.5)),
-                ),
-                TextButton(
-                  onPressed: () => AppState.instance.simulateOutgoingResponse(request.id, true),
-                  child: const Text('Accetta', style: TextStyle(fontSize: 12.5)),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
-import '../root_shell.dart';
 
 class JoinCircleScreen extends StatefulWidget {
   const JoinCircleScreen({super.key, this.isOnboarding = true});
@@ -18,6 +17,7 @@ class JoinCircleScreen extends StatefulWidget {
 class _JoinCircleScreenState extends State<JoinCircleScreen> {
   final _controller = TextEditingController();
   String? _error;
+  bool _joining = false;
 
   @override
   void dispose() {
@@ -25,20 +25,27 @@ class _JoinCircleScreenState extends State<JoinCircleScreen> {
     super.dispose();
   }
 
-  void _submit() {
-    final circle = AppState.instance.joinCircleByCode(_controller.text);
-    if (circle == null) {
-      setState(() => _error = 'Codice non valido. Chiedi a chi ti ha invitato di controllarlo.');
-      return;
-    }
-    if (widget.isOnboarding) {
-      AppState.instance.completeOnboarding();
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const RootShell()),
-        (route) => false,
-      );
-    } else {
-      Navigator.of(context).pop(circle);
+  Future<void> _submit() async {
+    setState(() {
+      _joining = true;
+      _error = null;
+    });
+    try {
+      final circle = await AppState.instance.joinCircleByCode(_controller.text);
+      if (!mounted) return;
+      if (circle == null) {
+        setState(() => _error = 'Codice non valido. Chiedi a chi ti ha invitato di controllarlo.');
+        return;
+      }
+      if (widget.isOnboarding) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      } else {
+        Navigator.of(context).pop(circle);
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Non siamo riusciti a verificare il codice. Riprova.');
+    } finally {
+      if (mounted) setState(() => _joining = false);
     }
   }
 
@@ -79,9 +86,11 @@ class _JoinCircleScreenState extends State<JoinCircleScreen> {
               ),
               const SizedBox(height: 20),
               FilledButton(
-                onPressed: _submit,
+                onPressed: _joining ? null : _submit,
                 style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
-                child: const Text('Entra'),
+                child: _joining
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
+                    : const Text('Entra'),
               ),
               const Spacer(),
               Container(
@@ -93,7 +102,7 @@ class _JoinCircleScreenState extends State<JoinCircleScreen> {
                     SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Per la demo prova con uno di questi: FAM-7Q2K, AMI-P91X, LAV-3T5B',
+                        'Chiedi il codice a chi ha creato la cerchia: ha il formato XXX-0000.',
                         style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                       ),
                     ),
