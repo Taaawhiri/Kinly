@@ -11,3 +11,9 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Eccezione: questa è una chiave di firma "fissa" e non sensibile (non è
+# la chiave di un vero store, l'app non va su Play Store), tenuta nel
+# repo apposta perché ogni build CI firmi allo stesso modo e gli
+# aggiornamenti dell'APK si installino sopra senza disinstallare.
+!app/debug.keystore
