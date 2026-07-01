@@ -274,37 +274,29 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                       alignment: Alignment.topRight,
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(0, 12, 16, 0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            _HelpButton(
-                              active: state.myActiveHelpRequest != null,
-                              onTap: () {
-                                final mine = state.myActiveHelpRequest;
-                                if (mine != null) {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => HelpRequestScreen(request: mine, person: state.me)),
-                                  );
-                                } else {
-                                  _openHelpRequestSheet();
-                                }
-                              },
-                            ),
-                            const SizedBox(width: 10),
-                            _SosButton(
-                              active: state.myActiveSos != null,
-                              onTap: () {
-                                final mySos = state.myActiveSos;
-                                if (mySos != null) {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => SosAlertScreen(alert: mySos, person: state.me)),
-                                  );
-                                } else {
-                                  _confirmAndTriggerSos();
-                                }
-                              },
-                            ),
-                          ],
+                        child: _EmergencyActionsGroup(
+                          sosActive: state.myActiveSos != null,
+                          helpActive: state.myActiveHelpRequest != null,
+                          onSosTap: () {
+                            final mySos = state.myActiveSos;
+                            if (mySos != null) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => SosAlertScreen(alert: mySos, person: state.me)),
+                              );
+                            } else {
+                              _confirmAndTriggerSos();
+                            }
+                          },
+                          onHelpTap: () {
+                            final mine = state.myActiveHelpRequest;
+                            if (mine != null) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => HelpRequestScreen(request: mine, person: state.me)),
+                              );
+                            } else {
+                              _openHelpRequestSheet();
+                            }
+                          },
                         ),
                       ),
                     ),
@@ -312,7 +304,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                   if (_hasAnyBanner(state))
                     SafeArea(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 90, 16, 0),
+                        padding: const EdgeInsets.fromLTRB(16, 130, 16, 0),
                         child: Column(
                           children: [
                             for (final alert in state.activeSosAlerts.where((a) => a.profileId != state.me.id))
@@ -493,28 +485,107 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   }
 }
 
-class _SosButton extends StatelessWidget {
-  const _SosButton({required this.active, required this.onTap});
-  final bool active;
-  final VoidCallback onTap;
+/// SOS e Aiuto raggruppati in un'unica "pillola" verticale sul bordo destro
+/// della mappa: più discreta di due cerchi colorati separati, ma con SOS
+/// comunque riconoscibile in cima e in rosso pieno quando attivo.
+class _EmergencyActionsGroup extends StatelessWidget {
+  const _EmergencyActionsGroup({
+    required this.sosActive,
+    required this.helpActive,
+    required this.onSosTap,
+    required this.onHelpTap,
+  });
+
+  final bool sosActive;
+  final bool helpActive;
+  final VoidCallback onSosTap;
+  final VoidCallback onHelpTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 60,
-        height: 60,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppTheme.accentCoral,
-          border: active ? Border.all(color: Colors.white, width: 3) : null,
-          boxShadow: [BoxShadow(color: AppTheme.accentCoral.withOpacity(0.45), blurRadius: 14, offset: const Offset(0, 4))],
-        ),
-        alignment: Alignment.center,
-        child: Semantics(
-          label: active ? 'SOS attivo' : 'Attiva SOS',
-          child: Icon(Icons.emergency_rounded, color: Colors.white, size: active ? 30 : 26),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 14, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _EmergencyActionButton(
+            icon: Icons.emergency_rounded,
+            color: AppTheme.accentCoral,
+            active: sosActive,
+            activeLabel: 'SOS attivo',
+            semanticLabel: 'Attiva SOS',
+            onTap: onSosTap,
+            topRadius: 18,
+          ),
+          Container(height: 1, width: 40, color: AppTheme.divider),
+          _EmergencyActionButton(
+            icon: Icons.pan_tool_alt_rounded,
+            color: AppTheme.accentAmber,
+            active: helpActive,
+            activeLabel: 'Aiuto richiesto',
+            semanticLabel: 'Chiedi aiuto',
+            onTap: onHelpTap,
+            bottomRadius: 18,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmergencyActionButton extends StatelessWidget {
+  const _EmergencyActionButton({
+    required this.icon,
+    required this.color,
+    required this.active,
+    required this.activeLabel,
+    required this.semanticLabel,
+    required this.onTap,
+    this.topRadius = 0,
+    this.bottomRadius = 0,
+  });
+
+  final IconData icon;
+  final Color color;
+  final bool active;
+  final String activeLabel;
+  final String semanticLabel;
+  final VoidCallback onTap;
+  final double topRadius;
+  final double bottomRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.vertical(top: Radius.circular(topRadius), bottom: Radius.circular(bottomRadius));
+    return Material(
+      color: active ? color.withOpacity(0.12) : Colors.transparent,
+      borderRadius: radius,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: radius,
+        child: Container(
+          width: 56,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          alignment: Alignment.center,
+          child: Semantics(
+            label: active ? activeLabel : semanticLabel,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(icon, color: color, size: 24),
+                if (active)
+                  Positioned(
+                    right: -2,
+                    top: -2,
+                    child: Container(width: 9, height: 9, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -549,34 +620,6 @@ class _SosBanner extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HelpButton extends StatelessWidget {
-  const _HelpButton({required this.active, required this.onTap});
-  final bool active;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 46,
-        height: 46,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppTheme.accentAmber,
-          border: active ? Border.all(color: Colors.white, width: 2.4) : null,
-          boxShadow: [BoxShadow(color: AppTheme.accentAmber.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 3))],
-        ),
-        alignment: Alignment.center,
-        child: Semantics(
-          label: active ? 'Aiuto richiesto' : 'Chiedi aiuto',
-          child: const Icon(Icons.pan_tool_alt_rounded, color: Colors.white, size: 20),
         ),
       ),
     );

@@ -325,48 +325,72 @@ class _CircleCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(10)),
-                  child: Text(
-                    circle.inviteCode,
-                    style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1, fontSize: 13, color: AppTheme.textPrimary),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: circle.inviteCode));
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Codice invito copiato')));
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(10)),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            circle.inviteCode,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1, fontSize: 13, color: AppTheme.textPrimary),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Icon(Icons.copy_rounded, size: 13, color: AppTheme.textSecondary),
+                      ],
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               IconButton(
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: circle.inviteCode));
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Codice invito copiato')));
-                },
-                icon: Icon(Icons.copy_rounded, size: 18, color: AppTheme.textSecondary),
-                tooltip: 'Copia codice invito',
-              ),
-              IconButton(
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SafeZonesScreen(circle: circle))),
                 icon: Icon(Icons.fence_rounded, size: 18, color: AppTheme.textSecondary),
                 tooltip: 'Aree sicure',
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
               ),
               IconButton(
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => MeetingPointScreen(circle: circle))),
                 icon: Icon(Icons.share_location_rounded, size: 18, color: AppTheme.textSecondary),
                 tooltip: 'Punto d\'incontro',
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
               ),
               IconButton(
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleMessagesScreen(circle: circle))),
                 icon: Icon(Icons.forum_outlined, size: 18, color: AppTheme.textSecondary),
                 tooltip: 'Messaggi',
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
               ),
               IconButton(
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleExpensesScreen(circle: circle))),
                 icon: Icon(Icons.receipt_long_outlined, size: 18, color: AppTheme.textSecondary),
                 tooltip: 'Spese di gruppo',
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
               ),
               IconButton(
                 onPressed: () => _openSharingModeSheet(context, circle),
                 icon: Icon(Icons.tune_rounded, size: 18, color: AppTheme.textSecondary),
                 tooltip: 'La tua modalità in questa cerchia',
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
               ),
             ],
           ),
