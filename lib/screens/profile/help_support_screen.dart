@@ -58,7 +58,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       if (!mounted) return;
       _messageController.clear();
       setState(() => _pastMessages = AppState.instance.fetchMySupportMessages());
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Messaggio inviato, ti risponderemo via email.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Messaggio inviato: lo trovi qui sotto tra le tue richieste.')));
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a inviare il messaggio. Riprova.')));
@@ -96,7 +96,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
             Text(
               isPremium
                   ? 'Come abbonato Kinly+ la tua richiesta viene messa in coda prioritaria.'
-                  : 'Ti rispondiamo via email appena possibile.',
+                  : 'La tua richiesta resta qui, la leggiamo appena possibile.',
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
             ),
             const SizedBox(height: 12),

@@ -39,6 +39,7 @@ class Person {
     this.speedAlertKmh,
     this.isFuzzyLocation = false,
     this.speedKmh,
+    this.avatarKey,
   });
 
   final String id;
@@ -73,6 +74,9 @@ class Person {
   /// Ultima velocità nota (km/h), se disponibile: usata per mostrare lo
   /// stato dinamico (fermo/a piedi/in corsa/in auto).
   final double? speedKmh;
+
+  /// Chiave dell'avatar a tema scelto (vedi AvatarCatalog); null = iniziali.
+  final String? avatarKey;
 
   /// Dedotto dall'ultima velocità nota: nessuna soglia se non condivide o
   /// non c'è ancora un dato di velocità.
@@ -117,6 +121,7 @@ class Person {
       speedAlertKmh: speedAlertKmh,
       isFuzzyLocation: isFuzzyLocation,
       speedKmh: speedKmh,
+      avatarKey: avatarKey,
     );
   }
 }

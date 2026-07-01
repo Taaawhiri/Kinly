@@ -6,6 +6,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/person_avatar.dart';
 import '../circles/circles_screen.dart';
 import '../premium/paywall_screen.dart';
+import 'avatar_picker_screen.dart';
 import 'help_support_screen.dart';
 import 'privacy_security_screen.dart';
 
@@ -25,7 +26,20 @@ class ProfileScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  PersonAvatar(person: state.me, size: 56, showStatusDot: false),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AvatarPickerScreen())),
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        PersonAvatar(person: state.me, size: 56, showStatusDot: false),
+                        Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(shape: BoxShape.circle, color: AppTheme.primary),
+                          child: const Icon(Icons.edit_rounded, size: 11, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(width: 14),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,7 +91,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 10),
               GestureDetector(
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen())),
-                child: const _PremiumTeaser(),
+                child: _PremiumTeaser(isPremium: state.isPremium),
               ),
               const SizedBox(height: 10),
               _NavCard(
@@ -265,7 +279,8 @@ class _NavCard extends StatelessWidget {
 }
 
 class _PremiumTeaser extends StatelessWidget {
-  const _PremiumTeaser();
+  const _PremiumTeaser({required this.isPremium});
+  final bool isPremium;
 
   static const _features = [
     (Icons.history_rounded, 'Cronologia posizioni', 'Rivedi dove sono stati i membri della cerchia nei giorni passati.'),
@@ -276,12 +291,13 @@ class _PremiumTeaser extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = isPremium ? AppTheme.accentGreen : AppTheme.primary;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [AppTheme.primary.withOpacity(0.07), AppTheme.primary.withOpacity(0.02)]),
+        gradient: LinearGradient(colors: [accent.withOpacity(0.07), accent.withOpacity(0.02)]),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.12)),
+        border: Border.all(color: accent.withOpacity(0.12)),
       ),
       child: Column(
         children: [
@@ -290,7 +306,7 @@ class _PremiumTeaser extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 children: [
-                  Icon(f.$1, size: 20, color: AppTheme.primary.withOpacity(0.55)),
+                  Icon(f.$1, size: 20, color: accent.withOpacity(0.55)),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -301,7 +317,11 @@ class _PremiumTeaser extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Icon(Icons.lock_outline_rounded, size: 15, color: AppTheme.textSecondary.withOpacity(0.6)),
+                  Icon(
+                    isPremium ? Icons.check_circle_rounded : Icons.lock_outline_rounded,
+                    size: 15,
+                    color: isPremium ? AppTheme.accentGreen : AppTheme.textSecondary.withOpacity(0.6),
+                  ),
                 ],
               ),
             ),

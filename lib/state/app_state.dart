@@ -9,6 +9,7 @@ import '../models/person.dart';
 import '../models/routine_anomaly.dart';
 import '../models/safe_zone.dart';
 import '../models/sharing_mode.dart';
+import '../models/sos_alert.dart';
 import '../models/speed_event.dart';
 import '../models/support_message.dart';
 import '../services/auth_service.dart';
@@ -41,6 +42,7 @@ class AppState extends ChangeNotifier {
   List<SpeedEvent> _speedEvents = [];
   List<MeetingPoint> _meetingPoints = [];
   List<MeetingPointArrival> _meetingPointArrivals = [];
+  List<SosAlert> _sosAlerts = [];
   TimeOfDay? _autoGhostStart;
   TimeOfDay? _autoGhostEnd;
 
@@ -59,6 +61,17 @@ class AppState extends ChangeNotifier {
   List<SafeZoneEvent> get safeZoneEvents => List.unmodifiable(_safeZoneEvents);
   List<SpeedEvent> get speedEvents => List.unmodifiable(_speedEvents);
   List<MeetingPoint> get meetingPoints => List.unmodifiable(_meetingPoints);
+
+  /// SOS attivi (non risolti) visibili nelle mie cerchie, io compreso.
+  List<SosAlert> get activeSosAlerts => _sosAlerts.where((a) => a.status == SosStatus.active).toList();
+
+  /// Il mio SOS attivo, se ne ho uno in corso.
+  SosAlert? get myActiveSos {
+    for (final a in _sosAlerts) {
+      if (a.profileId == me.id && a.status == SosStatus.active) return a;
+    }
+    return null;
+  }
 
   /// Orario di reperibilità (ora locale): fuori da questa finestra nessuno
   /// vede la mia posizione. Null = nessuna limitazione.
@@ -150,6 +163,9 @@ class AppState extends ChangeNotifier {
       final arrivalRows = await _repo.fetchMeetingPointArrivals();
       _meetingPointArrivals = arrivalRows.map(MeetingPointArrival.fromRow).toList();
 
+      final sosRows = await _repo.fetchSosAlerts();
+      _sosAlerts = sosRows.map(SosAlert.fromRow).toList();
+
       loadError = null;
     } catch (e) {
       loadError = e.toString();
@@ -173,9 +189,16 @@ class AppState extends ChangeNotifier {
     return '${utc.hour.toString().padLeft(2, '0')}:${utc.minute.toString().padLeft(2, '0')}:00';
   }
 
+  // Un cambiamento realtime su una qualsiasi delle tabelle sottoscritte
+  // rifà un caricamento completo (una decina di query). Con più persone
+  // che si muovono nella stessa cerchia, un debounce troppo corto fa
+  // ripartire questo carico ad ogni singolo aggiornamento di posizione:
+  // una finestra più larga raggruppa più eventi vicini in un solo refresh.
+  static const _refreshDebounceWindow = Duration(seconds: 2, milliseconds: 500);
+
   void _scheduleRefresh() {
     _refreshDebounce?.cancel();
-    _refreshDebounce = Timer(const Duration(milliseconds: 500), () async {
+    _refreshDebounce = Timer(_refreshDebounceWindow, () async {
       await _refreshData();
       notifyListeners();
     });
@@ -205,6 +228,7 @@ class AppState extends ChangeNotifier {
       speedAlertKmh: (profile['speed_alert_kmh'] as num?)?.toInt(),
       isFuzzyLocation: location?['is_fuzzy'] as bool? ?? false,
       speedKmh: (location?['speed_kmh'] as num?)?.toDouble(),
+      avatarKey: profile['avatar_key'] as String?,
     );
   }
 
@@ -235,6 +259,7 @@ class AppState extends ChangeNotifier {
     _speedEvents = [];
     _meetingPoints = [];
     _meetingPointArrivals = [];
+    _sosAlerts = [];
     _autoGhostStart = null;
     _autoGhostEnd = null;
     activeCircleId = null;
@@ -429,6 +454,13 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Cambia il mio avatar (vedi AvatarCatalog): null torna alle iniziali.
+  Future<void> setAvatar(String? avatarKey) async {
+    await _repo.updateAvatar(avatarKey);
+    await _refreshData();
+    notifyListeners();
+  }
+
   // ---------------------------------------------------------------------
   // Orario di reperibilità
   // ---------------------------------------------------------------------
@@ -488,5 +520,21 @@ class AppState extends ChangeNotifier {
   Future<List<SupportMessage>> fetchMySupportMessages() async {
     final rows = await _repo.fetchMySupportMessages();
     return rows.map(SupportMessage.fromRow).toList();
+  }
+
+  // ---------------------------------------------------------------------
+  // SOS "Black Box" (solo posizione, nessuna registrazione)
+  // ---------------------------------------------------------------------
+
+  Future<void> triggerSos({required double lat, required double lng}) async {
+    await _repo.triggerSos(lat: lat, lng: lng);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  Future<void> resolveSos(String id) async {
+    await _repo.resolveSos(id);
+    await _refreshData();
+    notifyListeners();
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
+import '../utils/avatar_catalog.dart';
 
 /// Avatar circolare con iniziali e, opzionalmente, un puntino di stato
 /// (verde = condivide ora, grigio = no).
@@ -18,6 +19,8 @@ class PersonAvatar extends StatelessWidget {
     final activity = person.activityStatus;
     final showActivityBadge = canSeeLocation && activity != ActivityStatus.stationary;
     final showLowBattery = canSeeLocation && person.isBatteryLow;
+    final avatar = AvatarCatalog.find(person.avatarKey);
+    final glowColor = avatar != null ? avatar.colors.last : person.color;
 
     return SizedBox(
       width: size,
@@ -30,15 +33,18 @@ class PersonAvatar extends StatelessWidget {
             height: size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: person.color,
+              gradient: avatar != null ? LinearGradient(colors: avatar.colors, begin: Alignment.topLeft, end: Alignment.bottomRight) : null,
+              color: avatar == null ? person.color : null,
               border: Border.all(color: Colors.white, width: size * 0.06),
-              boxShadow: [BoxShadow(color: person.color.withOpacity(0.35), blurRadius: size * 0.22, offset: Offset(0, size * 0.06))],
+              boxShadow: [BoxShadow(color: glowColor.withOpacity(0.35), blurRadius: size * 0.22, offset: Offset(0, size * 0.06))],
             ),
             alignment: Alignment.center,
-            child: Text(
-              person.initials,
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: size * 0.36),
-            ),
+            child: avatar != null
+                ? Text(avatar.emoji, style: TextStyle(fontSize: size * 0.5))
+                : Text(
+                    person.initials,
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: size * 0.36),
+                  ),
           ),
           if (showStatusDot)
             Positioned(

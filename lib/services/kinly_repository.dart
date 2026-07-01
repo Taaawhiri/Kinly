@@ -50,6 +50,12 @@ class KinlyRepository {
     await supabase.from('profiles').update({'speed_alert_kmh': kmh}).eq('id', _myId);
   }
 
+  /// Chiave dell'avatar a tema scelto (vedi AvatarCatalog): null torna alle
+  /// iniziali colorate.
+  Future<void> updateAvatar(String? avatarKey) async {
+    await supabase.from('profiles').update({'avatar_key': avatarKey}).eq('id', _myId);
+  }
+
   /// Orario di reperibilità (valori già convertiti in UTC, formato
   /// "HH:MM:SS"): fuori da questa finestra nessuno vede la mia posizione,
   /// qualunque sia la modalità di condivisione. Null = nessuna limitazione.
@@ -296,6 +302,25 @@ class KinlyRepository {
   }
 
   // ---------------------------------------------------------------------
+  // SOS "Black Box" (solo posizione, nessuna registrazione)
+  // ---------------------------------------------------------------------
+
+  Future<List<Map<String, dynamic>>> fetchSosAlerts() async {
+    return supabase.from('sos_alerts').select().order('created_at', ascending: false);
+  }
+
+  Future<void> triggerSos({required double lat, required double lng}) async {
+    await supabase.from('sos_alerts').insert({'profile_id': _myId, 'lat': lat, 'lng': lng});
+  }
+
+  Future<void> resolveSos(String id) async {
+    await supabase.from('sos_alerts').update({
+      'status': 'resolved',
+      'resolved_at': DateTime.now().toIso8601String(),
+    }).eq('id', id);
+  }
+
+  // ---------------------------------------------------------------------
   // Richieste di posizione
   // ---------------------------------------------------------------------
 
@@ -340,6 +365,7 @@ class KinlyRepository {
       'speed_events',
       'meeting_points',
       'meeting_point_arrivals',
+      'sos_alerts',
     ]) {
       channel.onPostgresChanges(
         event: PostgresChangeEvent.all,

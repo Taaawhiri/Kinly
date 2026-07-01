@@ -51,6 +51,11 @@ alter table public.profiles add constraint profiles_sharing_mode_check
 alter table public.profiles add column if not exists auto_ghost_start time;
 alter table public.profiles add column if not exists auto_ghost_end time;
 
+-- Avatar scelto tra un set predefinito (stile Netflix): null = mostra le
+-- iniziali colorate come prima, il valore è una chiave interpretata dal
+-- client (vedi lib/utils/avatar_catalog.dart), non un'immagine caricata.
+alter table public.profiles add column if not exists avatar_key text;
+
 create table if not exists public.circles (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -167,6 +172,21 @@ create table if not exists public.meeting_point_arrivals (
   primary key (meeting_point_id, profile_id)
 );
 
+-- SOS "Black Box": nessuna registrazione audio (solo posizione). Attivarlo
+-- condivide la posizione esatta con tutte le proprie cerchie, bypassando
+-- deliberatamente la modalità di condivisione normale (anche chi è in
+-- pausa/fuzzy/fuori orario diventa visibile finché l'SOS è attivo) — è
+-- pensato come eccezione di emergenza, non come canale di tracciamento.
+create table if not exists public.sos_alerts (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  lat double precision not null,
+  lng double precision not null,
+  status text not null default 'active' check (status in ('active', 'resolved')),
+  created_at timestamptz not null default now(),
+  resolved_at timestamptz
+);
+
 create index if not exists circle_members_profile_idx on public.circle_members (profile_id);
 create index if not exists location_requests_requester_idx on public.location_requests (requester_id);
 create index if not exists location_requests_target_idx on public.location_requests (target_id);
@@ -177,6 +197,7 @@ create index if not exists speed_events_profile_idx on public.speed_events (prof
 create index if not exists support_messages_profile_idx on public.support_messages (profile_id, created_at desc);
 create index if not exists meeting_points_circle_idx on public.meeting_points (circle_id);
 create index if not exists meeting_point_arrivals_point_idx on public.meeting_point_arrivals (meeting_point_id);
+create index if not exists sos_alerts_profile_idx on public.sos_alerts (profile_id, created_at desc);
 
 -- =========================================================================
 -- Funzioni helper (security definer per evitare ricorsione nelle policy RLS)
@@ -404,6 +425,7 @@ alter table public.speed_events enable row level security;
 alter table public.support_messages enable row level security;
 alter table public.meeting_points enable row level security;
 alter table public.meeting_point_arrivals enable row level security;
+alter table public.sos_alerts enable row level security;
 
 -- Ogni policy è preceduta da un "drop if exists" così l'intero script è
 -- rieseguibile senza errori (es. dopo averlo modificato) anche se le
@@ -571,6 +593,39 @@ drop policy if exists "meeting_point_arrivals_insert_self" on public.meeting_poi
 create policy "meeting_point_arrivals_insert_self" on public.meeting_point_arrivals
   for insert with check (profile_id = auth.uid());
 
+-- sos_alerts: visibile a chi condivide una cerchia con chi l'ha attivato,
+-- indipendentemente da modalità di condivisione/orario di reperibilità —
+-- è l'eccezione di emergenza, deliberata. Solo chi l'ha attivato può
+-- risolverlo.
+drop policy if exists "sos_alerts_select" on public.sos_alerts;
+create policy "sos_alerts_select" on public.sos_alerts
+  for select using (profile_id = auth.uid() or public.shares_circle_with(profile_id));
+
+drop policy if exists "sos_alerts_insert_self" on public.sos_alerts;
+create policy "sos_alerts_insert_self" on public.sos_alerts
+  for insert with check (profile_id = auth.uid());
+
+drop policy if exists "sos_alerts_update_self" on public.sos_alerts;
+create policy "sos_alerts_update_self" on public.sos_alerts
+  for update using (profile_id = auth.uid()) with check (profile_id = auth.uid());
+
+-- =========================================================================
+-- Permessi a livello di colonna
+-- =========================================================================
+
+-- Le policy RLS sopra dicono "puoi aggiornare la tua riga", ma senza questo
+-- non impediscono di aggiornare QUALSIASI colonna della propria riga —
+-- incluso is_premium. Senza questa restrizione, chiunque potrebbe attivarsi
+-- Kinly+ da solo con una singola chiamata, aggirando qualunque sistema di
+-- pagamento futuro. Impostato così, is_premium è modificabile solo da SQL
+-- Editor (o da un futuro processo server-side con la service_role key) — e
+-- resta valido a tempo indeterminato, dato che non c'è (ancora) una data di
+-- scadenza: è un "abbonamento a vita" finché non lo si disattiva a mano.
+revoke update on public.profiles from authenticated;
+grant update (
+  name, color, sharing_mode, battery_percent, speed_alert_kmh, auto_ghost_start, auto_ghost_end, avatar_key
+) on public.profiles to authenticated;
+
 -- =========================================================================
 -- Realtime (idempotente: evita errori se rilanci lo script)
 -- =========================================================================
@@ -579,7 +634,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events', 'speed_events', 'meeting_points', 'meeting_point_arrivals']
+  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events', 'speed_events', 'meeting_points', 'meeting_point_arrivals', 'sos_alerts']
   loop
     if not exists (
       select 1 from pg_publication_tables

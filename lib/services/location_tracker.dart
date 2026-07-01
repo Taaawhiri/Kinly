@@ -30,6 +30,17 @@ class LocationTracker {
   /// per non richiamare il server ad ogni aggiornamento di posizione.
   final Set<String> _arrivedMeetingPointIds = {};
 
+  // Il piano gratuito di Supabase ha limiti reali su scritture/banda: senza
+  // queste soglie, muoversi (specie in auto) genera un aggiornamento ogni
+  // pochi secondi, che a sua volta fa ripartire un refresh completo su
+  // TUTTI i dispositivi della cerchia (vedi AppState._scheduleRefresh).
+  // Limitiamo quindi la frequenza effettiva di scrittura, non solo la
+  // distanza minima già imposta dal LocationSettings.
+  static const _minProcessInterval = Duration(seconds: 12);
+  static const _minHistoryInterval = Duration(minutes: 3);
+  DateTime? _lastProcessedAt;
+  DateTime? _lastHistoryAppendAt;
+
   bool get isTracking => _positionSub != null;
 
   /// Chiede i permessi di localizzazione al sistema. Ritorna true se
@@ -71,9 +82,15 @@ class LocationTracker {
     _zoneInsideState.clear();
     _wasOverSpeedLimit = false;
     _arrivedMeetingPointIds.clear();
+    _lastProcessedAt = null;
+    _lastHistoryAppendAt = null;
   }
 
   Future<void> _onPosition(Position position) async {
+    final now = DateTime.now();
+    if (_lastProcessedAt != null && now.difference(_lastProcessedAt!) < _minProcessInterval) return;
+    _lastProcessedAt = now;
+
     final address = await _reverseGeocode(position.latitude, position.longitude);
     // Position.speed è in m/s e può essere impreciso/negativo da fermi:
     // lo consideriamo solo se il GPS lo ritiene valido (>= 0).
@@ -84,7 +101,15 @@ class LocationTracker {
       address: address,
       speedKmh: speedKmh,
     );
-    unawaited(KinlyRepository.instance.appendLocationHistory(lat: position.latitude, lng: position.longitude, address: address));
+
+    // Lo storico serve per rivedere gli spostamenti passati, non per una
+    // traccia GPS continua: una riga ogni pochi minuti basta e riduce
+    // parecchio la crescita della tabella.
+    if (_lastHistoryAppendAt == null || now.difference(_lastHistoryAppendAt!) >= _minHistoryInterval) {
+      _lastHistoryAppendAt = now;
+      unawaited(KinlyRepository.instance.appendLocationHistory(lat: position.latitude, lng: position.longitude, address: address));
+    }
+
     unawaited(_checkSafeZones(position));
     unawaited(_checkMeetingPoints(position));
     if (speedKmh != null) unawaited(_checkSpeedAlert(speedKmh));
