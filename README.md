@@ -45,33 +45,33 @@ microtransazioni in una fase successiva.
 
 ## Avviare l'app
 
-Le credenziali Supabase vanno passate a build/run time, non vanno mai
-committate nel repository:
+Il progetto Supabase di sviluppo (`tteqhmlcsgduuzlcqbrt`) è già configurato
+come default in `lib/services/supabase_client.dart`, quindi basta:
 
 ```
 flutter pub get
+flutter run -d chrome
+```
+
+La `anon key` incorporata è pensata per stare nel client (le regole RLS in
+`supabase/schema.sql` decidono cosa può fare); non è invece mai da usare la
+`service_role key`, quella sì segreta.
+
+Per puntare a un altro progetto (es. uno di staging separato), sovrascrivi i
+default con `--dart-define`:
+
+```
 flutter run -d chrome \
-  --dart-define=SUPABASE_URL=https://<il-tuo-progetto>.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=<la-tua-anon-key>
+  --dart-define=SUPABASE_URL=https://<altro-progetto>.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=<altra-anon-key>
 ```
 
-Per evitare di riscrivere i flag ogni volta, puoi salvarli in un file (non
-tracciato da git) e usare `--dart-define-from-file`:
+oppure salva i valori in un file non tracciato da git e usa
+`--dart-define-from-file=supabase-local.json`.
 
-```json
-// supabase-local.json (aggiungilo al tuo .gitignore locale)
-{
-  "SUPABASE_URL": "https://<il-tuo-progetto>.supabase.co",
-  "SUPABASE_ANON_KEY": "<la-tua-anon-key>"
-}
-```
-
-```
-flutter run --dart-define-from-file=supabase-local.json
-```
-
-Per la build APK su CI (`.github/workflows/build-apk.yml`), imposta i
-secret di repository `SUPABASE_URL` e `SUPABASE_ANON_KEY` su GitHub.
+Per la build APK su CI (`.github/workflows/build-apk.yml`) puoi lasciare
+vuoti i secret `SUPABASE_URL`/`SUPABASE_ANON_KEY` (userà i default) oppure
+impostarli su GitHub per puntare a un altro progetto.
 
 ## Struttura del progetto
 
