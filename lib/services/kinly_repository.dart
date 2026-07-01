@@ -297,6 +297,18 @@ class KinlyRepository {
   }
 
   // ---------------------------------------------------------------------
+  // Messaggi cerchia (brevi, non è una chat: vedi CircleMessage)
+  // ---------------------------------------------------------------------
+
+  Future<List<Map<String, dynamic>>> fetchCircleMessages() async {
+    return supabase.from('circle_messages').select().order('created_at', ascending: false).limit(200);
+  }
+
+  Future<void> sendCircleMessage({required String circleId, required String body}) async {
+    await supabase.from('circle_messages').insert({'circle_id': circleId, 'sender_id': _myId, 'body': body});
+  }
+
+  // ---------------------------------------------------------------------
   // Assistenza
   // ---------------------------------------------------------------------
 
@@ -423,6 +435,7 @@ class KinlyRepository {
       'meeting_points',
       'meeting_point_arrivals',
       'sos_alerts',
+      'circle_messages',
     ]) {
       channel.onPostgresChanges(
         event: PostgresChangeEvent.all,

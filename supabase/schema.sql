@@ -207,6 +207,18 @@ create table if not exists public.sos_alerts (
 -- SOS avvisa solo quei contatti invece di tutta la cerchia (vedi la policy
 -- sos_alerts_select più sotto). Se la lista è vuota, il comportamento resta
 -- quello di default: avvisa tutti quelli con cui condivide una cerchia.
+-- Messaggi brevi condivisi con una cerchia: pensati per avvisi importanti
+-- ("sto arrivando", "chiamami"), non per chiacchierare — il limite di
+-- lunghezza è imposto apposta per scoraggiare un uso da chat vera e
+-- propria (per quello l'app stessa rimanda a WhatsApp o simili).
+create table if not exists public.circle_messages (
+  id uuid primary key default gen_random_uuid(),
+  circle_id uuid not null references public.circles (id) on delete cascade,
+  sender_id uuid not null references public.profiles (id) on delete cascade,
+  body text not null check (char_length(body) between 1 and 140),
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.sos_trusted_contacts (
   profile_id uuid not null references public.profiles (id) on delete cascade,
   contact_id uuid not null references public.profiles (id) on delete cascade,
@@ -238,6 +250,7 @@ create index if not exists support_messages_profile_idx on public.support_messag
 create index if not exists meeting_points_circle_idx on public.meeting_points (circle_id);
 create index if not exists meeting_point_arrivals_point_idx on public.meeting_point_arrivals (meeting_point_id);
 create index if not exists sos_alerts_profile_idx on public.sos_alerts (profile_id, created_at desc);
+create index if not exists circle_messages_circle_idx on public.circle_messages (circle_id, created_at desc);
 
 -- =========================================================================
 -- Funzioni helper (security definer per evitare ricorsione nelle policy RLS)
@@ -468,6 +481,7 @@ alter table public.meeting_point_arrivals enable row level security;
 alter table public.sos_alerts enable row level security;
 alter table public.sos_trusted_contacts enable row level security;
 alter table public.device_tokens enable row level security;
+alter table public.circle_messages enable row level security;
 
 -- Ogni policy è preceduta da un "drop if exists" così l'intero script è
 -- rieseguibile senza errori (es. dopo averlo modificato) anche se le
@@ -690,6 +704,20 @@ drop policy if exists "sos_trusted_contacts_delete_own" on public.sos_trusted_co
 create policy "sos_trusted_contacts_delete_own" on public.sos_trusted_contacts
   for delete using (profile_id = auth.uid());
 
+-- circle_messages: visibili a chi è nella cerchia; ognuno scrive solo a
+-- nome proprio, e solo nelle proprie cerchie.
+drop policy if exists "circle_messages_select" on public.circle_messages;
+create policy "circle_messages_select" on public.circle_messages
+  for select using (circle_id in (select public.my_circle_ids()));
+
+drop policy if exists "circle_messages_insert_self" on public.circle_messages;
+create policy "circle_messages_insert_self" on public.circle_messages
+  for insert with check (sender_id = auth.uid() and circle_id in (select public.my_circle_ids()));
+
+drop policy if exists "circle_messages_delete_own" on public.circle_messages;
+create policy "circle_messages_delete_own" on public.circle_messages
+  for delete using (sender_id = auth.uid());
+
 -- device_tokens: ognuno gestisce solo i propri token. La Edge Function che
 -- invia le notifiche usa la service_role key, che scavalca la RLS.
 drop policy if exists "device_tokens_select_own" on public.device_tokens;
@@ -733,7 +761,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events', 'speed_events', 'meeting_points', 'meeting_point_arrivals', 'sos_alerts', 'sos_trusted_contacts']
+  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events', 'speed_events', 'meeting_points', 'meeting_point_arrivals', 'sos_alerts', 'sos_trusted_contacts', 'circle_messages']
   loop
     if not exists (
       select 1 from pg_publication_tables

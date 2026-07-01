@@ -3,6 +3,15 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Solo per chi attiva "Tracciamento in background" nelle impostazioni:
+         senza, la posizione si aggiorna solo mentre Kinly è aperta in primo
+         piano. Con il servizio in primo piano attivo, Android mostra sempre
+         una notifica fissa mentre è in esecuzione (obbligatoria dal sistema,
+         non rimovibile da Kinly). -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
     <application
         android:label="Kinly"
         android:name="${applicationName}"

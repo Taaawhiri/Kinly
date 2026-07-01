@@ -1,9 +1,25 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import '../state/app_state.dart';
+import 'background_tracking_settings.dart';
 import 'kinly_repository.dart';
+
+/// Esito del tentativo di attivare il tracciamento in background: usato
+/// dalla UI per decidere quale messaggio mostrare.
+enum BackgroundTrackingResult {
+  /// Il permesso "sempre" è stato concesso e il servizio è ora attivo.
+  enabled,
+
+  /// Android richiede di concedere il permesso "sempre" dalle impostazioni
+  /// di sistema (succede quasi sempre da Android 11 in poi).
+  needsSystemSettings,
+
+  /// Il permesso di base per la posizione non è ancora concesso.
+  locationPermissionDenied,
+}
 
 /// Traccia la posizione reale del dispositivo e la carica su Supabase,
 /// insieme al livello di batteria. La visibilità per gli altri è decisa dal
@@ -60,7 +76,7 @@ class LocationTracker {
     if (!granted) return;
 
     _positionSub = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 30),
+      locationSettings: await _buildLocationSettings(),
     ).listen(_onPosition, onError: (_) {});
 
     _updateBattery();
@@ -72,6 +88,73 @@ class LocationTracker {
     } catch (_) {
       // Se non è disponibile una posizione immediata, arriverà dallo stream.
     }
+  }
+
+  /// Le impostazioni normali funzionano solo mentre Kinly è in primo piano.
+  /// Chi ha attivato "Tracciamento in background" (e ha concesso il
+  /// permesso di posizione "sempre") ottiene invece un vero servizio in
+  /// primo piano Android, con una notifica fissa obbligatoria dal sistema:
+  /// aumenta la probabilità che la posizione continui ad aggiornarsi anche
+  /// quando l'app non è aperta, ma non lo garantisce al 100% se l'app viene
+  /// chiusa a forza (dipende anche dal produttore del telefono).
+  Future<LocationSettings> _buildLocationSettings() async {
+    const base = LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 30);
+    if (!Platform.isAndroid) return base;
+    if (!await BackgroundTrackingSettings.instance.isEnabled()) return base;
+    if (await Geolocator.checkPermission() != LocationPermission.always) return base;
+
+    return AndroidSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 30,
+      foregroundNotificationConfig: const ForegroundNotificationConfig(
+        notificationTitle: 'Kinly sta condividendo la tua posizione',
+        notificationText: 'Attivo anche quando l\'app non è in primo piano.',
+        notificationChannelName: 'Tracciamento posizione',
+        enableWifiLock: true,
+      ),
+    );
+  }
+
+  /// Da chiamare quando l'utente attiva "Tracciamento in background" dalle
+  /// impostazioni, DOPO aver mostrato l'avviso sul consumo di batteria.
+  /// Riavvia il tracciamento con le nuove impostazioni se il permesso viene
+  /// concesso subito.
+  Future<BackgroundTrackingResult> enableBackgroundTracking() async {
+    if (!Platform.isAndroid) return BackgroundTrackingResult.locationPermissionDenied;
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission != LocationPermission.always && permission != LocationPermission.whileInUse) {
+      return BackgroundTrackingResult.locationPermissionDenied;
+    }
+
+    if (permission != LocationPermission.always) {
+      // Da Android 11 in poi il sistema non mostra più un dialogo per il
+      // permesso "sempre" insieme a quello base: bisogna chiederlo di
+      // nuovo, e se il sistema non lo concede subito va attivato a mano
+      // dalle impostazioni dell'app.
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission != LocationPermission.always) {
+      return BackgroundTrackingResult.needsSystemSettings;
+    }
+
+    await BackgroundTrackingSettings.instance.setEnabled(true);
+    await _restart();
+    return BackgroundTrackingResult.enabled;
+  }
+
+  Future<void> disableBackgroundTracking() async {
+    await BackgroundTrackingSettings.instance.setEnabled(false);
+    await _restart();
+  }
+
+  Future<void> _restart() async {
+    if (!isTracking) return;
+    await stop();
+    await start();
   }
 
   Future<void> stop() async {

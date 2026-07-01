@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/circle_group.dart';
+import '../models/circle_message.dart';
 import '../models/location_history_point.dart';
 import '../models/location_request.dart';
 import '../models/meeting_point.dart';
@@ -45,6 +46,7 @@ class AppState extends ChangeNotifier {
   List<MeetingPointArrival> _meetingPointArrivals = [];
   List<SosAlert> _sosAlerts = [];
   Set<String> _sosTrustedContactIds = {};
+  List<CircleMessage> _circleMessages = [];
   TimeOfDay? _autoGhostStart;
   TimeOfDay? _autoGhostEnd;
 
@@ -177,6 +179,9 @@ class AppState extends ChangeNotifier {
       final trustedContactIds = await _repo.fetchSosTrustedContactIds();
       _sosTrustedContactIds = trustedContactIds.toSet();
 
+      final messageRows = await _repo.fetchCircleMessages();
+      _circleMessages = messageRows.map(CircleMessage.fromRow).toList();
+
       loadError = null;
     } catch (e) {
       loadError = e.toString();
@@ -274,6 +279,7 @@ class AppState extends ChangeNotifier {
     _meetingPointArrivals = [];
     _sosAlerts = [];
     _sosTrustedContactIds = {};
+    _circleMessages = [];
     _autoGhostStart = null;
     _autoGhostEnd = null;
     activeCircleId = null;
@@ -590,4 +596,17 @@ class AppState extends ChangeNotifier {
 
   Future<void> replyToSupportMessage({required String id, required String reply}) =>
       _repo.replyToSupportMessage(id: id, reply: reply);
+
+  // ---------------------------------------------------------------------
+  // Messaggi cerchia (brevi, non è una chat)
+  // ---------------------------------------------------------------------
+
+  List<CircleMessage> messagesForCircle(String circleId) =>
+      _circleMessages.where((m) => m.circleId == circleId).toList();
+
+  Future<void> sendCircleMessage({required String circleId, required String body}) async {
+    await _repo.sendCircleMessage(circleId: circleId, body: body);
+    await _refreshData();
+    notifyListeners();
+  }
 }

@@ -146,6 +146,13 @@ async function buildNotification(supabase: SupabaseClient, table: string, record
     case 'location_requests': {
       return { recipients: [record.target_id], title: 'Richiesta di posizione', body: 'Qualcuno ha chiesto di vedere la tua posizione.' };
     }
+    case 'circle_messages': {
+      const [name, recipients] = await Promise.all([
+        fetchName(supabase, record.sender_id),
+        circleRecipients(supabase, record.circle_id, record.sender_id),
+      ]);
+      return { recipients, title: name, body: record.body };
+    }
     default:
       return null;
   }

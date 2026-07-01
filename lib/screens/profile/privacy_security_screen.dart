@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../services/auth_service.dart';
+import '../../services/background_tracking_settings.dart';
 import '../../services/biometric_lock_service.dart';
+import '../../services/location_tracker.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../people/sos_contacts_screen.dart';
@@ -22,10 +26,74 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   bool _biometricEnabled = false;
   bool _biometricLoading = true;
 
+  bool _backgroundTrackingEnabled = false;
+  bool _backgroundTrackingBusy = false;
+
   @override
   void initState() {
     super.initState();
     unawaited(_loadBiometric());
+    unawaited(_loadBackgroundTracking());
+  }
+
+  Future<void> _loadBackgroundTracking() async {
+    final enabled = await BackgroundTrackingSettings.instance.isEnabled();
+    if (mounted) setState(() => _backgroundTrackingEnabled = enabled);
+  }
+
+  Future<void> _toggleBackgroundTracking(bool value) async {
+    if (!value) {
+      setState(() => _backgroundTrackingEnabled = false);
+      await LocationTracker.instance.disableBackgroundTracking();
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Attivare il tracciamento in background?'),
+        content: const Text(
+          'La tua posizione continuerà ad aggiornarsi anche quando Kinly non è in primo piano. '
+          'Consuma più batteria e mostra sempre una notifica fissa mentre è attivo, come richiesto da Android.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Annulla')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Attiva')),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _backgroundTrackingBusy = true);
+    final result = await LocationTracker.instance.enableBackgroundTracking();
+    if (!mounted) return;
+    setState(() {
+      _backgroundTrackingBusy = false;
+      _backgroundTrackingEnabled = result == BackgroundTrackingResult.enabled;
+    });
+
+    if (result == BackgroundTrackingResult.needsSystemSettings) {
+      final openSettings = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: const Text('Serve un passaggio in più'),
+          content: const Text(
+            'Il tuo Android richiede di attivare a mano il permesso di posizione "Consenti sempre" dalle impostazioni di sistema, poi torna qui e riattiva l\'interruttore.',
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Non ora')),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Apri impostazioni')),
+          ],
+        ),
+      );
+      if (openSettings == true) await Geolocator.openAppSettings();
+    } else if (result == BackgroundTrackingResult.locationPermissionDenied) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Prima serve concedere il permesso di posizione a Kinly.')),
+      );
+    }
   }
 
   Future<void> _loadBiometric() async {
@@ -152,6 +220,31 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                           child: Text('Sblocco biometrico', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
                         ),
                         Switch(value: _biometricEnabled, onChanged: _toggleBiometric),
+                      ],
+                    ),
+                  ),
+                ],
+                if (Platform.isAndroid) ...[
+                  const SizedBox(height: 24),
+                  Text('Tracciamento in background', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Per impostazione predefinita Kinly aggiorna la tua posizione solo mentre è aperta. Attivalo per farla continuare anche in background: consuma più batteria e mostra sempre una notifica fissa mentre è attivo.',
+                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(16)),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text('Attiva in background', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                        ),
+                        if (_backgroundTrackingBusy)
+                          const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.2))
+                        else
+                          Switch(value: _backgroundTrackingEnabled, onChanged: _toggleBackgroundTracking),
                       ],
                     ),
                   ),
