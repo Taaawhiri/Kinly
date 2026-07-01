@@ -5,6 +5,7 @@ import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/kinly_map.dart';
 import '../../widgets/sharing_mode_badge.dart';
+import '../premium/location_history_screen.dart';
 
 class PersonDetailScreen extends StatelessWidget {
   const PersonDetailScreen({super.key, required this.personId});
@@ -59,6 +60,27 @@ class PersonDetailScreen extends StatelessWidget {
                         if (canSee) _InfoRow(icon: Icons.access_time, label: 'Aggiornato ${person.lastUpdateLabel}'),
                         if (canSee) const SizedBox(height: 10),
                         if (canSee) _InfoRow(icon: _batteryIcon(person.batteryPercent), label: 'Batteria ${person.batteryPercent}%'),
+                        const SizedBox(height: 20),
+                        InkWell(
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => LocationHistoryScreen(person: person)),
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(14)),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.history_rounded, size: 19, color: AppTheme.textPrimary),
+                                SizedBox(width: 12),
+                                Expanded(
+                                  child: Text('Cronologia posizioni', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5, color: AppTheme.textPrimary)),
+                                ),
+                                Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary),
+                              ],
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 24),
                         _buildAction(person),
                       ],

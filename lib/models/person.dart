@@ -16,6 +16,7 @@ class Person {
     required this.isSharingWithMe,
     required this.mode,
     this.isMe = false,
+    this.isPremium = false,
   });
 
   final String id;
@@ -34,6 +35,9 @@ class Person {
   final bool isSharingWithMe;
   final SharingMode mode;
   final bool isMe;
+
+  /// Abbonamento Kinly+ attivo.
+  final bool isPremium;
 
   String get initials {
     final parts = name.trim().split(RegExp(r'\s+'));
@@ -62,6 +66,7 @@ class Person {
       isSharingWithMe: isSharingWithMe ?? this.isSharingWithMe,
       mode: mode ?? this.mode,
       isMe: isMe,
+      isPremium: isPremium,
     );
   }
 }

@@ -8,6 +8,7 @@ import '../../widgets/person_avatar.dart';
 import '../onboarding/create_circle_screen.dart';
 import '../onboarding/join_circle_screen.dart';
 import '../people/person_detail_screen.dart';
+import '../premium/safe_zones_screen.dart';
 
 class CirclesScreen extends StatelessWidget {
   const CirclesScreen({super.key});
@@ -163,6 +164,11 @@ class _CircleCard extends StatelessWidget {
                 },
                 icon: const Icon(Icons.copy_rounded, size: 18, color: AppTheme.textSecondary),
                 tooltip: 'Copia codice invito',
+              ),
+              IconButton(
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SafeZonesScreen(circle: circle))),
+                icon: const Icon(Icons.fence_rounded, size: 18, color: AppTheme.textSecondary),
+                tooltip: 'Aree sicure',
               ),
             ],
           ),

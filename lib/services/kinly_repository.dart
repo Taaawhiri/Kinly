@@ -4,6 +4,15 @@ import '../models/circle_group.dart';
 import '../models/sharing_mode.dart';
 import 'supabase_client.dart';
 
+/// Sollevata quando un'operazione viene bloccata dai limiti del piano
+/// gratuito (vedi il trigger `enforce_circle_limits` nello schema).
+enum FreeLimitKind { tooManyCircles, circleFull }
+
+class FreeLimitException implements Exception {
+  const FreeLimitException(this.kind);
+  final FreeLimitKind kind;
+}
+
 /// Tutte le operazioni reali su Supabase: profilo, cerchie, posizioni e
 /// richieste. Le policy RLS del database (vedi supabase/schema.sql) sono la
 /// vera fonte di verità su chi può vedere cosa: qui ci limitiamo a fare le
@@ -72,7 +81,14 @@ class KinlyRepository {
         if (e.code != '23505' || attempt >= 5) rethrow;
       }
     }
-    await supabase.from('circle_members').insert({'circle_id': row['id'], 'profile_id': _myId});
+    try {
+      await supabase.from('circle_members').insert({'circle_id': row['id'], 'profile_id': _myId});
+    } on PostgrestException catch (e) {
+      // La cerchia è stata creata ma non posso aggiungermici: la elimino
+      // per non lasciare in giro una cerchia senza membri.
+      await supabase.from('circles').delete().eq('id', row['id']);
+      throw _translateLimitError(e);
+    }
     return CircleGroup.fromRow(row, memberIds: [_myId]);
   }
 
@@ -82,16 +98,26 @@ class KinlyRepository {
     final result = await supabase.rpc('find_circle_by_code', params: {'p_code': code});
     if (result == null) return null;
     final row = Map<String, dynamic>.from(result as Map);
-    // ignoreDuplicates evita un UPDATE se sono già membro (per cui non c'è
-    // una policy RLS dedicata: non serve, basta non fare nulla).
-    await supabase.from('circle_members').upsert(
-      {'circle_id': row['id'], 'profile_id': _myId},
-      onConflict: 'circle_id,profile_id',
-      ignoreDuplicates: true,
-    );
+    try {
+      // ignoreDuplicates evita un UPDATE se sono già membro (per cui non
+      // c'è una policy RLS dedicata: non serve, basta non fare nulla).
+      await supabase.from('circle_members').upsert(
+        {'circle_id': row['id'], 'profile_id': _myId},
+        onConflict: 'circle_id,profile_id',
+        ignoreDuplicates: true,
+      );
+    } on PostgrestException catch (e) {
+      throw _translateLimitError(e);
+    }
     final members = await supabase.from('circle_members').select('profile_id').eq('circle_id', row['id']);
     final memberIds = members.map((m) => m['profile_id'] as String).toList();
     return CircleGroup.fromRow(row, memberIds: memberIds);
+  }
+
+  Object _translateLimitError(PostgrestException e) {
+    if (e.message.contains('free_circle_limit_reached')) return const FreeLimitException(FreeLimitKind.tooManyCircles);
+    if (e.message.contains('free_member_limit_reached')) return const FreeLimitException(FreeLimitKind.circleFull);
+    return e;
   }
 
   String _generateInviteCode(String name) {
@@ -118,6 +144,67 @@ class KinlyRepository {
       'lng': lng,
       'address': address,
       'updated_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<void> appendLocationHistory({required double lat, required double lng, String? address}) async {
+    await supabase.from('location_history').insert({'profile_id': _myId, 'lat': lat, 'lng': lng, 'address': address});
+  }
+
+  /// Storico di una persona (Kinly+): se non sono premium, la RLS ritorna
+  /// semplicemente una lista vuota invece di un errore.
+  Future<List<Map<String, dynamic>>> fetchLocationHistory(String profileId, {int limit = 200}) async {
+    return supabase
+        .from('location_history')
+        .select()
+        .eq('profile_id', profileId)
+        .order('recorded_at', ascending: false)
+        .limit(limit);
+  }
+
+  // ---------------------------------------------------------------------
+  // Aree sicure (Kinly+)
+  // ---------------------------------------------------------------------
+
+  Future<List<Map<String, dynamic>>> fetchSafeZones() async {
+    return supabase.from('safe_zones').select();
+  }
+
+  Future<void> createSafeZone({
+    required String circleId,
+    required String name,
+    required double lat,
+    required double lng,
+    required int radiusMeters,
+  }) async {
+    try {
+      await supabase.from('safe_zones').insert({
+        'circle_id': circleId,
+        'name': name,
+        'lat': lat,
+        'lng': lng,
+        'radius_meters': radiusMeters,
+        'created_by': _myId,
+      });
+    } on PostgrestException catch (e) {
+      if (e.code == '42501') throw const FreeLimitException(FreeLimitKind.circleFull);
+      rethrow;
+    }
+  }
+
+  Future<void> deleteSafeZone(String zoneId) async {
+    await supabase.from('safe_zones').delete().eq('id', zoneId);
+  }
+
+  Future<List<Map<String, dynamic>>> fetchSafeZoneEvents({int limit = 50}) async {
+    return supabase.from('safe_zone_events').select().order('occurred_at', ascending: false).limit(limit);
+  }
+
+  Future<void> recordSafeZoneEvent({required String zoneId, required bool entering}) async {
+    await supabase.from('safe_zone_events').insert({
+      'zone_id': zoneId,
+      'profile_id': _myId,
+      'event_type': entering ? 'enter' : 'exit',
     });
   }
 
@@ -155,7 +242,15 @@ class KinlyRepository {
 
   RealtimeChannel subscribeToChanges(void Function() onChange) {
     final channel = supabase.channel('kinly_live_updates');
-    for (final table in ['profiles', 'circle_members', 'circles', 'locations', 'location_requests']) {
+    for (final table in [
+      'profiles',
+      'circle_members',
+      'circles',
+      'locations',
+      'location_requests',
+      'safe_zones',
+      'safe_zone_events',
+    ]) {
       channel.onPostgresChanges(
         event: PostgresChangeEvent.all,
         schema: 'public',

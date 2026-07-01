@@ -4,6 +4,7 @@ import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/person_avatar.dart';
 import '../circles/circles_screen.dart';
+import '../premium/paywall_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -51,13 +52,32 @@ class ProfileScreen extends StatelessWidget {
                   const Expanded(child: _Header('Kinly+')),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(color: AppTheme.accentAmber.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
-                    child: const Text('Presto disponibile', style: TextStyle(color: AppTheme.accentAmber, fontWeight: FontWeight.w700, fontSize: 11)),
+                    decoration: BoxDecoration(
+                      color: (state.isPremium ? AppTheme.accentGreen : AppTheme.accentAmber).withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      state.isPremium ? 'Attivo' : 'Non attivo',
+                      style: TextStyle(
+                        color: state.isPremium ? AppTheme.accentGreen : AppTheme.accentAmber,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 11,
+                      ),
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
-              const _PremiumTeaser(),
+              GestureDetector(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen())),
+                child: const _PremiumTeaser(),
+              ),
+              const SizedBox(height: 10),
+              _NavCard(
+                icon: Icons.workspace_premium_outlined,
+                label: state.isPremium ? 'Gestisci abbonamento Kinly+' : 'Scopri Kinly+',
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen())),
+              ),
               const SizedBox(height: 24),
               const _Header('Altro'),
               const SizedBox(height: 10),

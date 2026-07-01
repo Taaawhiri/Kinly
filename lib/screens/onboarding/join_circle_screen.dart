@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../services/kinly_repository.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../premium/paywall_screen.dart';
 
 class JoinCircleScreen extends StatefulWidget {
   const JoinCircleScreen({super.key, this.isOnboarding = true});
@@ -18,6 +20,7 @@ class _JoinCircleScreenState extends State<JoinCircleScreen> {
   final _controller = TextEditingController();
   String? _error;
   bool _joining = false;
+  bool _limitReached = false;
 
   @override
   void dispose() {
@@ -29,6 +32,7 @@ class _JoinCircleScreenState extends State<JoinCircleScreen> {
     setState(() {
       _joining = true;
       _error = null;
+      _limitReached = false;
     });
     try {
       final circle = await AppState.instance.joinCircleByCode(_controller.text);
@@ -42,6 +46,14 @@ class _JoinCircleScreenState extends State<JoinCircleScreen> {
       } else {
         Navigator.of(context).pop(circle);
       }
+    } on FreeLimitException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _limitReached = true;
+        _error = e.kind == FreeLimitKind.tooManyCircles
+            ? 'Nel piano gratuito puoi far parte di massimo 2 cerchie. Passa a Kinly+ per non avere limiti.'
+            : 'Questa cerchia ha già raggiunto il limite di 6 persone del piano gratuito.';
+      });
     } catch (e) {
       if (mounted) setState(() => _error = 'Non siamo riusciti a verificare il codice. Riprova.');
     } finally {
@@ -92,6 +104,14 @@ class _JoinCircleScreenState extends State<JoinCircleScreen> {
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
                     : const Text('Entra'),
               ),
+              if (_limitReached) ...[
+                const SizedBox(height: 10),
+                OutlinedButton(
+                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen())),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(54)),
+                  child: const Text('Scopri Kinly+'),
+                ),
+              ],
               const Spacer(),
               Container(
                 padding: const EdgeInsets.all(14),

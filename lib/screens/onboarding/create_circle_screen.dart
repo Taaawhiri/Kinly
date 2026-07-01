@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/circle_group.dart';
+import '../../services/kinly_repository.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../premium/paywall_screen.dart';
 
 class CreateCircleScreen extends StatefulWidget {
   const CreateCircleScreen({super.key, this.isOnboarding = true});
@@ -38,6 +40,7 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
   CircleGroup? _created;
   bool _creating = false;
   String? _error;
+  bool _limitReached = false;
 
   @override
   void dispose() {
@@ -51,11 +54,19 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
     setState(() {
       _creating = true;
       _error = null;
+      _limitReached = false;
     });
     try {
       final circle = await AppState.instance.createCircle(name, _icon, _color);
       if (!mounted) return;
       setState(() => _created = circle);
+    } on FreeLimitException {
+      if (mounted) {
+        setState(() {
+          _error = 'Nel piano gratuito puoi far parte di massimo 2 cerchie. Passa a Kinly+ per non avere limiti.';
+          _limitReached = true;
+        });
+      }
     } catch (e) {
       if (mounted) setState(() => _error = 'Non siamo riusciti a creare la cerchia. Riprova.');
     } finally {
@@ -143,6 +154,13 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
         if (_error != null) ...[
           const SizedBox(height: 12),
           Text(_error!, style: const TextStyle(color: AppTheme.accentCoral, fontSize: 13)),
+        ],
+        if (_limitReached) ...[
+          const SizedBox(height: 10),
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen())),
+            child: const Text('Scopri Kinly+'),
+          ),
         ],
         const Spacer(),
         FilledButton(

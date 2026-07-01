@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/circle_group.dart';
+import '../models/location_history_point.dart';
 import '../models/location_request.dart';
 import '../models/person.dart';
+import '../models/safe_zone.dart';
 import '../models/sharing_mode.dart';
 import '../services/auth_service.dart';
 import '../services/kinly_repository.dart';
@@ -30,17 +32,22 @@ class AppState extends ChangeNotifier {
   List<Person> _others = [];
   List<CircleGroup> _circles = [];
   List<LocationRequest> _requests = [];
+  List<SafeZone> _safeZones = [];
+  List<SafeZoneEvent> _safeZoneEvents = [];
 
   RealtimeChannel? _channel;
   Timer? _refreshDebounce;
 
   bool get isSignedIn => AuthService.instance.isSignedIn;
   bool get hasCircles => _circles.isNotEmpty;
+  bool get isPremium => me.isPremium;
 
   Person get me => _me ?? _placeholderMe();
   List<Person> get others => List.unmodifiable(_others);
   List<CircleGroup> get circles => List.unmodifiable(_circles);
   List<LocationRequest> get requests => List.unmodifiable(_requests);
+  List<SafeZone> get safeZones => List.unmodifiable(_safeZones);
+  List<SafeZoneEvent> get safeZoneEvents => List.unmodifiable(_safeZoneEvents);
 
   SharingMode get myMode => me.mode;
 
@@ -109,6 +116,12 @@ class AppState extends ChangeNotifier {
       final requestRows = await _repo.fetchLocationRequests();
       _requests = requestRows.map((row) => LocationRequest.fromRow(row, myId: myId)).toList();
 
+      final zoneRows = await _repo.fetchSafeZones();
+      _safeZones = zoneRows.map(SafeZone.fromRow).toList();
+
+      final eventRows = await _repo.fetchSafeZoneEvents();
+      _safeZoneEvents = eventRows.map(SafeZoneEvent.fromRow).toList();
+
       loadError = null;
     } catch (e) {
       loadError = e.toString();
@@ -143,6 +156,7 @@ class AppState extends ChangeNotifier {
       isSharingWithMe: isSharingWithMe,
       mode: SharingModeData.fromDb(profile['sharing_mode'] as String? ?? 'automatic'),
       isMe: isMe,
+      isPremium: profile['is_premium'] as bool? ?? false,
     );
   }
 
@@ -168,6 +182,8 @@ class AppState extends ChangeNotifier {
     _others = [];
     _circles = [];
     _requests = [];
+    _safeZones = [];
+    _safeZoneEvents = [];
     activeCircleId = null;
     hasLoadedOnce = false;
     loadError = null;
@@ -253,5 +269,38 @@ class AppState extends ChangeNotifier {
       notifyListeners();
     }
     return circle;
+  }
+
+  // ---------------------------------------------------------------------
+  // Kinly+ : cronologia posizioni e aree sicure
+  // ---------------------------------------------------------------------
+
+  /// Storico di una persona (funzione Kinly+): torna vuoto se non sono
+  /// abbonato, senza bisogno di controllarlo qui — lo decide la RLS.
+  Future<List<LocationHistoryPoint>> fetchHistoryFor(String personId) async {
+    final rows = await _repo.fetchLocationHistory(personId);
+    return rows.map(LocationHistoryPoint.fromRow).toList();
+  }
+
+  List<SafeZone> safeZonesForCircle(String circleId) => _safeZones.where((z) => z.circleId == circleId).toList();
+
+  List<SafeZoneEvent> eventsForZone(String zoneId) => _safeZoneEvents.where((e) => e.zoneId == zoneId).toList();
+
+  Future<void> createSafeZone({
+    required String circleId,
+    required String name,
+    required double lat,
+    required double lng,
+    required int radiusMeters,
+  }) async {
+    await _repo.createSafeZone(circleId: circleId, name: name, lat: lat, lng: lng, radiusMeters: radiusMeters);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  Future<void> deleteSafeZone(String zoneId) async {
+    await _repo.deleteSafeZone(zoneId);
+    await _refreshData();
+    notifyListeners();
   }
 }
