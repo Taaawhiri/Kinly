@@ -224,6 +224,23 @@ class KinlyRepository {
     }
   }
 
+  Future<void> updateSafeZone({
+    required String zoneId,
+    required String name,
+    required double lat,
+    required double lng,
+    required int radiusMeters,
+    required SafeZoneKind kind,
+  }) async {
+    await supabase.from('safe_zones').update({
+      'name': name,
+      'lat': lat,
+      'lng': lng,
+      'radius_meters': radiusMeters,
+      'kind': kind.dbValue,
+    }).eq('id', zoneId);
+  }
+
   Future<void> deleteSafeZone(String zoneId) async {
     await supabase.from('safe_zones').delete().eq('id', zoneId);
   }

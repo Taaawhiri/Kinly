@@ -6,6 +6,7 @@ import '../../models/safe_zone.dart';
 import '../../services/kinly_repository.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/safe_zones_map.dart';
 import 'paywall_screen.dart';
 
 /// Aree sicure di una cerchia (Kinly+): crearle è un beneficio Kinly+, ma il
@@ -79,11 +80,18 @@ class SafeZonesScreen extends StatelessWidget {
   }
 
   Widget _buildList(BuildContext context, List<SafeZone> zones) {
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: zones.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (context, i) => _SafeZoneCard(zone: zones[i]),
+    return Column(
+      children: [
+        SizedBox(height: 220, child: SafeZonesMap(zones: zones)),
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: zones.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (context, i) => _SafeZoneCard(zone: zones[i]),
+          ),
+        ),
+      ],
     );
   }
 
@@ -93,7 +101,17 @@ class SafeZonesScreen extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: AppTheme.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (sheetContext) => _CreateSafeZoneSheet(circleId: circle.id),
+      builder: (sheetContext) => _SafeZoneSheet(circleId: circle.id),
+    );
+  }
+
+  static void openEditSheet(BuildContext context, SafeZone zone) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetContext) => _SafeZoneSheet(circleId: zone.circleId, existingZone: zone),
     );
   }
 }
@@ -134,6 +152,11 @@ class _SafeZoneCard extends StatelessWidget {
                 ),
               ),
               IconButton(
+                icon: Icon(Icons.edit_outlined, color: AppTheme.textSecondary, size: 20),
+                onPressed: () => SafeZonesScreen.openEditSheet(context, zone),
+                tooltip: 'Modifica area',
+              ),
+              IconButton(
                 icon: const Icon(Icons.delete_outline_rounded, color: AppTheme.accentCoral, size: 20),
                 onPressed: () => AppState.instance.deleteSafeZone(zone.id),
                 tooltip: 'Elimina area',
@@ -165,26 +188,31 @@ class _SafeZoneCard extends StatelessWidget {
   }
 }
 
-class _CreateSafeZoneSheet extends StatefulWidget {
-  const _CreateSafeZoneSheet({required this.circleId});
+class _SafeZoneSheet extends StatefulWidget {
+  const _SafeZoneSheet({required this.circleId, this.existingZone});
   final String circleId;
 
+  /// Se non nullo, il foglio modifica quest'area invece di crearne una nuova.
+  final SafeZone? existingZone;
+
   @override
-  State<_CreateSafeZoneSheet> createState() => _CreateSafeZoneSheetState();
+  State<_SafeZoneSheet> createState() => _SafeZoneSheetState();
 }
 
-class _CreateSafeZoneSheetState extends State<_CreateSafeZoneSheet> {
-  final _nameController = TextEditingController();
+class _SafeZoneSheetState extends State<_SafeZoneSheet> {
+  late final _nameController = TextEditingController(text: widget.existingZone?.name ?? '');
   final _addressController = TextEditingController();
-  double _radius = 150;
-  double? _lat;
-  double? _lng;
+  late double _radius = widget.existingZone?.radiusMeters.toDouble() ?? 150;
+  late double? _lat = widget.existingZone?.lat;
+  late double? _lng = widget.existingZone?.lng;
   String? _addressLabel;
-  SafeZoneKind _kind = SafeZoneKind.other;
+  late SafeZoneKind _kind = widget.existingZone?.kind ?? SafeZoneKind.other;
   bool _locating = false;
   bool _searching = false;
   bool _saving = false;
   String? _error;
+
+  bool get _isEditing => widget.existingZone != null;
 
   @override
   void dispose() {
@@ -207,11 +235,25 @@ class _CreateSafeZoneSheetState extends State<_CreateSafeZoneSheet> {
         return;
       }
       final loc = locations.first;
+      // "locationFromAddress" ritorna solo lat/lng, non un indirizzo
+      // leggibile: senza questo passaggio in più mostravamo il testo
+      // digitato da te invece di confermare cosa ha trovato davvero il
+      // geocoder (che potrebbe interpretare l'indirizzo diversamente).
+      String? confirmedAddress;
+      try {
+        final placemarks = await placemarkFromCoordinates(loc.latitude, loc.longitude);
+        if (placemarks.isNotEmpty) {
+          final p = placemarks.first;
+          confirmedAddress = [if ((p.street ?? '').isNotEmpty) p.street, if ((p.locality ?? '').isNotEmpty) p.locality].join(', ');
+        }
+      } catch (_) {
+        // Va bene anche senza indirizzo leggibile: restano comunque le coordinate.
+      }
       if (!mounted) return;
       setState(() {
         _lat = loc.latitude;
         _lng = loc.longitude;
-        _addressLabel = query;
+        _addressLabel = (confirmedAddress == null || confirmedAddress.isEmpty) ? null : confirmedAddress;
       });
     } catch (_) {
       if (mounted) setState(() => _error = 'Non siamo riusciti a cercare questo indirizzo. Riprova.');
@@ -261,19 +303,30 @@ class _CreateSafeZoneSheetState extends State<_CreateSafeZoneSheet> {
       _error = null;
     });
     try {
-      await AppState.instance.createSafeZone(
-        circleId: widget.circleId,
-        name: name,
-        lat: _lat!,
-        lng: _lng!,
-        radiusMeters: _radius.round(),
-        kind: _kind,
-      );
+      if (_isEditing) {
+        await AppState.instance.updateSafeZone(
+          zoneId: widget.existingZone!.id,
+          name: name,
+          lat: _lat!,
+          lng: _lng!,
+          radiusMeters: _radius.round(),
+          kind: _kind,
+        );
+      } else {
+        await AppState.instance.createSafeZone(
+          circleId: widget.circleId,
+          name: name,
+          lat: _lat!,
+          lng: _lng!,
+          radiusMeters: _radius.round(),
+          kind: _kind,
+        );
+      }
       if (mounted) Navigator.of(context).pop();
     } on FreeLimitException {
       if (mounted) setState(() => _error = 'Le aree sicure sono una funzione Kinly+.');
     } catch (_) {
-      if (mounted) setState(() => _error = 'Non siamo riusciti a creare l\'area. Riprova.');
+      if (mounted) setState(() => _error = _isEditing ? 'Non siamo riusciti a salvare le modifiche. Riprova.' : 'Non siamo riusciti a creare l\'area. Riprova.');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -288,7 +341,7 @@ class _CreateSafeZoneSheetState extends State<_CreateSafeZoneSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Nuova area sicura', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+            Text(_isEditing ? 'Modifica area sicura' : 'Nuova area sicura', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
             const SizedBox(height: 16),
             TextField(
               controller: _nameController,
@@ -379,7 +432,7 @@ class _CreateSafeZoneSheetState extends State<_CreateSafeZoneSheet> {
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
               child: _saving
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
-                  : const Text('Crea area'),
+                  : Text(_isEditing ? 'Salva modifiche' : 'Crea area'),
             ),
           ],
         ),

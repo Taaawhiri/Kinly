@@ -19,12 +19,17 @@ class KinlyMap extends StatefulWidget {
     required this.people,
     this.onPersonTap,
     this.interactive = true,
+    this.onMapReady,
   });
 
   /// Le persone da mostrare come marcatori: solo quelle con una posizione
   /// nota (`lat`/`lng` non nulli) vengono effettivamente disegnate.
   final List<Person> people;
   final ValueChanged<String>? onPersonTap;
+
+  /// Chiamato quando la mappa è pronta: utile a chi la usa per aggiungere
+  /// controlli propri (es. un pulsante "centra sulla mia posizione").
+  final ValueChanged<MapLibreMapController>? onMapReady;
 
   /// Se false disabilita pan/zoom/rotazione (utile per un'anteprima piccola
   /// e non interattiva, come nel dettaglio di una persona).
@@ -41,13 +46,38 @@ class _KinlyMapState extends State<KinlyMap> {
   final Set<String> _registeredImages = {};
   bool _styleLoaded = false;
 
+  /// Vero dopo il primo ricentraggio automatico sulla MIA posizione: serve a
+  /// correggere la mappa quando all'avvio mostra ancora l'ultima posizione
+  /// salvata (magari vecchia) prima che arrivi un fix GPS fresco, senza poi
+  /// continuare a spostare la camera ogni volta che qualcuno si muove.
+  bool _autoCenteredOnFreshFix = false;
+
   List<Person> get _visiblePeople => widget.people.where((p) => p.lat != null && p.lng != null).toList();
+
+  Person? _meIn(List<Person> people) {
+    for (final p in people) {
+      if (p.isMe) return p;
+    }
+    return null;
+  }
 
   @override
   void didUpdateWidget(covariant KinlyMap oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_styleLoaded && !_samePeople(oldWidget.people, widget.people)) {
+    if (!_styleLoaded) return;
+    if (!_samePeople(oldWidget.people, widget.people)) {
       unawaited(_syncSymbols(fitCamera: false));
+    }
+    if (!_autoCenteredOnFreshFix) {
+      final oldMe = _meIn(oldWidget.people);
+      final newMe = _meIn(widget.people);
+      if (newMe?.lat != null && newMe?.lng != null && (oldMe?.lat != newMe?.lat || oldMe?.lng != newMe?.lng)) {
+        _autoCenteredOnFreshFix = true;
+        final controller = _controller;
+        if (controller != null) {
+          unawaited(controller.animateCamera(CameraUpdate.newLatLng(LatLng(newMe!.lat!, newMe.lng!))));
+        }
+      }
     }
   }
 
@@ -86,6 +116,7 @@ class _KinlyMapState extends State<KinlyMap> {
       onMapCreated: (controller) {
         _controller = controller;
         controller.onSymbolTapped.add(_handleSymbolTap);
+        widget.onMapReady?.call(controller);
       },
       onStyleLoadedCallback: () async {
         _styleLoaded = true;

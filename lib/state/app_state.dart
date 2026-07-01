@@ -474,6 +474,19 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateSafeZone({
+    required String zoneId,
+    required String name,
+    required double lat,
+    required double lng,
+    required int radiusMeters,
+    required SafeZoneKind kind,
+  }) async {
+    await _repo.updateSafeZone(zoneId: zoneId, name: name, lat: lat, lng: lng, radiusMeters: radiusMeters, kind: kind);
+    await _refreshData();
+    notifyListeners();
+  }
+
   Future<void> deleteSafeZone(String zoneId) async {
     await _repo.deleteSafeZone(zoneId);
     await _refreshData();

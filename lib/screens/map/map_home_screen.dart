@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:maplibre_gl/maplibre_gl.dart';
 import '../../models/help_request.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
@@ -24,11 +25,27 @@ const double _sheetMaxSize = 0.9;
 
 class _MapHomeScreenState extends State<MapHomeScreen> {
   final _sheetController = DraggableScrollableController();
+  MapLibreMapController? _mapController;
+  bool _centering = false;
 
   @override
   void dispose() {
     _sheetController.dispose();
     super.dispose();
+  }
+
+  Future<void> _centerOnMyLocation() async {
+    setState(() => _centering = true);
+    try {
+      final position = await Geolocator.getCurrentPosition();
+      await _mapController?.animateCamera(CameraUpdate.newLatLngZoom(LatLng(position.latitude, position.longitude), 15));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a rilevare la tua posizione.')));
+      }
+    } finally {
+      if (mounted) setState(() => _centering = false);
+    }
   }
 
   Future<void> _confirmAndTriggerSos() async {
@@ -90,6 +107,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                     onPersonTap: (personId) => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: personId)),
                     ),
+                    onMapReady: (controller) => _mapController = controller,
                   ),
                   // Align forza dei vincoli "loose" sul figlio: senza, lo
                   // Stack (fit: expand) costringerebbe il CustomPaint del
@@ -222,6 +240,22 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                         ),
                       ),
                     ),
+                  ),
+                  // Il pulsante "centra su di me" segue anche lui il bordo
+                  // del pannello, per restare sempre visibile e non finire
+                  // coperto quando lo trascini verso l'alto.
+                  AnimatedBuilder(
+                    animation: _sheetController,
+                    builder: (context, child) {
+                      final extent = _sheetController.isAttached ? _sheetController.size : _sheetInitialSize;
+                      final sheetTop = constraints.maxHeight * (1 - extent);
+                      return Positioned(
+                        right: 16,
+                        top: sheetTop - 112,
+                        child: child!,
+                      );
+                    },
+                    child: _CenterOnMeButton(loading: _centering, onTap: _centerOnMyLocation),
                   ),
                   DraggableScrollableSheet(
                     controller: _sheetController,
@@ -424,6 +458,31 @@ class _HelpRequestSheet extends StatefulWidget {
 
   @override
   State<_HelpRequestSheet> createState() => _HelpRequestSheetState();
+}
+
+class _CenterOnMeButton extends StatelessWidget {
+  const _CenterOnMeButton({required this.loading, required this.onTap});
+  final bool loading;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppTheme.surface,
+      shape: const CircleBorder(),
+      elevation: 3,
+      child: InkWell(
+        onTap: loading ? null : onTap,
+        customBorder: const CircleBorder(),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: loading
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.2))
+              : Icon(Icons.my_location_rounded, color: AppTheme.primary, size: 20),
+        ),
+      ),
+    );
+  }
 }
 
 class _HelpRequestSheetState extends State<_HelpRequestSheet> {

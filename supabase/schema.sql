@@ -649,6 +649,10 @@ drop policy if exists "safe_zones_delete_own" on public.safe_zones;
 create policy "safe_zones_delete_own" on public.safe_zones
   for delete using (created_by = auth.uid());
 
+drop policy if exists "safe_zones_update_own" on public.safe_zones;
+create policy "safe_zones_update_own" on public.safe_zones
+  for update using (created_by = auth.uid()) with check (created_by = auth.uid());
+
 -- safe_zone_events: vedo gli eventi delle aree delle mie cerchie; registro
 -- solo i miei ingressi/uscite.
 drop policy if exists "safe_zone_events_select" on public.safe_zone_events;
