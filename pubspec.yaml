@@ -21,6 +21,16 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   flutter_launcher_icons: ^0.14.1
 
+# app_links (dipendenza transitiva di supabase_flutter, usata per i deep
+# link OAuth che qui non sfruttiamo) dalla 6.4.1 in poi legge
+# `flutter.compileSdkVersion` nel proprio build.gradle: con il Flutter/AGP
+# fissati in questo progetto quella proprietà non viene propagata al
+# sottoprogetto e la build Android fallisce ("Could not get unknown
+# property 'flutter'"). La 6.4.0 usa ancora un compileSdk fisso, quindi
+# aggira il problema senza dover toccare le versioni di Flutter/AGP.
+dependency_overrides:
+  app_links: 6.4.0
+
 flutter_launcher_icons:
   android: true
   ios: true
