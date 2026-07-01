@@ -20,16 +20,23 @@ create table if not exists public.profiles (
     check (sharing_mode in ('automatic', 'on_request', 'paused')),
   battery_percent integer not null default 100
     check (battery_percent between 0 and 100),
+  created_at timestamptz not null default now()
+);
+
+-- "create table if not exists" non tocca una tabella già esistente, quindi
+-- le colonne aggiunte in versioni successive di questo script vanno
+-- applicate con degli "alter table" espliciti, anche loro idempotenti.
+alter table public.profiles add column if not exists
   -- Vero solo con un abbonamento Kinly+ attivo. Per ora non c'è un
   -- sistema di pagamento collegato: questa colonna è pronta per quando
   -- ci sarà (es. un webhook che la aggiorna dopo un pagamento riuscito).
-  is_premium boolean not null default false,
+  is_premium boolean not null default false;
+
+alter table public.profiles add column if not exists
   -- Soglia di velocità (km/h) oltre la quale si registra un avviso di
   -- guida (Kinly+): null = avvisi disattivati. La imposta chi guida, su
   -- di sé; a vederne gli avvisi sono i membri premium della sua cerchia.
-  speed_alert_kmh integer check (speed_alert_kmh between 20 and 300),
-  created_at timestamptz not null default now()
-);
+  speed_alert_kmh integer check (speed_alert_kmh between 20 and 300);
 
 create table if not exists public.circles (
   id uuid primary key default gen_random_uuid(),
@@ -53,9 +60,10 @@ create table if not exists public.locations (
   lat double precision not null,
   lng double precision not null,
   address text,
-  speed_kmh double precision,
   updated_at timestamptz not null default now()
 );
+
+alter table public.locations add column if not exists speed_kmh double precision;
 
 create table if not exists public.location_requests (
   id uuid primary key default gen_random_uuid(),
