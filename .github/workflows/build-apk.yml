@@ -24,10 +24,24 @@ jobs:
 
       - run: flutter pub get
 
-      - run: |
-          flutter build apk --release \
-            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
-            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+      - name: Build APK
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          # Un --dart-define esplicito (anche vuoto) vince sempre sul
+          # defaultValue del codice: se i secret non sono impostati su
+          # GitHub, questi flag andrebbero passati vuoti e sovrascriverebbero
+          # il progetto Supabase di default incorporato nell'app. Li
+          # aggiungiamo quindi solo se i secret sono valorizzati.
+          args=()
+          if [ -n "$SUPABASE_URL" ]; then
+            args+=("--dart-define=SUPABASE_URL=$SUPABASE_URL")
+          fi
+          if [ -n "$SUPABASE_ANON_KEY" ]; then
+            args+=("--dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY")
+          fi
+          flutter build apk --release "${args[@]}"
 
       - uses: actions/upload-artifact@v4
         with:
