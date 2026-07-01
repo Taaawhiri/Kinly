@@ -121,7 +121,7 @@ class _SafeZoneCard extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(shape: BoxShape.circle, color: AppTheme.accentGreen.withOpacity(0.14)),
                 alignment: Alignment.center,
-                child: const Icon(Icons.fence_rounded, color: AppTheme.accentGreen, size: 19),
+                child: Icon(zone.kind.icon, color: AppTheme.accentGreen, size: 19),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -129,7 +129,7 @@ class _SafeZoneCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(zone.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
-                    Text('Raggio ${zone.radiusMeters} m', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                    Text('${zone.kind.label} · Raggio ${zone.radiusMeters} m', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
                   ],
                 ),
               ),
@@ -180,6 +180,7 @@ class _CreateSafeZoneSheetState extends State<_CreateSafeZoneSheet> {
   double? _lat;
   double? _lng;
   String? _addressLabel;
+  SafeZoneKind _kind = SafeZoneKind.other;
   bool _locating = false;
   bool _searching = false;
   bool _saving = false;
@@ -266,6 +267,7 @@ class _CreateSafeZoneSheetState extends State<_CreateSafeZoneSheet> {
         lat: _lat!,
         lng: _lng!,
         radiusMeters: _radius.round(),
+        kind: _kind,
       );
       if (mounted) Navigator.of(context).pop();
     } on FreeLimitException {
@@ -298,6 +300,22 @@ class _CreateSafeZoneSheetState extends State<_CreateSafeZoneSheet> {
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
+            ),
+            const SizedBox(height: 16),
+            Text('Tipo di luogo', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final kind in SafeZoneKind.values)
+                  ChoiceChip(
+                    label: Text(kind.label),
+                    avatar: Icon(kind.icon, size: 16),
+                    selected: _kind == kind,
+                    onSelected: (_) => setState(() => _kind = kind),
+                  ),
+              ],
             ),
             const SizedBox(height: 16),
             Text('Raggio: ${_radius.round()} m', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),

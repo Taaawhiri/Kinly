@@ -1,12 +1,13 @@
 import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/circle_group.dart';
+import '../models/safe_zone.dart';
 import '../models/sharing_mode.dart';
 import 'supabase_client.dart';
 
 /// Sollevata quando un'operazione viene bloccata dai limiti del piano
 /// gratuito (vedi il trigger `enforce_circle_limits` nello schema).
-enum FreeLimitKind { tooManyCircles, circleFull }
+enum FreeLimitKind { tooManyCircles, circleFull, dailyMessageLimit }
 
 class FreeLimitException implements Exception {
   const FreeLimitException(this.kind);
@@ -139,6 +140,7 @@ class KinlyRepository {
   Object _translateLimitError(PostgrestException e) {
     if (e.message.contains('free_circle_limit_reached')) return const FreeLimitException(FreeLimitKind.tooManyCircles);
     if (e.message.contains('free_member_limit_reached')) return const FreeLimitException(FreeLimitKind.circleFull);
+    if (e.message.contains('free_message_limit_reached')) return const FreeLimitException(FreeLimitKind.dailyMessageLimit);
     return e;
   }
 
@@ -204,6 +206,7 @@ class KinlyRepository {
     required double lat,
     required double lng,
     required int radiusMeters,
+    required SafeZoneKind kind,
   }) async {
     try {
       await supabase.from('safe_zones').insert({
@@ -213,6 +216,7 @@ class KinlyRepository {
         'lng': lng,
         'radius_meters': radiusMeters,
         'created_by': _myId,
+        'kind': kind.dbValue,
       });
     } on PostgrestException catch (e) {
       if (e.code == '42501') throw const FreeLimitException(FreeLimitKind.circleFull);
@@ -305,7 +309,11 @@ class KinlyRepository {
   }
 
   Future<void> sendCircleMessage({required String circleId, required String body}) async {
-    await supabase.from('circle_messages').insert({'circle_id': circleId, 'sender_id': _myId, 'body': body});
+    try {
+      await supabase.from('circle_messages').insert({'circle_id': circleId, 'sender_id': _myId, 'body': body});
+    } on PostgrestException catch (e) {
+      throw _translateLimitError(e);
+    }
   }
 
   // ---------------------------------------------------------------------

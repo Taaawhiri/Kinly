@@ -450,8 +450,9 @@ class AppState extends ChangeNotifier {
     required double lat,
     required double lng,
     required int radiusMeters,
+    required SafeZoneKind kind,
   }) async {
-    await _repo.createSafeZone(circleId: circleId, name: name, lat: lat, lng: lng, radiusMeters: radiusMeters);
+    await _repo.createSafeZone(circleId: circleId, name: name, lat: lat, lng: lng, radiusMeters: radiusMeters, kind: kind);
     await _refreshData();
     notifyListeners();
   }

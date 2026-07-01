@@ -126,6 +126,43 @@ async function sosRecipients(supabase: SupabaseClient, profileId: string): Promi
   return [...allMembers];
 }
 
+/// Testo personalizzato in base al tipo di area sicura: "casa"/"lavoro"/
+/// "scuola" hanno un'emoji ed una frase dedicate, così la notifica sembra
+/// scritta apposta invece di un generico "ingresso registrato".
+function zoneNotificationText(
+  kind: string,
+  zoneName: string,
+  personName: string,
+  entering: boolean,
+): { emoji: string; title: string; body: string } {
+  switch (kind) {
+    case 'home':
+      return {
+        emoji: '🏠',
+        title: 'Casa',
+        body: entering ? `${personName} è arrivato/a a casa.` : `${personName} è uscito/a da casa.`,
+      };
+    case 'work':
+      return {
+        emoji: '💼',
+        title: 'Lavoro',
+        body: entering ? `${personName} è arrivato/a al lavoro.` : `${personName} ha lasciato il lavoro.`,
+      };
+    case 'school':
+      return {
+        emoji: '🏫',
+        title: 'Scuola',
+        body: entering ? `${personName} è arrivato/a a scuola.` : `${personName} è uscito/a da scuola.`,
+      };
+    default:
+      return {
+        emoji: '📍',
+        title: 'Aree sicure',
+        body: entering ? `${personName} è arrivato/a in "${zoneName}".` : `${personName} è uscito/a da "${zoneName}".`,
+      };
+  }
+}
+
 async function buildNotification(supabase: SupabaseClient, table: string, record: any): Promise<NotificationPlan | null> {
   switch (table) {
     case 'sos_alerts': {
@@ -134,14 +171,15 @@ async function buildNotification(supabase: SupabaseClient, table: string, record
       return { recipients, title: '🆘 SOS attivato', body: `${name} ha attivato l'SOS: apri Kinly per vedere dove si trova.` };
     }
     case 'safe_zone_events': {
-      const { data: zone } = await supabase.from('safe_zones').select('name, circle_id').eq('id', record.zone_id).single();
+      const { data: zone } = await supabase.from('safe_zones').select('name, circle_id, kind').eq('id', record.zone_id).single();
       if (!zone) return null;
       const [name, recipients] = await Promise.all([
         fetchName(supabase, record.profile_id),
         circleRecipients(supabase, zone.circle_id, record.profile_id),
       ]);
-      const verb = record.event_type === 'enter' ? 'è arrivato/a in' : 'è uscito/a da';
-      return { recipients, title: 'Aree sicure', body: `${name} ${verb} "${zone.name}".` };
+      const entering = record.event_type === 'enter';
+      const { emoji, title, body } = zoneNotificationText(zone.kind, zone.name, name, entering);
+      return { recipients, title: `${emoji} ${title}`, body };
     }
     case 'location_requests': {
       return { recipients: [record.target_id], title: 'Richiesta di posizione', body: 'Qualcuno ha chiesto di vedere la tua posizione.' };

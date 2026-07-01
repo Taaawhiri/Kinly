@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../models/circle_group.dart';
 import '../../models/circle_message.dart';
+import '../../services/kinly_repository.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/quick_message_catalog.dart';
 import '../../widgets/person_avatar.dart';
+import '../premium/paywall_screen.dart';
 
 /// Messaggi brevi condivisi con tutta la cerchia: pensati per avvisi
 /// importanti ("sto arrivando", "chiamami"), non per chiacchierare — per
@@ -34,6 +36,12 @@ class _CircleMessagesScreenState extends State<CircleMessagesScreen> {
     try {
       await AppState.instance.sendCircleMessage(circleId: widget.circle.id, body: trimmed);
       _controller.clear();
+    } on FreeLimitException catch (e) {
+      if (mounted && e.kind == FreeLimitKind.dailyMessageLimit) {
+        _showDailyLimitReached();
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a inviare il messaggio. Riprova.')));
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a inviare il messaggio. Riprova.')));
@@ -41,6 +49,29 @@ class _CircleMessagesScreenState extends State<CircleMessagesScreen> {
     } finally {
       if (mounted) setState(() => _sending = false);
     }
+  }
+
+  void _showDailyLimitReached() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Limite giornaliero raggiunto'),
+        content: const Text(
+          'Hai già inviato 5 messaggi oggi: è il limite del piano gratuito. Con Kinly+ puoi mandarne quanti vuoi.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Ho capito')),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen()));
+            },
+            child: const Text('Scopri Kinly+'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -67,7 +98,9 @@ class _CircleMessagesScreenState extends State<CircleMessagesScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Solo per avvisi brevi e importanti. Per chiacchierare usa WhatsApp o un\'altra app di messaggistica.',
+                          state.isPremium
+                              ? 'Solo per avvisi brevi e importanti. Per chiacchierare usa WhatsApp o un\'altra app di messaggistica.'
+                              : 'Solo per avvisi brevi e importanti (max 5 al giorno nel piano gratuito). Per chiacchierare usa WhatsApp o un\'altra app di messaggistica.',
                           style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                         ),
                       ),

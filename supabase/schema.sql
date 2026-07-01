@@ -126,6 +126,11 @@ create table if not exists public.safe_zones (
   created_at timestamptz not null default now()
 );
 
+-- Tipo di luogo: usato solo per personalizzare l'icona e il testo delle
+-- notifiche push di ingresso/uscita (vedi supabase/functions/send-push).
+alter table public.safe_zones add column if not exists kind text not null default 'other'
+  check (kind in ('home', 'work', 'school', 'other'));
+
 create table if not exists public.safe_zone_events (
   id uuid primary key default gen_random_uuid(),
   zone_id uuid not null references public.safe_zones (id) on delete cascade,
@@ -441,6 +446,41 @@ drop trigger if exists enforce_circle_limits_trigger on public.circle_members;
 create trigger enforce_circle_limits_trigger
   before insert on public.circle_members
   for each row execute function public.enforce_circle_limits();
+
+-- I messaggi cerchia sono pensati per pochi avvisi importanti, non per
+-- chiacchierare: chi non è premium può mandarne al massimo 5 nelle ultime
+-- 24 ore. È anche un limite reale sui costi (ogni messaggio genera una
+-- notifica push via Edge Function): chi è Kinly+ non ha limiti.
+create or replace function public.enforce_circle_message_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  sender_is_premium boolean;
+  recent_count integer;
+begin
+  select is_premium into sender_is_premium from public.profiles where id = new.sender_id;
+
+  if not coalesce(sender_is_premium, false) then
+    select count(*) into recent_count
+      from public.circle_messages
+      where sender_id = new.sender_id
+        and created_at > now() - interval '24 hours';
+    if recent_count >= 5 then
+      raise exception 'free_message_limit_reached' using errcode = 'P0001';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists enforce_circle_message_limit_trigger on public.circle_messages;
+create trigger enforce_circle_message_limit_trigger
+  before insert on public.circle_messages
+  for each row execute function public.enforce_circle_message_limit();
 
 -- La "priorità" di una richiesta di assistenza la decide il server in base
 -- all'abbonamento di chi scrive al momento dell'invio, non un valore che

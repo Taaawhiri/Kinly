@@ -9,6 +9,7 @@ import '../../services/location_tracker.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../people/sos_contacts_screen.dart';
+import '../premium/paywall_screen.dart';
 import 'change_password_screen.dart';
 
 class PrivacySecurityScreen extends StatefulWidget {
@@ -45,6 +46,27 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     if (!value) {
       setState(() => _backgroundTrackingEnabled = false);
       await LocationTracker.instance.disableBackgroundTracking();
+      return;
+    }
+
+    if (!AppState.instance.isPremium) {
+      final goToPaywall = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: const Text('Funzione Kinly+'),
+          content: const Text(
+            'Il tracciamento in background (la posizione continua ad aggiornarsi anche con l\'app chiusa) è un vantaggio Kinly+.',
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Non ora')),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Scopri Kinly+')),
+          ],
+        ),
+      );
+      if (goToPaywall == true && mounted) {
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen()));
+      }
       return;
     }
 
@@ -226,7 +248,19 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 ],
                 if (Platform.isAndroid) ...[
                   const SizedBox(height: 24),
-                  Text('Tracciamento in background', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                  Row(
+                    children: [
+                      Text('Tracciamento in background', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                      if (!AppState.instance.isPremium) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(color: AppTheme.accentAmber.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
+                          child: const Text('Kinly+', style: TextStyle(color: AppTheme.accentAmber, fontWeight: FontWeight.w700, fontSize: 10.5)),
+                        ),
+                      ],
+                    ],
+                  ),
                   const SizedBox(height: 6),
                   Text(
                     'Per impostazione predefinita Kinly aggiorna la tua posizione solo mentre è aperta. Attivalo per farla continuare anche in background: consuma più batteria e mostra sempre una notifica fissa mentre è attivo.',

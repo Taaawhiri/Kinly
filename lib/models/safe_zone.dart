@@ -1,3 +1,46 @@
+import 'package:flutter/material.dart';
+
+/// Tipo di luogo di un'area sicura: usato solo per scegliere un'icona e per
+/// personalizzare il testo delle notifiche push di ingresso/uscita (vedi
+/// supabase/functions/send-push).
+enum SafeZoneKind { home, work, school, other }
+
+extension SafeZoneKindData on SafeZoneKind {
+  String get dbValue => switch (this) {
+        SafeZoneKind.home => 'home',
+        SafeZoneKind.work => 'work',
+        SafeZoneKind.school => 'school',
+        SafeZoneKind.other => 'other',
+      };
+
+  static SafeZoneKind fromDb(String value) {
+    switch (value) {
+      case 'home':
+        return SafeZoneKind.home;
+      case 'work':
+        return SafeZoneKind.work;
+      case 'school':
+        return SafeZoneKind.school;
+      default:
+        return SafeZoneKind.other;
+    }
+  }
+
+  String get label => switch (this) {
+        SafeZoneKind.home => 'Casa',
+        SafeZoneKind.work => 'Lavoro',
+        SafeZoneKind.school => 'Scuola',
+        SafeZoneKind.other => 'Altro',
+      };
+
+  IconData get icon => switch (this) {
+        SafeZoneKind.home => Icons.home_rounded,
+        SafeZoneKind.work => Icons.work_rounded,
+        SafeZoneKind.school => Icons.school_rounded,
+        SafeZoneKind.other => Icons.fence_rounded,
+      };
+}
+
 /// Un'area sicura definita per una cerchia (funzione Kinly+): un luogo con
 /// un raggio, per essere avvisati quando qualcuno entra o esce.
 class SafeZone {
@@ -9,6 +52,7 @@ class SafeZone {
     required this.lng,
     required this.radiusMeters,
     required this.createdBy,
+    required this.kind,
   });
 
   factory SafeZone.fromRow(Map<String, dynamic> row) {
@@ -20,6 +64,7 @@ class SafeZone {
       lng: (row['lng'] as num).toDouble(),
       radiusMeters: (row['radius_meters'] as num).toInt(),
       createdBy: row['created_by'] as String,
+      kind: SafeZoneKindData.fromDb(row['kind'] as String? ?? 'other'),
     );
   }
 
@@ -30,6 +75,7 @@ class SafeZone {
   final double lng;
   final int radiusMeters;
   final String createdBy;
+  final SafeZoneKind kind;
 }
 
 enum SafeZoneEventType { enter, exit }
