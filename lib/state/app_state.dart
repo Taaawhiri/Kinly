@@ -19,9 +19,12 @@ import '../models/sos_alert.dart';
 import '../models/speed_event.dart';
 import '../models/support_message.dart';
 import '../services/auth_service.dart';
+import '../services/crash_detection_service.dart';
+import '../services/home_widget_service.dart';
 import '../services/kinly_repository.dart';
 import '../services/location_tracker.dart';
 import '../services/push_notification_service.dart';
+import '../services/walk_me_home_service.dart';
 import '../utils/circle_icons.dart';
 import '../utils/color_hex.dart';
 
@@ -152,6 +155,8 @@ class AppState extends ChangeNotifier {
     _channel ??= _repo.subscribeToChanges(_scheduleRefresh);
     unawaited(LocationTracker.instance.start());
     unawaited(PushNotificationService.instance.initialize());
+    unawaited(WalkMeHomeService.instance.restore());
+    if (isPremium) unawaited(CrashDetectionService.instance.start());
   }
 
   Future<void> _refreshData() async {
@@ -253,6 +258,8 @@ class AppState extends ChangeNotifier {
       _circleSharingOverrides = {
         for (final r in circleSettingsRows) r['circle_id'] as String: SharingModeData.fromDb(r['sharing_mode'] as String),
       };
+
+      unawaited(HomeWidgetService.instance.update(_others));
 
       loadError = null;
     } catch (e) {

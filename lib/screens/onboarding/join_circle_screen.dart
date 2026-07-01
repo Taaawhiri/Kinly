@@ -1,26 +1,53 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../services/kinly_repository.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../premium/paywall_screen.dart';
 
 class JoinCircleScreen extends StatefulWidget {
-  const JoinCircleScreen({super.key, this.isOnboarding = true});
+  const JoinCircleScreen({super.key, this.isOnboarding = true, this.initialCode});
 
   /// Se true (primo avvio) termina l'onboarding e apre la Home. Se false
   /// (si entra in una nuova cerchia da dentro l'app) torna semplicemente
   /// alla schermata precedente.
   final bool isOnboarding;
 
+  /// Codice già compilato (arriva da un link di invito kinly://join/CODICE).
+  final String? initialCode;
+
   @override
   State<JoinCircleScreen> createState() => _JoinCircleScreenState();
 }
 
 class _JoinCircleScreenState extends State<JoinCircleScreen> {
-  final _controller = TextEditingController();
+  late final _controller = TextEditingController(text: widget.initialCode ?? '');
   String? _error;
   bool _joining = false;
   bool _limitReached = false;
+
+  /// Formato dei codici invito (es. FAM-7Q2K): usato per riconoscerne uno
+  /// negli appunti e proporlo, senza doverlo ridigitare a mano.
+  static final _codePattern = RegExp(r'^[A-Z]{1,3}-[0-9A-Z]{4}$');
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialCode == null) unawaited(_prefillFromClipboard());
+  }
+
+  Future<void> _prefillFromClipboard() async {
+    try {
+      final data = await Clipboard.getData(Clipboard.kTextPlain);
+      final text = data?.text?.trim().toUpperCase() ?? '';
+      if (_codePattern.hasMatch(text) && mounted && _controller.text.isEmpty) {
+        setState(() => _controller.text = text);
+      }
+    } catch (_) {
+      // Appunti non leggibili: si digita a mano, come prima.
+    }
+  }
 
   @override
   void dispose() {

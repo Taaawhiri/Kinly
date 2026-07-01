@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../models/circle_group.dart';
 import '../../models/person.dart';
 import '../../models/routine_anomaly.dart';
@@ -352,6 +353,24 @@ class _CircleCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
+              IconButton(
+                onPressed: () {
+                  // Condivisione via WhatsApp e simili: include sia il
+                  // codice (funziona sempre) sia il link kinly:// che apre
+                  // l'app già compilata dove i link personalizzati sono
+                  // cliccabili.
+                  Share.share(
+                    'Entra nella mia cerchia "${circle.name}" su Kinly!\n\n'
+                    'Codice di invito: ${circle.inviteCode}\n\n'
+                    'Apri Kinly e tocca "Ho un codice di invito", oppure tocca: kinly://join/${circle.inviteCode}',
+                  );
+                },
+                icon: Icon(Icons.ios_share_rounded, size: 18, color: AppTheme.textSecondary),
+                tooltip: 'Invita qualcuno',
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+              ),
               IconButton(
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SafeZonesScreen(circle: circle))),
                 icon: Icon(Icons.fence_rounded, size: 18, color: AppTheme.textSecondary),

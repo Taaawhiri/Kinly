@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import '../../models/circle_group.dart';
 import '../../models/meeting_point.dart';
 import '../../models/person.dart';
+import '../../services/eta_service.dart';
 import '../../services/place_search_service.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
@@ -144,7 +145,7 @@ class MeetingPointScreen extends StatelessWidget {
           ),
         Text('Chi sta arrivando', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
         const SizedBox(height: 10),
-        for (final entry in entries) _MemberDistanceTile(person: entry.$1, distanceMeters: entry.$2, arrived: entry.$3),
+        for (final entry in entries) _MemberDistanceTile(person: entry.$1, distanceMeters: entry.$2, arrived: entry.$3, point: point),
       ],
     );
   }
@@ -166,10 +167,11 @@ class MeetingPointScreen extends StatelessWidget {
 }
 
 class _MemberDistanceTile extends StatelessWidget {
-  const _MemberDistanceTile({required this.person, required this.distanceMeters, required this.arrived});
+  const _MemberDistanceTile({required this.person, required this.distanceMeters, required this.arrived, required this.point});
   final Person person;
   final double? distanceMeters;
   final bool arrived;
+  final MeetingPoint point;
 
   @override
   Widget build(BuildContext context) {
@@ -184,6 +186,10 @@ class _MemberDistanceTile extends StatelessWidget {
       distanceLabel = '${distanceMeters!.round()} m';
     }
 
+    // Tempo di arrivo stimato (in auto, via OSRM): solo per chi è ancora in
+    // viaggio e abbastanza lontano perché la stima abbia senso.
+    final showEta = !arrived && distanceMeters != null && distanceMeters! > 300 && person.lat != null && person.lng != null;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -195,18 +201,33 @@ class _MemberDistanceTile extends StatelessWidget {
           Expanded(
             child: Text(person.name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
           ),
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              if (arrived) const Icon(Icons.check_circle_rounded, color: AppTheme.accentGreen, size: 16),
-              if (arrived) const SizedBox(width: 6),
-              Text(
-                distanceLabel,
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
-                  color: arrived ? AppTheme.accentGreen : AppTheme.textPrimary,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (arrived) const Icon(Icons.check_circle_rounded, color: AppTheme.accentGreen, size: 16),
+                  if (arrived) const SizedBox(width: 6),
+                  Text(
+                    distanceLabel,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                      color: arrived ? AppTheme.accentGreen : AppTheme.textPrimary,
+                    ),
+                  ),
+                ],
               ),
+              if (showEta)
+                FutureBuilder<Duration?>(
+                  future: EtaService.instance.eta(fromLat: person.lat!, fromLng: person.lng!, toLat: point.lat, toLng: point.lng),
+                  builder: (context, snapshot) {
+                    final eta = snapshot.data;
+                    if (eta == null) return const SizedBox.shrink();
+                    return Text('~${eta.inMinutes} min in auto', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11));
+                  },
+                ),
             ],
           ),
         ],

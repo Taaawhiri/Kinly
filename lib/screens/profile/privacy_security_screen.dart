@@ -6,6 +6,8 @@ import 'package:geolocator/geolocator.dart';
 import '../../services/auth_service.dart';
 import '../../services/background_tracking_settings.dart';
 import '../../services/biometric_lock_service.dart';
+import '../../services/crash_detection_service.dart';
+import '../../services/emergency_sms_settings.dart';
 import '../../services/location_tracker.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
@@ -32,11 +34,73 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   bool _backgroundTrackingEnabled = false;
   bool _backgroundTrackingBusy = false;
 
+  String? _emergencySmsNumber;
+  bool _crashDetectionEnabled = false;
+
   @override
   void initState() {
     super.initState();
     unawaited(_loadBiometric());
     unawaited(_loadBackgroundTracking());
+    unawaited(_loadEmergencySettings());
+  }
+
+  Future<void> _loadEmergencySettings() async {
+    final number = await EmergencySmsSettings.instance.getNumber();
+    final crashEnabled = await CrashDetectionService.instance.isEnabled();
+    if (mounted) {
+      setState(() {
+        _emergencySmsNumber = number;
+        _crashDetectionEnabled = crashEnabled;
+      });
+    }
+  }
+
+  Future<void> _editEmergencySmsNumber() async {
+    final controller = TextEditingController(text: _emergencySmsNumber ?? '');
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Numero SOS via SMS'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.phone,
+          decoration: const InputDecoration(hintText: 'Es. +39 333 1234567'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(''), child: const Text('Rimuovi')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text.trim()), child: const Text('Salva')),
+        ],
+      ),
+    );
+    if (result == null) return;
+    final value = result.isEmpty ? null : result;
+    await EmergencySmsSettings.instance.setNumber(value);
+    if (mounted) setState(() => _emergencySmsNumber = value);
+  }
+
+  Future<void> _toggleCrashDetection(bool value) async {
+    if (value && !AppState.instance.isPremium) {
+      final goToPaywall = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: const Text('Funzione Kinly+'),
+          content: const Text('Il rilevamento incidenti (SOS automatico dopo un urto violento in auto) è un vantaggio Kinly+.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Non ora')),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Scopri Kinly+')),
+          ],
+        ),
+      );
+      if (goToPaywall == true && mounted) {
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen()));
+      }
+      return;
+    }
+    await CrashDetectionService.instance.setEnabled(value);
+    if (mounted) setState(() => _crashDetectionEnabled = value);
   }
 
   Future<void> _loadBackgroundTracking() async {
@@ -425,6 +489,51 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   icon: Icons.emergency_outlined,
                   label: 'Chi avvisare in caso di SOS',
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SosContactsScreen())),
+                ),
+                const SizedBox(height: 10),
+                _ActionTile(
+                  icon: Icons.sms_outlined,
+                  label: _emergencySmsNumber == null
+                      ? 'Numero SOS via SMS (se sei offline)'
+                      : 'SOS via SMS: $_emergencySmsNumber',
+                  onTap: _editEmergencySmsNumber,
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(16)),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text('Rilevamento incidenti', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                                ),
+                                if (!AppState.instance.isPremium) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(color: AppTheme.accentAmber.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
+                                    child: const Text('Kinly+', style: TextStyle(color: AppTheme.accentAmber, fontWeight: FontWeight.w700, fontSize: 10.5)),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Dopo un urto violento mentre sei in auto, parte un conto alla rovescia: se non lo annulli, SOS automatico.',
+                              style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, height: 1.3),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(value: _crashDetectionEnabled, onChanged: _toggleCrashDetection),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 24),
                 Text('Avviso di velocità', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),

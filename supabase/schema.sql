@@ -1248,6 +1248,36 @@ create policy "expense_shares_insert" on public.expense_shares
   );
 
 -- =========================================================================
+-- Condivisione posizione via link pubblico (per chi NON ha l'app)
+-- =========================================================================
+
+-- Un link temporaneo "seguimi": chiunque lo apre nel browser vede la
+-- posizione live di chi l'ha creato, finché non scade. Il token è la sola
+-- chiave d'accesso: lungo e casuale, viene verificato dall'Edge Function
+-- `live-share` (che usa la service role, non passa dalla RLS).
+create table if not exists public.live_share_links (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  token text not null unique,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null
+);
+
+alter table public.live_share_links enable row level security;
+
+drop policy if exists "live_share_links_select_own" on public.live_share_links;
+create policy "live_share_links_select_own" on public.live_share_links
+  for select using (profile_id = auth.uid());
+
+drop policy if exists "live_share_links_insert_own" on public.live_share_links;
+create policy "live_share_links_insert_own" on public.live_share_links
+  for insert with check (profile_id = auth.uid());
+
+drop policy if exists "live_share_links_delete_own" on public.live_share_links;
+create policy "live_share_links_delete_own" on public.live_share_links
+  for delete using (profile_id = auth.uid());
+
+-- =========================================================================
 -- Permessi a livello di colonna
 -- =========================================================================
 

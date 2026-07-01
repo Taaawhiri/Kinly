@@ -632,6 +632,25 @@ class KinlyRepository {
   }
 
   // ---------------------------------------------------------------------
+  // Condivisione posizione via link pubblico
+  // ---------------------------------------------------------------------
+
+  /// Crea un link "seguimi" valido per [duration] e ritorna l'URL completo
+  /// da condividere: chiunque lo apre nel browser (anche senza l'app) vede
+  /// la posizione live finché non scade.
+  Future<String> createLiveShareLink(Duration duration) async {
+    final rng = Random.secure();
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final token = List.generate(28, (_) => chars[rng.nextInt(chars.length)]).join();
+    await supabase.from('live_share_links').insert({
+      'profile_id': _myId,
+      'token': token,
+      'expires_at': DateTime.now().add(duration).toUtc().toIso8601String(),
+    });
+    return '${SupabaseConfig.url}/functions/v1/live-share?t=$token';
+  }
+
+  // ---------------------------------------------------------------------
   // Realtime: un unico canale che avvisa di qualunque cambiamento
   // rilevante, così l'app può ricaricare i dati e restare aggiornata.
   // ---------------------------------------------------------------------

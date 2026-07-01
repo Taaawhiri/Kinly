@@ -5,10 +5,12 @@ import 'package:battery_plus/battery_plus.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import '../models/safe_zone.dart';
 import '../state/app_state.dart';
 import '../utils/address_formatter.dart';
 import 'background_tracking_settings.dart';
 import 'kinly_repository.dart';
+import 'walk_me_home_service.dart';
 
 /// Esito del tentativo di attivare il tracciamento in background: usato
 /// dalla UI per decidere quale messaggio mostrare.
@@ -330,6 +332,11 @@ class LocationTracker {
         } catch (_) {
           // Non bloccare il tracciamento se la registrazione dell'evento fallisce.
         }
+      }
+      // "Accompagnami": entrare in un'area Casa conferma automaticamente
+      // l'arrivo, senza dover ricordarsi di toccare il pulsante.
+      if (isInside && zone.kind == SafeZoneKind.home && WalkMeHomeService.instance.isActive) {
+        unawaited(WalkMeHomeService.instance.confirmArrival());
       }
     }
   }

@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'package:app_links/app_links.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/auth/biometric_lock_screen.dart';
 import 'screens/auth/sign_in_screen.dart';
+import 'screens/onboarding/join_circle_screen.dart';
 import 'screens/onboarding/onboarding_intro_screen.dart';
 import 'screens/onboarding/welcome_screen.dart';
 import 'screens/root_shell.dart';
@@ -15,16 +19,35 @@ import 'state/app_state.dart';
 import 'state/theme_controller.dart';
 import 'theme/app_theme.dart';
 
+/// Chiave globale del Navigator: serve ai servizi che devono aprire una
+/// schermata senza avere un BuildContext (deep link, rilevamento incidenti).
+final navigatorKey = GlobalKey<NavigatorState>();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  var firebaseReady = false;
   try {
     // Configurato via android/app/google-services.json: su piattaforme
     // senza quel file (es. web/desktop in sviluppo) fallisce in modo
     // innocuo e l'app parte comunque, solo senza notifiche push.
     await Firebase.initializeApp();
+    firebaseReady = true;
   } catch (_) {
     // Vedi PushNotificationService.initialize per lo stesso principio.
   }
+
+  if (firebaseReady && !kDebugMode) {
+    // Crash reporting: gli errori non gestiti finiscono su Firebase
+    // Crashlytics invece di perdersi sul telefono di chi li incontra.
+    // Disattivato in debug per non sporcare i report con i crash di
+    // sviluppo.
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+  }
+
   await initSupabase();
   await ThemeController.instance.load();
   runApp(const KinlyApp());
@@ -40,6 +63,7 @@ class KinlyApp extends StatelessWidget {
       builder: (context, _) {
         return MaterialApp(
           title: 'Kinly',
+          navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
@@ -77,6 +101,7 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> {
   late Session? _session = supabase.auth.currentSession;
   StreamSubscription<AuthState>? _authSub;
+  StreamSubscription<Uri>? _linkSub;
 
   /// null finché non sappiamo ancora se l'accesso biometrico è attivo su
   /// questo dispositivo; true/false una volta controllato.
@@ -103,6 +128,30 @@ class _AuthGateState extends State<AuthGate> {
         unawaited(_checkOnboarding());
       }
     });
+    unawaited(_listenForInviteLinks());
+  }
+
+  /// Link di invito kinly://join/CODICE: se l'app viene aperta da uno di
+  /// questi (condiviso da chi crea la cerchia), porta dritto alla schermata
+  /// "Entra in una cerchia" con il codice già compilato.
+  Future<void> _listenForInviteLinks() async {
+    final appLinks = AppLinks();
+    void handle(Uri uri) {
+      if (uri.scheme != 'kinly' || uri.host != 'join') return;
+      final code = uri.pathSegments.isNotEmpty ? uri.pathSegments.first : null;
+      if (code == null || code.isEmpty || _session == null) return;
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(builder: (_) => JoinCircleScreen(isOnboarding: false, initialCode: code)),
+      );
+    }
+
+    try {
+      final initial = await appLinks.getInitialLink();
+      if (initial != null) handle(initial);
+    } catch (_) {
+      // Nessun link iniziale: partenza normale.
+    }
+    _linkSub = appLinks.uriLinkStream.listen(handle, onError: (_) {});
   }
 
   Future<void> _checkBiometricLock() async {
@@ -118,6 +167,7 @@ class _AuthGateState extends State<AuthGate> {
   @override
   void dispose() {
     _authSub?.cancel();
+    _linkSub?.cancel();
     super.dispose();
   }
 

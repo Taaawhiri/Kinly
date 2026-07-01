@@ -2,12 +2,18 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/help_request.dart';
 import '../../models/nearby_poi.dart';
 import '../../models/ping.dart';
 import '../../models/safe_zone.dart';
 import '../../models/shopping_stop.dart';
+import '../../services/crash_detection_service.dart';
+import '../../services/emergency_sms_settings.dart';
+import '../../services/kinly_repository.dart';
 import '../../services/nearby_poi_service.dart';
+import '../../services/walk_me_home_service.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/blurred_bottom_sheet.dart';
@@ -42,7 +48,19 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   double? _lastPoiFetchLng;
 
   @override
+  void initState() {
+    super.initState();
+    // La mappa è la schermata sempre viva dell'app (IndexedStack): è il
+    // posto giusto dove agganciare il conto alla rovescia del rilevamento
+    // incidenti, che deve poter apparire in qualsiasi momento.
+    CrashDetectionService.instance.onPossibleCrash = _showCrashCountdown;
+  }
+
+  @override
   void dispose() {
+    if (CrashDetectionService.instance.onPossibleCrash == _showCrashCountdown) {
+      CrashDetectionService.instance.onPossibleCrash = null;
+    }
     _sheetController.dispose();
     super.dispose();
   }
@@ -108,14 +126,247 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       ),
     );
     if (confirmed != true || !mounted) return;
+    Position? position;
+    try {
+      position = await Geolocator.getCurrentPosition();
+      await AppState.instance.triggerSos(lat: position.latitude, lng: position.longitude);
+    } catch (_) {
+      if (!mounted) return;
+      if (position == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a rilevare la tua posizione per l\'SOS.')));
+      } else {
+        // Posizione trovata ma invio fallito: probabilmente non c'è
+        // internet. Proponi il piano B via SMS, se un numero è configurato.
+        await _offerSmsFallback(position);
+      }
+    }
+  }
+
+  /// SOS via SMS quando internet non c'è: apre l'app SMS con destinatario e
+  /// testo (coordinate + link mappa) già compilati — l'invio lo confermi tu.
+  Future<void> _offerSmsFallback(Position position) async {
+    final number = await EmergencySmsSettings.instance.getNumber();
+    if (!mounted) return;
+    if (number == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('SOS non inviato (sei offline?). Imposta un numero SOS via SMS in Privacy e sicurezza per avere un piano B.'),
+      ));
+      return;
+    }
+    final send = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Niente internet: SOS via SMS?'),
+        content: Text('Non siamo riusciti a inviare l\'SOS online. Vuoi mandare un SMS con la tua posizione a $number?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('No')),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.accentCoral),
+            child: const Text('Prepara SMS'),
+          ),
+        ],
+      ),
+    );
+    if (send != true) return;
+    final body = Uri.encodeComponent(
+      'SOS da Kinly! Ho bisogno di aiuto. La mia posizione: '
+      'https://maps.google.com/?q=${position.latitude},${position.longitude}',
+    );
+    final uri = Uri.parse('sms:$number?body=$body');
+    await launchUrl(uri);
+  }
+
+  // -----------------------------------------------------------------------
+  // "Accompagnami": sessione a tempo con avviso automatico se non confermi.
+  // -----------------------------------------------------------------------
+
+  void _onWalkMeHomeTap() {
+    final walk = WalkMeHomeService.instance;
+    if (walk.isActive) {
+      final remaining = walk.remaining.inMinutes + 1;
+      showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: const Text('Accompagnami attivo'),
+          content: Text('Se non confermi entro ~$remaining min, la tua cerchia riceve un avviso con la tua posizione.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Chiudi')),
+            FilledButton(
+              onPressed: () {
+                walk.confirmArrival();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Sono arrivato/a'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final state = AppState.instance;
+    if (state.circles.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Crea o entra in una cerchia prima.')));
+      return;
+    }
+    final circleId = state.activeCircleId ?? state.circles.first.id;
+    showBlurredModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Accompagnami', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+              const SizedBox(height: 6),
+              Text(
+                'Scegli in quanto tempo prevedi di arrivare: se non confermi entro quel tempo (o non entri in un\'area Casa), la tua cerchia riceve automaticamente un avviso con la tua posizione.',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final minutes in [10, 20, 30, 45, 60])
+                    ActionChip(
+                      label: Text('$minutes min'),
+                      onPressed: () {
+                        WalkMeHomeService.instance.start(duration: Duration(minutes: minutes), circleId: circleId);
+                        Navigator.of(sheetContext).pop();
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Nota: se il telefono chiude del tutto l\'app prima della scadenza, l\'avviso automatico potrebbe non partire.',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, height: 1.3),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // -----------------------------------------------------------------------
+  // Rilevamento incidenti: conto alla rovescia prima dell'SOS automatico.
+  // -----------------------------------------------------------------------
+
+  void _showCrashCountdown() {
+    if (!mounted) return;
+    var secondsLeft = 30;
+    var cancelled = false;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) {
+          if (secondsLeft > 0 && !cancelled) {
+            Future.delayed(const Duration(seconds: 1), () {
+              if (cancelled) return;
+              secondsLeft -= 1;
+              if (secondsLeft <= 0) {
+                Navigator.of(dialogContext).pop();
+                unawaited(_triggerSosFromCrash());
+              } else {
+                setDialogState(() {});
+              }
+            });
+          }
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            title: const Text('Possibile incidente rilevato'),
+            content: Text('SOS automatico tra $secondsLeft secondi. Stai bene? Annulla se è un falso allarme.'),
+            actions: [
+              FilledButton(
+                onPressed: () {
+                  cancelled = true;
+                  Navigator.of(dialogContext).pop();
+                },
+                style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                child: const Text('Sto bene, annulla'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _triggerSosFromCrash() async {
     try {
       final position = await Geolocator.getCurrentPosition();
       await AppState.instance.triggerSos(lat: position.latitude, lng: position.longitude);
     } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a rilevare la tua posizione per l\'SOS.')));
+      final me = AppState.instance.me;
+      if (me.lat != null && me.lng != null) {
+        try {
+          await AppState.instance.triggerSos(lat: me.lat!, lng: me.lng!);
+        } catch (_) {
+          // Offline: non c'è altro da fare in automatico.
+        }
       }
     }
+  }
+
+  // -----------------------------------------------------------------------
+  // Link "seguimi" per chi non ha l'app.
+  // -----------------------------------------------------------------------
+
+  void _openLiveShareSheet() {
+    showBlurredModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Condividi la posizione con un link', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+              const SizedBox(height: 6),
+              Text(
+                'Chi riceve il link vede la tua posizione live dal browser, anche senza l\'app. Il link scade da solo.',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final (label, duration) in [('1 ora', Duration(hours: 1)), ('3 ore', Duration(hours: 3)), ('24 ore', Duration(hours: 24))])
+                    ActionChip(
+                      label: Text(label),
+                      onPressed: () async {
+                        Navigator.of(sheetContext).pop();
+                        try {
+                          final url = await KinlyRepository.instance.createLiveShareLink(duration);
+                          await Share.share('Segui la mia posizione live su Kinly (valido $label): $url');
+                        } catch (_) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a creare il link. Riprova.')));
+                          }
+                        }
+                      },
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _openMeetingPointEntry() {
@@ -165,7 +416,8 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
         state.recentEncounters.isNotEmpty ||
         state.incomingPings.isNotEmpty ||
         state.othersActiveShoppingStops.isNotEmpty ||
-        (state.myActiveShoppingStop != null && state.requestsForStop(state.myActiveShoppingStop!.id).isNotEmpty);
+        (state.myActiveShoppingStop != null && state.requestsForStop(state.myActiveShoppingStop!.id).isNotEmpty) ||
+        WalkMeHomeService.instance.isActive;
   }
 
   void _openMeetingPointInfo(String meetingPointId) {
@@ -247,7 +499,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: AppState.instance,
+      listenable: Listenable.merge([AppState.instance, WalkMeHomeService.instance]),
       builder: (context, _) {
         final state = AppState.instance;
         final people = state.visiblePeople();
@@ -281,6 +533,8 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                         child: _EmergencyActionsGroup(
                           sosActive: state.myActiveSos != null,
                           helpActive: state.myActiveHelpRequest != null,
+                          walkActive: WalkMeHomeService.instance.isActive,
+                          onWalkTap: _onWalkMeHomeTap,
                           onSosTap: () {
                             final mySos = state.myActiveSos;
                             if (mySos != null) {
@@ -311,6 +565,11 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                         padding: const EdgeInsets.fromLTRB(16, 130, 16, 0),
                         child: Column(
                           children: [
+                            if (WalkMeHomeService.instance.isActive)
+                              _WalkMeHomeBanner(
+                                remaining: WalkMeHomeService.instance.remaining,
+                                onArrived: () => WalkMeHomeService.instance.confirmArrival(),
+                              ),
                             for (final alert in state.activeSosAlerts.where((a) => a.profileId != state.me.id))
                               _SosBanner(
                                 personName: state.personById(alert.profileId)?.name ?? 'Qualcuno',
@@ -454,6 +713,12 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                                     visualDensity: VisualDensity.compact,
                                     onPressed: _openMeetingPointEntry,
                                   ),
+                                  IconButton(
+                                    icon: const Icon(Icons.link_rounded, size: 20),
+                                    tooltip: 'Condividi posizione con un link',
+                                    visualDensity: VisualDensity.compact,
+                                    onPressed: _openLiveShareSheet,
+                                  ),
                                 ],
                               ),
                             ),
@@ -496,14 +761,18 @@ class _EmergencyActionsGroup extends StatelessWidget {
   const _EmergencyActionsGroup({
     required this.sosActive,
     required this.helpActive,
+    required this.walkActive,
     required this.onSosTap,
     required this.onHelpTap,
+    required this.onWalkTap,
   });
 
   final bool sosActive;
   final bool helpActive;
+  final bool walkActive;
   final VoidCallback onSosTap;
   final VoidCallback onHelpTap;
+  final VoidCallback onWalkTap;
 
   @override
   Widget build(BuildContext context) {
@@ -533,6 +802,15 @@ class _EmergencyActionsGroup extends StatelessWidget {
             activeLabel: 'Aiuto richiesto',
             semanticLabel: 'Chiedi aiuto',
             onTap: onHelpTap,
+          ),
+          Container(height: 1, width: 40, color: AppTheme.divider),
+          _EmergencyActionButton(
+            icon: Icons.directions_walk_rounded,
+            color: AppTheme.primary,
+            active: walkActive,
+            activeLabel: 'Accompagnami attivo',
+            semanticLabel: 'Accompagnami',
+            onTap: onWalkTap,
             bottomRadius: 18,
           ),
         ],
@@ -660,6 +938,39 @@ class _HelpBanner extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _WalkMeHomeBanner extends StatelessWidget {
+  const _WalkMeHomeBanner({required this.remaining, required this.onArrived});
+  final Duration remaining;
+  final VoidCallback onArrived;
+
+  @override
+  Widget build(BuildContext context) {
+    final minutes = remaining.inMinutes + 1;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.primary.withOpacity(0.25)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.directions_walk_rounded, color: AppTheme.primary, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Accompagnami attivo · conferma entro ~$minutes min',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AppTheme.textPrimary),
+            ),
+          ),
+          TextButton(onPressed: onArrived, child: const Text('Sono arrivato/a')),
+        ],
       ),
     );
   }

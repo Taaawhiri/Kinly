@@ -7,6 +7,7 @@ import '../../services/kinly_repository.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/address_formatter.dart';
+import '../../utils/zone_suggestions.dart';
 import '../../widgets/safe_zones_map.dart';
 import 'paywall_screen.dart';
 
@@ -85,11 +86,15 @@ class SafeZonesScreen extends StatelessWidget {
       children: [
         SizedBox(height: 220, child: SafeZonesMap(zones: zones)),
         Expanded(
-          child: ListView.separated(
+          child: ListView(
             padding: const EdgeInsets.all(16),
-            itemCount: zones.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, i) => _SafeZoneCard(zone: zones[i]),
+            children: [
+              if (AppState.instance.isPremium) _ZoneSuggestionsSection(circleId: circle.id),
+              for (final zone in zones) ...[
+                _SafeZoneCard(zone: zone),
+                const SizedBox(height: 10),
+              ],
+            ],
           ),
         ),
       ],
@@ -113,6 +118,95 @@ class SafeZonesScreen extends StatelessWidget {
       backgroundColor: AppTheme.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (sheetContext) => _SafeZoneSheet(circleId: zone.circleId, existingZone: zone),
+    );
+  }
+}
+
+/// Suggerimenti automatici: luoghi frequentati spesso (dallo storico
+/// posizioni) non ancora coperti da un'area sicura, con la proposta di
+/// crearne una lì in un tocco.
+class _ZoneSuggestionsSection extends StatefulWidget {
+  const _ZoneSuggestionsSection({required this.circleId});
+  final String circleId;
+
+  @override
+  State<_ZoneSuggestionsSection> createState() => _ZoneSuggestionsSectionState();
+}
+
+class _ZoneSuggestionsSectionState extends State<_ZoneSuggestionsSection> {
+  late final Future<List<ZoneSuggestion>> _future = _load();
+
+  Future<List<ZoneSuggestion>> _load() async {
+    final state = AppState.instance;
+    final history = await state.fetchHistoryFor(state.me.id);
+    return suggestZones(history, state.safeZones);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<ZoneSuggestion>>(
+      future: _future,
+      builder: (context, snapshot) {
+        final suggestions = snapshot.data ?? const [];
+        if (suggestions.isEmpty) return const SizedBox.shrink();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Suggerite per te', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: AppTheme.textPrimary)),
+            const SizedBox(height: 8),
+            for (final s in suggestions)
+              InkWell(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: AppTheme.surface,
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                    builder: (sheetContext) => _SafeZoneSheet(
+                      circleId: widget.circleId,
+                      initialLat: s.lat,
+                      initialLng: s.lng,
+                      initialAddress: s.address,
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppTheme.primary.withOpacity(0.18)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.auto_awesome_rounded, color: AppTheme.primary, size: 18),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              s.address ?? '${s.lat.toStringAsFixed(4)}, ${s.lng.toStringAsFixed(4)}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AppTheme.textPrimary),
+                            ),
+                            Text('Ci vai spesso (${s.dayCount} giorni diversi) · tocca per creare un\'area',
+                                style: TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.add_circle_outline_rounded, color: AppTheme.primary, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+            const SizedBox(height: 8),
+          ],
+        );
+      },
     );
   }
 }
@@ -190,11 +284,17 @@ class _SafeZoneCard extends StatelessWidget {
 }
 
 class _SafeZoneSheet extends StatefulWidget {
-  const _SafeZoneSheet({required this.circleId, this.existingZone});
+  const _SafeZoneSheet({required this.circleId, this.existingZone, this.initialLat, this.initialLng, this.initialAddress});
   final String circleId;
 
   /// Se non nullo, il foglio modifica quest'area invece di crearne una nuova.
   final SafeZone? existingZone;
+
+  /// Posizione precompilata (arriva da un suggerimento automatico basato
+  /// sui luoghi frequentati): solo per la creazione, non per la modifica.
+  final double? initialLat;
+  final double? initialLng;
+  final String? initialAddress;
 
   @override
   State<_SafeZoneSheet> createState() => _SafeZoneSheetState();
@@ -204,9 +304,9 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
   late final _nameController = TextEditingController(text: widget.existingZone?.name ?? '');
   final _addressController = TextEditingController();
   late double _radius = widget.existingZone?.radiusMeters.toDouble() ?? 150;
-  late double? _lat = widget.existingZone?.lat;
-  late double? _lng = widget.existingZone?.lng;
-  String? _addressLabel;
+  late double? _lat = widget.existingZone?.lat ?? widget.initialLat;
+  late double? _lng = widget.existingZone?.lng ?? widget.initialLng;
+  late String? _addressLabel = widget.initialAddress;
   late SafeZoneKind _kind = widget.existingZone?.kind ?? SafeZoneKind.other;
   bool _locating = false;
   bool _searching = false;
