@@ -2,9 +2,8 @@
 --
 -- Da eseguire una volta sul progetto Supabase (SQL editor oppure
 -- `supabase db push` se usi la CLI con le migration in questa cartella).
--- Presuppone Supabase Auth per l'accesso (email OTP): non c'è registrazione
--- pubblica nel senso tradizionale, ma chiunque può autenticarsi con la
--- propria email — l'accesso "solo su invito" riguarda le cerchie, non
+-- Presuppone Supabase Auth per l'accesso (email + password): chiunque può
+-- creare un account — l'accesso "solo su invito" riguarda le cerchie, non
 -- l'account.
 
 create extension if not exists "pgcrypto";
@@ -118,8 +117,8 @@ as $$
 $$;
 
 -- Crea automaticamente il profilo quando un utente si registra tramite
--- Supabase Auth (email OTP). Il nome iniziale arriva dai metadata passati a
--- signUp/signInWithOtp (`data: {'name': ...}`), altrimenti resta 'Io'.
+-- Supabase Auth. Il nome iniziale arriva dai metadata passati a
+-- signUp (`data: {'name': ...}`), altrimenti resta 'Io'.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql

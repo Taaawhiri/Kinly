@@ -1,9 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'supabase_client.dart';
 
-/// Accesso via email con codice OTP: niente password, niente registrazione
-/// pubblica "aperta" — basta l'email per entrare, ma per vedere qualcuno
-/// serve comunque essere invitati nella sua cerchia.
+/// Accesso via email e password: niente registrazione pubblica alle
+/// cerchie (per quello serve un invito), ma l'account si crea liberamente.
 class AuthService {
   AuthService._();
   static final instance = AuthService._();
@@ -14,19 +13,20 @@ class AuthService {
 
   Stream<AuthState> get onAuthStateChange => supabase.auth.onAuthStateChange;
 
-  /// Invia all'email un codice a 6 cifre da inserire nella schermata
-  /// successiva. `name` viene salvato nei metadata e usato dal trigger
-  /// `handle_new_user` per creare il profilo al primo accesso.
-  Future<void> sendOtp({required String email, String? name}) {
-    return supabase.auth.signInWithOtp(
+  /// Crea l'account. `name` viene salvato nei metadata e usato dal trigger
+  /// `handle_new_user` per creare il profilo. Se nel progetto Supabase è
+  /// attiva la conferma email, `response.session` sarà nullo finché
+  /// l'utente non conferma dal link ricevuto via email.
+  Future<AuthResponse> signUp({required String email, required String password, String? name}) {
+    return supabase.auth.signUp(
       email: email,
-      shouldCreateUser: true,
+      password: password,
       data: name != null && name.trim().isNotEmpty ? {'name': name.trim()} : null,
     );
   }
 
-  Future<void> verifyOtp({required String email, required String token}) {
-    return supabase.auth.verifyOTP(type: OtpType.email, email: email, token: token);
+  Future<AuthResponse> signIn({required String email, required String password}) {
+    return supabase.auth.signInWithPassword(email: email, password: password);
   }
 
   Future<void> signOut() => supabase.auth.signOut();

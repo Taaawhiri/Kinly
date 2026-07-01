@@ -3,12 +3,12 @@
 App Flutter per condividere la posizione con la famiglia, gli amici o i
 colleghi, con backend reale su **Supabase** (Postgres + Auth + Realtime).
 Accesso solo su invito: niente registrazione pubblica alle cerchie, si entra
-con un codice o creandone una nuova — l'account invece si crea con la
-semplice email (nessuna password, login via codice OTP).
+con un codice o creandone una nuova — l'account invece si crea liberamente
+con email e password.
 
 ## Come funziona
 
-- **Account**: login passwordless via email (Supabase Auth, OTP a 6 cifre).
+- **Account**: creazione account e login con email e password (Supabase Auth).
 - **Cerchie**: gruppi di persone (Famiglia, Amici, Lavoro...), ognuno con un
   proprio codice di invito univoco, salvate su Postgres.
 - **Condivisione della posizione**: ogni persona sceglie una modalità —
@@ -42,7 +42,10 @@ microtransazioni in una fase successiva.
    `location_requests`), le funzioni di supporto, i trigger e tutte le
    policy di Row Level Security.
 3. In **Authentication → Providers**, verifica che il provider **Email** sia
-   abilitato con "Email OTP" (di default lo è).
+   abilitato. Per evitare che l'app dipenda dall'invio di email (il servizio
+   SMTP integrato di Supabase ha limiti molto bassi, pensati solo per i
+   test), disabilita **Confirm email** così l'account è attivo subito dopo
+   la registrazione; riabilitalo quando avrai configurato un SMTP tuo.
 4. Recupera **Project URL** e **anon/public key** da
    **Project Settings → API**.
 
@@ -93,7 +96,7 @@ lib/
   theme/       Tema chiaro dell'app
   widgets/     Mappa (KinlyMap), avatar, badge, chip
   screens/
-    auth/        Accesso con email + codice OTP
+    auth/        Accesso con email e password
     onboarding/  Crea cerchia, entra con un codice
     map/         Mappa + elenco persone (Home)
     circles/     Gestione cerchie e inviti

@@ -3,11 +3,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_logo.dart';
-import 'verify_code_screen.dart';
 
-/// Primo schermo che si vede: l'accesso all'account avviene con un codice
-/// mandato via email (nessuna password). L'accesso "solo su invito" riguarda
-/// le cerchie, non l'account in sé.
+/// Primo schermo che si vede: si crea un account o si accede con email e
+/// password. L'accesso "solo su invito" riguarda le cerchie, non l'account.
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
 
@@ -16,38 +14,55 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-  final _emailController = TextEditingController();
   final _nameController = TextEditingController();
-  bool _sending = false;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isSignUp = true;
+  bool _loading = false;
   String? _error;
+  String? _info;
 
   @override
   void dispose() {
-    _emailController.dispose();
     _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _sendCode() async {
+  Future<void> _submit() async {
     final email = _emailController.text.trim();
+    final password = _passwordController.text;
     if (!email.contains('@') || !email.contains('.')) {
       setState(() => _error = 'Inserisci un indirizzo email valido.');
       return;
     }
+    if (password.length < 6) {
+      setState(() => _error = 'La password deve avere almeno 6 caratteri.');
+      return;
+    }
     setState(() {
-      _sending = true;
+      _loading = true;
       _error = null;
+      _info = null;
     });
     try {
-      await AuthService.instance.sendOtp(email: email, name: _nameController.text);
-      if (!mounted) return;
-      Navigator.of(context).push(MaterialPageRoute(builder: (_) => VerifyCodeScreen(email: email)));
+      if (_isSignUp) {
+        final response = await AuthService.instance.signUp(email: email, password: password, name: _nameController.text);
+        if (response.session == null && mounted) {
+          setState(() => _info = 'Account creato: controlla la tua email per confermarlo prima di accedere.');
+        }
+      } else {
+        await AuthService.instance.signIn(email: email, password: password);
+      }
+      // Se la sessione è attiva, l'AuthGate alla radice se ne accorge da
+      // solo e mostra la schermata giusta: non serve navigare esplicitamente.
     } on AuthException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
-      setState(() => _error = 'Non siamo riusciti a inviare il codice. Riprova tra poco.\n$e');
+      setState(() => _error = 'Qualcosa è andato storto. Riprova.\n$e');
     } finally {
-      if (mounted) setState(() => _sending = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -55,13 +70,13 @@ class _SignInScreenState extends State<SignInScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(28, 40, 28, 28),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(28, 32, 28, 28),
           child: Column(
             children: [
-              const Spacer(),
-              const KinlyLogo(size: 108),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
+              const KinlyLogo(size: 96),
+              const SizedBox(height: 24),
               const Text(
                 'Kinly',
                 style: TextStyle(fontSize: 34, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -0.5),
@@ -72,12 +87,36 @@ class _SignInScreenState extends State<SignInScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 15.5, color: AppTheme.textSecondary, height: 1.4),
               ),
-              const SizedBox(height: 36),
+              const SizedBox(height: 28),
+              _ModeToggle(
+                isSignUp: _isSignUp,
+                onChanged: (value) => setState(() {
+                  _isSignUp = value;
+                  _error = null;
+                  _info = null;
+                }),
+              ),
+              const SizedBox(height: 20),
+              if (_isSignUp) ...[
+                TextField(
+                  controller: _nameController,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(
+                    hintText: 'Il tuo nome',
+                    filled: true,
+                    fillColor: AppTheme.surface,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               TextField(
-                controller: _nameController,
-                textCapitalization: TextCapitalization.words,
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.email],
                 decoration: InputDecoration(
-                  hintText: 'Il tuo nome',
+                  hintText: 'La tua email',
                   filled: true,
                   fillColor: AppTheme.surface,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -86,12 +125,12 @@ class _SignInScreenState extends State<SignInScreen> {
               ),
               const SizedBox(height: 12),
               TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                autofillHints: const [AutofillHints.email],
-                onSubmitted: (_) => _sendCode(),
+                controller: _passwordController,
+                obscureText: true,
+                autofillHints: [_isSignUp ? AutofillHints.newPassword : AutofillHints.password],
+                onSubmitted: (_) => _submit(),
                 decoration: InputDecoration(
-                  hintText: 'La tua email',
+                  hintText: 'Password',
                   filled: true,
                   fillColor: AppTheme.surface,
                   errorText: _error,
@@ -99,15 +138,19 @@ class _SignInScreenState extends State<SignInScreen> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
               ),
+              if (_info != null) ...[
+                const SizedBox(height: 12),
+                Text(_info!, textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.accentGreen, fontSize: 13)),
+              ],
               const SizedBox(height: 16),
               FilledButton(
-                onPressed: _sending ? null : _sendCode,
+                onPressed: _loading ? null : _submit,
                 style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
-                child: _sending
+                child: _loading
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
-                    : const Text('Continua con l\'email'),
+                    : Text(_isSignUp ? 'Crea account' : 'Accedi'),
               ),
-              const Spacer(),
+              const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -115,7 +158,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
-                      'Ti mandiamo un codice via email: niente password da ricordare.',
+                      'Nessuno vede la tua posizione senza il tuo permesso.',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 12, color: AppTheme.textSecondary.withOpacity(0.85), height: 1.3),
                     ),
@@ -123,6 +166,58 @@ class _SignInScreenState extends State<SignInScreen> {
                 ],
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ModeToggle extends StatelessWidget {
+  const _ModeToggle({required this.isSignUp, required this.onChanged});
+  final bool isSignUp;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(14)),
+      child: Row(
+        children: [
+          Expanded(child: _ToggleButton(label: 'Crea account', selected: isSignUp, onTap: () => onChanged(true))),
+          Expanded(child: _ToggleButton(label: 'Accedi', selected: !isSignUp, onTap: () => onChanged(false))),
+        ],
+      ),
+    );
+  }
+}
+
+class _ToggleButton extends StatelessWidget {
+  const _ToggleButton({required this.label, required this.selected, required this.onTap});
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? AppTheme.surface : Colors.transparent,
+          borderRadius: BorderRadius.circular(11),
+          boxShadow: selected ? [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6, offset: const Offset(0, 2))] : null,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 13.5,
+            color: selected ? AppTheme.primary : AppTheme.textSecondary,
           ),
         ),
       ),
