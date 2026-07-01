@@ -500,6 +500,20 @@ class AppState extends ChangeNotifier {
 
   List<SafeZone> safeZonesForCircle(String circleId) => _safeZones.where((z) => z.circleId == circleId).toList();
 
+  SafeZone? safeZoneById(String id) {
+    for (final z in _safeZones) {
+      if (z.id == id) return z;
+    }
+    return null;
+  }
+
+  MeetingPoint? meetingPointById(String id) {
+    for (final p in _meetingPoints) {
+      if (p.id == id) return p;
+    }
+    return null;
+  }
+
   List<SafeZoneEvent> eventsForZone(String zoneId) => _safeZoneEvents.where((e) => e.zoneId == zoneId).toList();
 
   /// Anomalie di routine: qualcuno è ancora dentro un'area sicura oltre il

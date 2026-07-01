@@ -27,6 +27,8 @@ class KinlyMap extends StatefulWidget {
     this.safeZones = const [],
     this.meetingPoints = const [],
     this.nearbyPois = const [],
+    this.onMeetingPointTap,
+    this.onSafeZoneTap,
   });
 
   /// Le persone da mostrare come marcatori: solo quelle con una posizione
@@ -43,6 +45,12 @@ class KinlyMap extends StatefulWidget {
   /// Punti di interesse vicini (ristoranti, bar, farmacie...) da mostrare
   /// come piccoli marcatori di sfondo, solo a scopo informativo.
   final List<NearbyPoi> nearbyPois;
+
+  /// Chiamato quando si tocca il marcatore di un punto d'incontro.
+  final ValueChanged<String>? onMeetingPointTap;
+
+  /// Chiamato quando si tocca l'area colorata di un'area sicura.
+  final ValueChanged<String>? onSafeZoneTap;
 
   /// Chiamato quando la mappa è pronta: utile a chi la usa per aggiungere
   /// controlli propri (es. un pulsante "centra sulla mia posizione").
@@ -168,6 +176,7 @@ class _KinlyMapState extends State<KinlyMap> {
       onMapCreated: (controller) {
         _controller = controller;
         controller.onSymbolTapped.add(_handleSymbolTap);
+        controller.onFillTapped.add(_handleFillTap);
         widget.onMapReady?.call(controller);
       },
       onStyleLoadedCallback: () async {
@@ -260,13 +269,24 @@ class _KinlyMapState extends State<KinlyMap> {
       final ring = circlePolygonPoints(zone.lat, zone.lng, zone.radiusMeters.toDouble());
       await controller.addFill(
         FillOptions(geometry: [ring], fillColor: color.toHex(), fillOpacity: 0.18, fillOutlineColor: color.toHex()),
+        {'zoneId': zone.id},
       );
     }
   }
 
   void _handleSymbolTap(Symbol symbol) {
     final personId = symbol.data?['personId'] as String?;
-    if (personId != null) widget.onPersonTap?.call(personId);
+    if (personId != null) {
+      widget.onPersonTap?.call(personId);
+      return;
+    }
+    final meetingPointId = symbol.data?['meetingPointId'] as String?;
+    if (meetingPointId != null) widget.onMeetingPointTap?.call(meetingPointId);
+  }
+
+  void _handleFillTap(Fill fill) {
+    final zoneId = fill.data?['zoneId'] as String?;
+    if (zoneId != null) widget.onSafeZoneTap?.call(zoneId);
   }
 
   Future<void> _fitCamera(MapLibreMapController controller, List<Person> people) async {
@@ -325,6 +345,7 @@ class _KinlyMapState extends State<KinlyMap> {
   @override
   void dispose() {
     _controller?.onSymbolTapped.remove(_handleSymbolTap);
+    _controller?.onFillTapped.remove(_handleFillTap);
     super.dispose();
   }
 }

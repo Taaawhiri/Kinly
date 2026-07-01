@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../services/auth_service.dart';
 import '../../services/background_tracking_settings.dart';
@@ -8,6 +9,7 @@ import '../../services/biometric_lock_service.dart';
 import '../../services/location_tracker.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/date_input_formatter.dart';
 import '../people/sos_contacts_screen.dart';
 import '../premium/paywall_screen.dart';
 import 'change_password_screen.dart';
@@ -179,12 +181,38 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   }
 
   Future<void> _pickBirthday() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
+    final existing = AppState.instance.me.birthday;
+    final controller = TextEditingController(text: existing != null ? formatSlashDate(existing) : '');
+    String? error;
+    final picked = await showDialog<DateTime>(
       context: context,
-      initialDate: AppState.instance.me.birthday ?? DateTime(now.year - 25, now.month, now.day),
-      firstDate: DateTime(now.year - 110),
-      lastDate: now,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: const Text('Data di nascita'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly, DateSlashFormatter()],
+            decoration: InputDecoration(hintText: 'GG/MM/AAAA', errorText: error),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Annulla')),
+            FilledButton(
+              onPressed: () {
+                final date = parseSlashDate(controller.text);
+                if (date == null) {
+                  setDialogState(() => error = 'Data non valida');
+                  return;
+                }
+                Navigator.of(context).pop(date);
+              },
+              child: const Text('Salva'),
+            ),
+          ],
+        ),
+      ),
     );
     if (picked != null) await AppState.instance.setBirthday(picked);
   }

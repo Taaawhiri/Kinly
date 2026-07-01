@@ -5,11 +5,11 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 import '../../models/help_request.dart';
 import '../../models/nearby_poi.dart';
 import '../../models/ping.dart';
+import '../../models/safe_zone.dart';
 import '../../models/shopping_stop.dart';
 import '../../services/nearby_poi_service.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/app_logo.dart';
 import '../../widgets/circle_chip.dart';
 import '../../widgets/kinly_map.dart';
 import '../../widgets/person_list_tile.dart';
@@ -17,6 +17,7 @@ import '../circles/meeting_point_screen.dart';
 import '../people/help_request_screen.dart';
 import '../people/person_detail_screen.dart';
 import '../people/sos_alert_screen.dart';
+import '../premium/safe_zones_screen.dart';
 
 class MapHomeScreen extends StatefulWidget {
   const MapHomeScreen({super.key});
@@ -163,6 +164,72 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
         (state.myActiveShoppingStop != null && state.requestsForStop(state.myActiveShoppingStop!.id).isNotEmpty);
   }
 
+  void _openMeetingPointInfo(String meetingPointId) {
+    final state = AppState.instance;
+    final point = state.meetingPointById(meetingPointId);
+    if (point == null) return;
+    final circle = state.circleById(point.circleId);
+    if (circle != null) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => MeetingPointScreen(circle: circle)));
+    }
+  }
+
+  void _openSafeZoneInfo(String zoneId) {
+    final state = AppState.instance;
+    final zone = state.safeZoneById(zoneId);
+    if (zone == null) return;
+    final circle = state.circleById(zone.circleId);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: zone.kind.mapColor.withOpacity(0.15)),
+                    alignment: Alignment.center,
+                    child: Icon(zone.kind.icon, color: zone.kind.mapColor, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(zone.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
+                        Text('${zone.kind.label} · raggio ${zone.radiusMeters} m', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (circle != null) ...[
+                const SizedBox(height: 18),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop();
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => SafeZonesScreen(circle: circle)));
+                  },
+                  icon: const Icon(Icons.fence_rounded, size: 18),
+                  label: const Text('Gestisci aree sicure'),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _openHelpRequestSheet() {
     showModalBottomSheet(
       context: context,
@@ -199,21 +266,17 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                       MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: personId)),
                     ),
                     onMapReady: (controller) => _mapController = controller,
+                    onMeetingPointTap: (id) => _openMeetingPointInfo(id),
+                    onSafeZoneTap: (id) => _openSafeZoneInfo(id),
                   ),
-                  // Align forza dei vincoli "loose" sul figlio: senza, lo
-                  // Stack (fit: expand) costringerebbe il CustomPaint del
-                  // logo a riempire tutto lo schermo (e a "rubare" i gesti
-                  // di pan/zoom destinati alla mappa sottostante).
                   SafeArea(
                     child: Align(
-                      alignment: Alignment.topLeft,
+                      alignment: Alignment.topRight,
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 0, 0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        padding: const EdgeInsets.fromLTRB(0, 12, 16, 0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const KinlyLogo(size: 34),
-                            const SizedBox(height: 10),
                             _HelpButton(
                               active: state.myActiveHelpRequest != null,
                               onTap: () {
@@ -227,28 +290,21 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                                 }
                               },
                             ),
+                            const SizedBox(width: 10),
+                            _SosButton(
+                              active: state.myActiveSos != null,
+                              onTap: () {
+                                final mySos = state.myActiveSos;
+                                if (mySos != null) {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (_) => SosAlertScreen(alert: mySos, person: state.me)),
+                                  );
+                                } else {
+                                  _confirmAndTriggerSos();
+                                }
+                              },
+                            ),
                           ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SafeArea(
-                    child: Align(
-                      alignment: Alignment.topRight,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 12, 16, 0),
-                        child: _SosButton(
-                          active: state.myActiveSos != null,
-                          onTap: () {
-                            final mySos = state.myActiveSos;
-                            if (mySos != null) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => SosAlertScreen(alert: mySos, person: state.me)),
-                              );
-                            } else {
-                              _confirmAndTriggerSos();
-                            }
-                          },
                         ),
                       ),
                     ),
@@ -256,7 +312,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                   if (_hasAnyBanner(state))
                     SafeArea(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 112, 16, 0),
+                        padding: const EdgeInsets.fromLTRB(16, 90, 16, 0),
                         child: Column(
                           children: [
                             for (final alert in state.activeSosAlerts.where((a) => a.profileId != state.me.id))
