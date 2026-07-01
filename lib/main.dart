@@ -24,33 +24,53 @@ import 'theme/app_theme.dart';
 final navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  var firebaseReady = false;
-  try {
-    // Configurato via android/app/google-services.json: su piattaforme
-    // senza quel file (es. web/desktop in sviluppo) fallisce in modo
-    // innocuo e l'app parte comunque, solo senza notifiche push.
-    await Firebase.initializeApp();
-    firebaseReady = true;
-  } catch (_) {
-    // Vedi PushNotificationService.initialize per lo stesso principio.
-  }
+  // Tutto l'avvio è in una zona protetta: se una qualunque inizializzazione
+  // (Firebase, Supabase, un plugin nativo) lancia un errore non previsto
+  // prima che la UI sia disegnata, lo registriamo invece di far morire il
+  // processo in silenzio (schermata che si chiude subito all'apertura).
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    var firebaseReady = false;
+    try {
+      // Configurato via android/app/google-services.json: su piattaforme
+      // senza quel file (es. web/desktop in sviluppo) fallisce in modo
+      // innocuo e l'app parte comunque, solo senza notifiche push.
+      await Firebase.initializeApp();
+      firebaseReady = true;
+    } catch (_) {
+      // Vedi PushNotificationService.initialize per lo stesso principio.
+    }
 
-  if (firebaseReady && !kDebugMode) {
-    // Crash reporting: gli errori non gestiti finiscono su Firebase
-    // Crashlytics invece di perdersi sul telefono di chi li incontra.
-    // Disattivato in debug per non sporcare i report con i crash di
-    // sviluppo.
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-    PlatformDispatcher.instance.onError = (error, stack) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-      return true;
-    };
-  }
+    if (firebaseReady && !kDebugMode) {
+      // Crash reporting: gli errori non gestiti finiscono su Firebase
+      // Crashlytics invece di perdersi sul telefono di chi li incontra.
+      // Disattivato in debug per non sporcare i report con i crash di
+      // sviluppo.
+      try {
+        FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+      } catch (_) {
+        // Se Crashlytics non è disponibile su questo build, l'app parte
+        // comunque senza crash reporting invece di bloccarsi qui.
+      }
+    }
 
-  await initSupabase();
-  await ThemeController.instance.load();
-  runApp(const KinlyApp());
+    try {
+      await initSupabase();
+    } catch (_) {
+      // Senza Supabase l'app mostrerà la schermata di accesso e fallirà lì
+      // in modo visibile, invece di morire silenziosamente all'avvio.
+    }
+    await ThemeController.instance.load();
+    runApp(const KinlyApp());
+  }, (error, stack) {
+    if (!kDebugMode) {
+      try {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      } catch (_) {
+        // Nessun altro posto dove segnalarlo.
+      }
+    }
+  });
 }
 
 class KinlyApp extends StatelessWidget {
