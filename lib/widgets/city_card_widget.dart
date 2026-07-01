@@ -3,6 +3,7 @@ import '../models/city_card.dart';
 import '../models/rarity.dart';
 import '../theme/app_theme.dart';
 import 'foil_overlay.dart';
+import 'full_art_scenes.dart';
 import 'rarity_badge.dart';
 import 'skyline_painter.dart';
 
@@ -194,6 +195,36 @@ class _ArtPanel extends StatelessWidget {
     final rarity = card.rarity;
     final colors = rarity.gradientColors;
     final seed = card.city.hashCode;
+    final fullArt = fullArtPainterFor(card.city);
+
+    if (fullArt != null) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          CustomPaint(painter: fullArt, child: const SizedBox.expand()),
+          if (rarity.hasShine)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withOpacity(0.0),
+                        Colors.white.withOpacity(0.16),
+                        Colors.white.withOpacity(0.0),
+                      ],
+                      stops: const [0.35, 0.5, 0.65],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+    }
+
     return Stack(
       fit: StackFit.expand,
       children: [

@@ -3,17 +3,23 @@ import '../models/city_card.dart';
 import '../models/rarity.dart';
 import '../theme/app_theme.dart';
 import '../widgets/city_card_widget.dart';
+import '../widgets/interactive_3d_card.dart';
 
 class CardDetailScreen extends StatelessWidget {
-  const CardDetailScreen({super.key, required this.card});
+  const CardDetailScreen({super.key, required this.card, this.revealLocked = false});
   final CityCard card;
+
+  /// Se true, mostra sempre l'arte completa anche se la carta non è
+  /// ancora sbloccata (usato dalla vetrina rarità e dal riepilogo busta).
+  final bool revealLocked;
 
   @override
   Widget build(BuildContext context) {
     final rarity = card.rarity;
+    final revealed = card.unlocked || revealLocked;
     return Scaffold(
       appBar: AppBar(
-        title: Text(card.unlocked ? card.city : 'Carta sconosciuta'),
+        title: Text(revealed ? card.city : 'Carta sconosciuta'),
       ),
       body: SafeArea(
         child: Center(
@@ -21,8 +27,20 @@ class CardDetailScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Column(
               children: [
-                CityCardWidget(card: card, width: 280),
-                const SizedBox(height: 28),
+                SizedBox(
+                  width: 280,
+                  height: 280 * 1.42,
+                  child: Interactive3DCard(
+                    borderRadius: BorderRadius.circular(280 * 0.065),
+                    child: CityCardWidget(card: card, width: 280, revealLocked: revealLocked),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Trascina la carta per inclinarla',
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5),
+                ),
+                const SizedBox(height: 18),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
@@ -35,7 +53,7 @@ class CardDetailScreen extends StatelessWidget {
                           _InfoTile(label: 'Nel set', value: '${rarity.cardsInSet} carte', color: rarity.accentColor),
                         ],
                       ),
-                      if (rarity.isAnimatedFoil && card.unlocked) ...[
+                      if (rarity.isAnimatedFoil && revealed) ...[
                         const SizedBox(height: 20),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

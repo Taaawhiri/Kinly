@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/city_card_widget.dart';
 import '../widgets/rarity_badge.dart';
+import 'card_detail_screen.dart';
 
 enum _Phase { idle, shaking, bursting, revealing, summary }
 
@@ -400,21 +401,26 @@ class _Summary extends StatelessWidget {
             spacing: 14,
             runSpacing: 18,
             children: List.generate(result.cards.length, (i) {
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  CityCardWidget(card: result.cards[i], width: 130, revealLocked: true),
-                  if (result.isNew[i])
-                    Positioned(
-                      top: -6,
-                      right: -6,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(color: AppTheme.gold, borderRadius: BorderRadius.circular(10)),
-                        child: const Text('NUOVA', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.black)),
+              return GestureDetector(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => CardDetailScreen(card: result.cards[i], revealLocked: true)),
+                ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    CityCardWidget(card: result.cards[i], width: 130, revealLocked: true),
+                    if (result.isNew[i])
+                      Positioned(
+                        top: -6,
+                        right: -6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(color: AppTheme.gold, borderRadius: BorderRadius.circular(10)),
+                          child: const Text('NUOVA', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.black)),
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               );
             }),
           ),

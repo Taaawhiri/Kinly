@@ -4,6 +4,7 @@ import '../models/rarity.dart';
 import '../theme/app_theme.dart';
 import '../widgets/city_card_widget.dart';
 import '../widgets/rarity_badge.dart';
+import 'card_detail_screen.dart';
 
 /// Galleria con un esempio di carta per ogni rarità del set, dalla più
 /// comune (Comune) alla più rara in assoluto (Segreta, foil animata).
@@ -55,7 +56,14 @@ class RarityShowcaseScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 14),
-                    Center(child: CityCardWidget(card: card, width: 240, revealLocked: true)),
+                    Center(
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => CardDetailScreen(card: card, revealLocked: true)),
+                        ),
+                        child: CityCardWidget(card: card, width: 240, revealLocked: true),
+                      ),
+                    ),
                     if (rarity.isAnimatedFoil) ...[
                       const SizedBox(height: 14),
                       Center(
