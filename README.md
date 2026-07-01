@@ -22,9 +22,12 @@ semplice email (nessuna password, login via codice OTP).
   aggiornati in tempo reale con Supabase Realtime.
 - **Richieste**: si può chiedere la posizione a chi non la condivide in
   automatico; l'altra persona approva o rifiuta dal proprio dispositivo.
-- **Mappa stilizzata**: nessuna chiave di mappe reali — le coordinate GPS
-  vengono proiettate su un'illustrazione leggera coerente con il resto
-  dell'app.
+- **Mappa vera**: strade e geografia reali via [MapLibre](https://maplibre.org)
+  con i dati di [OpenFreeMap](https://openfreemap.org) (OpenStreetMap) —
+  nessuna chiave API, nessun limite d'uso. Lo stile
+  (`assets/map/kinly_style.json`) è una versione ricolorata dello stile
+  "Positron" con la palette morbida di Kinly. Le persone sono marcatori
+  disegnati con lo stesso stile degli avatar dell'app.
 
 Le funzioni premium (cronologia posizioni, aree sicure, avvisi di guida...)
 sono solo abbozzate in anteprima nella tab Profilo: arriveranno con le
@@ -79,13 +82,16 @@ impostarli su GitHub per puntare a un altro progetto.
 supabase/
   schema.sql   Tabelle, funzioni, trigger e policy RLS (da eseguire una volta)
 
+assets/
+  map/kinly_style.json   Stile MapLibre personalizzato (basato su OpenFreeMap Positron)
+
 lib/
   models/      Person, CircleGroup, LocationRequest, SharingMode
   services/    Client Supabase, autenticazione, repository dati, tracciamento posizione
   utils/       Conversioni icona/colore <-> valori salvati su Supabase
   state/       AppState — carica i dati da Supabase e resta in ascolto in tempo reale
   theme/       Tema chiaro dell'app
-  widgets/     Mappa stilizzata, pin, avatar, badge, chip
+  widgets/     Mappa (KinlyMap), avatar, badge, chip
   screens/
     auth/        Accesso con email + codice OTP
     onboarding/  Crea cerchia, entra con un codice

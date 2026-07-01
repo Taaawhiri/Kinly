@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/circle_group.dart';
@@ -91,15 +90,9 @@ class AppState extends ChangeNotifier {
       final locationRows = await _repo.fetchLocations([myId, ...otherIds]);
       final locationByProfile = {for (final l in locationRows) l['profile_id'] as String: l};
 
-      final coords = <String, (double, double)>{
-        for (final l in locationRows) l['profile_id'] as String: ((l['lat'] as num).toDouble(), (l['lng'] as num).toDouble()),
-      };
-      final mapPositions = _projectToMap(coords);
-
       _me = _buildPerson(
         profileRow,
         locationByProfile[myId],
-        mapPositions[myId],
         isMe: true,
         isSharingWithMe: true,
       );
@@ -108,7 +101,6 @@ class AppState extends ChangeNotifier {
           .map((row) => _buildPerson(
                 row,
                 locationByProfile[row['id']],
-                mapPositions[row['id']],
                 isMe: false,
                 isSharingWithMe: locationByProfile.containsKey(row['id']),
               ))
@@ -133,8 +125,7 @@ class AppState extends ChangeNotifier {
 
   Person _buildPerson(
     Map<String, dynamic> profile,
-    Map<String, dynamic>? location,
-    (double, double)? mapPos, {
+    Map<String, dynamic>? location, {
     required bool isMe,
     required bool isSharingWithMe,
   }) {
@@ -143,8 +134,8 @@ class AppState extends ChangeNotifier {
       id: profile['id'] as String,
       name: profile['name'] as String,
       color: ColorHex.fromHex(profile['color'] as String? ?? '#4A63E7'),
-      mapX: mapPos?.$1 ?? 0.5,
-      mapY: mapPos?.$2 ?? 0.5,
+      lat: location != null ? (location['lat'] as num).toDouble() : null,
+      lng: location != null ? (location['lng'] as num).toDouble() : null,
       address: location?['address'] as String? ??
           (canSeeLocation ? 'Posizione non ancora disponibile' : 'Ultima posizione non disponibile'),
       lastUpdate: location != null ? DateTime.parse(location['updated_at'] as String) : DateTime.now(),
@@ -155,33 +146,10 @@ class AppState extends ChangeNotifier {
     );
   }
 
-  /// Proietta coordinate reali (lat, lng) su coordinate normalizzate 0..1
-  /// per la mappa stilizzata dell'app (che non usa tile reali).
-  Map<String, (double, double)> _projectToMap(Map<String, (double, double)> coords) {
-    if (coords.isEmpty) return {};
-    if (coords.length == 1) return {coords.keys.first: (0.5, 0.5)};
-
-    final lats = coords.values.map((c) => c.$1);
-    final lngs = coords.values.map((c) => c.$2);
-    final minLat = lats.reduce(min), maxLat = lats.reduce(max);
-    final minLng = lngs.reduce(min), maxLng = lngs.reduce(max);
-    final latSpan = (maxLat - minLat).abs() < 1e-9 ? 1.0 : (maxLat - minLat);
-    final lngSpan = (maxLng - minLng).abs() < 1e-9 ? 1.0 : (maxLng - minLng);
-    const pad = 0.18;
-
-    return coords.map((id, c) {
-      final nx = (c.$2 - minLng) / lngSpan;
-      final ny = 1 - (c.$1 - minLat) / latSpan;
-      return MapEntry(id, (pad + nx * (1 - 2 * pad), pad + ny * (1 - 2 * pad)));
-    });
-  }
-
   Person _placeholderMe() => Person(
         id: AuthService.instance.currentUserId ?? 'me',
         name: 'Io',
         color: const Color(0xFF4A63E7),
-        mapX: 0.5,
-        mapY: 0.5,
         address: '',
         lastUpdate: DateTime.now(),
         batteryPercent: 0,

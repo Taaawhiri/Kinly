@@ -8,8 +8,8 @@ class Person {
     required this.id,
     required this.name,
     required this.color,
-    required this.mapX,
-    required this.mapY,
+    this.lat,
+    this.lng,
     required this.address,
     required this.lastUpdate,
     required this.batteryPercent,
@@ -22,9 +22,9 @@ class Person {
   final String name;
   final Color color;
 
-  /// Posizione normalizzata (0..1) sulla mappa stilizzata dell'app.
-  final double mapX;
-  final double mapY;
+  /// Coordinate reali dell'ultima posizione nota, se disponibile e visibile.
+  final double? lat;
+  final double? lng;
 
   final String address;
   final DateTime lastUpdate;
@@ -54,8 +54,8 @@ class Person {
       id: id,
       name: name,
       color: color,
-      mapX: mapX,
-      mapY: mapY,
+      lat: lat,
+      lng: lng,
       address: address,
       lastUpdate: lastUpdate,
       batteryPercent: batteryPercent,

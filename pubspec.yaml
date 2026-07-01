@@ -14,6 +14,7 @@ dependencies:
   geolocator: ^13.0.1
   geocoding: ^4.0.0
   battery_plus: ^6.1.1
+  maplibre_gl: ^0.26.2
 
 dev_dependencies:
   flutter_test:
@@ -34,3 +35,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icon/icon.png
+    - assets/map/kinly_style.json

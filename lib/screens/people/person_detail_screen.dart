@@ -3,9 +3,8 @@ import '../../models/person.dart';
 import '../../models/sharing_mode.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/person_avatar.dart';
+import '../../widgets/kinly_map.dart';
 import '../../widgets/sharing_mode_badge.dart';
-import '../../widgets/stylized_map_painter.dart';
 
 class PersonDetailScreen extends StatelessWidget {
   const PersonDetailScreen({super.key, required this.personId});
@@ -27,22 +26,17 @@ class PersonDetailScreen extends StatelessWidget {
               children: [
                 SizedBox(
                   height: 260,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      const StylizedMapBackground(),
-                      if (canSee)
-                        Center(child: PersonAvatar(person: person, size: 64))
-                      else
-                        Center(
+                  child: canSee && person.lat != null
+                      ? KinlyMap(people: [person], interactive: false)
+                      : Container(
+                          color: const Color(0xFFEEF1FA),
+                          alignment: Alignment.center,
                           child: Container(
                             padding: const EdgeInsets.all(18),
                             decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
                             child: const Icon(Icons.location_off_outlined, color: AppTheme.textSecondary, size: 30),
                           ),
                         ),
-                    ],
-                  ),
                 ),
                 Expanded(
                   child: SingleChildScrollView(

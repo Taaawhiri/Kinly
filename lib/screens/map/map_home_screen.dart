@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../models/person.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_logo.dart';
 import '../../widgets/circle_chip.dart';
-import '../../widgets/map_pin.dart';
+import '../../widgets/kinly_map.dart';
 import '../../widgets/person_list_tile.dart';
-import '../../widgets/stylized_map_painter.dart';
 import '../people/person_detail_screen.dart';
 
 class MapHomeScreen extends StatelessWidget {
@@ -28,19 +26,11 @@ class MapHomeScreen extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    const StylizedMapBackground(),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final w = constraints.maxWidth, h = constraints.maxHeight;
-                        return Stack(
-                          children: [
-                            for (final p in people)
-                              if (p.isSharingWithMe)
-                                _positioned(p, w, h, context),
-                            _positioned(state.me, w, h, context),
-                          ],
-                        );
-                      },
+                    KinlyMap(
+                      people: [state.me, ...people.where((p) => p.isSharingWithMe)],
+                      onPersonTap: (personId) => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: personId)),
+                      ),
                     ),
                     SafeArea(
                       child: Padding(
@@ -129,21 +119,6 @@ class MapHomeScreen extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-
-  Widget _positioned(Person p, double w, double h, BuildContext context) {
-    const pinSize = 46.0;
-    return Positioned(
-      left: w * p.mapX - pinSize * 0.9,
-      top: h * p.mapY - pinSize * 1.5,
-      child: MapPin(
-        person: p,
-        size: pinSize,
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: p.id)),
-        ),
-      ),
     );
   }
 }
