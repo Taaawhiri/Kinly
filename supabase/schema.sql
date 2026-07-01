@@ -365,6 +365,71 @@ as $$
   where id = p_target_id;
 $$;
 
+-- Permessi di posizione per-cerchia: un override facoltativo della propria
+-- modalità di condivisione valido solo in quella cerchia (es. "automatica"
+-- con la famiglia, "approssimativa" con i colleghi). Se manca una riga per
+-- una cerchia, si usa la modalità generale del profilo (comportamento di
+-- prima, invariato).
+create table if not exists public.circle_member_settings (
+  circle_id uuid not null references public.circles (id) on delete cascade,
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  sharing_mode text not null check (sharing_mode in ('automatic', 'on_request', 'paused', 'fuzzy')),
+  primary key (circle_id, profile_id)
+);
+
+alter table public.circle_member_settings enable row level security;
+
+drop policy if exists "circle_member_settings_select" on public.circle_member_settings;
+create policy "circle_member_settings_select" on public.circle_member_settings
+  for select using (circle_id in (select public.my_circle_ids()));
+
+drop policy if exists "circle_member_settings_upsert_own" on public.circle_member_settings;
+create policy "circle_member_settings_upsert_own" on public.circle_member_settings
+  for insert with check (profile_id = auth.uid() and circle_id in (select public.my_circle_ids()));
+
+drop policy if exists "circle_member_settings_update_own" on public.circle_member_settings;
+create policy "circle_member_settings_update_own" on public.circle_member_settings
+  for update using (profile_id = auth.uid()) with check (profile_id = auth.uid());
+
+drop policy if exists "circle_member_settings_delete_own" on public.circle_member_settings;
+create policy "circle_member_settings_delete_own" on public.circle_member_settings
+  for delete using (profile_id = auth.uid());
+
+-- Modalità "vista da chi guarda": tra tutte le cerchie condivise tra
+-- viewer e target, prende la più permissiva (usando l'override per quella
+-- cerchia se c'è, altrimenti la modalità generale del target) — così se
+-- condividi anche solo UNA cerchia dove sei "automatica", conti come
+-- visibile lì anche se in un'altra cerchia condivisa sei "sospesa".
+create or replace function public.effective_sharing_mode(p_viewer_id uuid, p_target_id uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(
+    (
+      select coalesce(cms.sharing_mode, p.sharing_mode) as mode
+      from public.circle_members target_cm
+      join public.circle_members viewer_cm
+        on viewer_cm.circle_id = target_cm.circle_id and viewer_cm.profile_id = p_viewer_id
+      join public.profiles p on p.id = target_cm.profile_id
+      left join public.circle_member_settings cms
+        on cms.circle_id = target_cm.circle_id and cms.profile_id = target_cm.profile_id
+      where target_cm.profile_id = p_target_id
+      order by case coalesce(cms.sharing_mode, p.sharing_mode)
+        when 'automatic' then 1
+        when 'fuzzy' then 2
+        when 'on_request' then 3
+        when 'paused' then 4
+        else 5
+      end
+      limit 1
+    ),
+    'paused'
+  );
+$$;
+
 create or replace function public.can_view_location(p_target_id uuid)
 returns boolean
 language sql
@@ -378,7 +443,7 @@ as $$
       public.shares_circle_with(p_target_id)
       and public.is_within_ghost_schedule(p_target_id)
       and (
-        (select sharing_mode from public.profiles where id = p_target_id) in ('automatic', 'fuzzy')
+        public.effective_sharing_mode(auth.uid(), p_target_id) in ('automatic', 'fuzzy')
         or exists (
           select 1 from public.location_requests
           where requester_id = auth.uid()
@@ -409,20 +474,19 @@ set search_path = public
 as $$
   select
     l.profile_id,
-    case when p.sharing_mode = 'fuzzy' and l.profile_id <> auth.uid()
+    case when public.effective_sharing_mode(auth.uid(), l.profile_id) = 'fuzzy' and l.profile_id <> auth.uid()
          then round(l.lat::numeric, 2)::double precision
          else l.lat end,
-    case when p.sharing_mode = 'fuzzy' and l.profile_id <> auth.uid()
+    case when public.effective_sharing_mode(auth.uid(), l.profile_id) = 'fuzzy' and l.profile_id <> auth.uid()
          then round(l.lng::numeric, 2)::double precision
          else l.lng end,
-    case when p.sharing_mode = 'fuzzy' and l.profile_id <> auth.uid()
+    case when public.effective_sharing_mode(auth.uid(), l.profile_id) = 'fuzzy' and l.profile_id <> auth.uid()
          then null
          else l.address end,
     l.speed_kmh,
     l.updated_at,
-    (p.sharing_mode = 'fuzzy' and l.profile_id <> auth.uid())
+    (public.effective_sharing_mode(auth.uid(), l.profile_id) = 'fuzzy' and l.profile_id <> auth.uid())
   from public.locations l
-  join public.profiles p on p.id = l.profile_id
   where l.profile_id = any(p_ids)
     and public.can_view_location(l.profile_id);
 $$;
@@ -464,7 +528,10 @@ $$;
 drop view if exists public.profiles_view;
 create view public.profiles_view
   with (security_invoker = true) as
-select p.*, public.is_effectively_premium(p.id) as effective_is_premium
+select
+  p.*,
+  public.is_effectively_premium(p.id) as effective_is_premium,
+  public.effective_sharing_mode(auth.uid(), p.id) as effective_sharing_mode
 from public.profiles p;
 
 grant select on public.profiles_view to authenticated;
@@ -690,7 +757,7 @@ create policy "location_requests_insert" on public.location_requests
   for insert with check (
     requester_id = auth.uid()
     and public.shares_circle_with(target_id)
-    and (select sharing_mode from public.profiles where id = target_id) <> 'paused'
+    and public.effective_sharing_mode(auth.uid(), target_id) <> 'paused'
   );
 
 drop policy if exists "location_requests_respond" on public.location_requests;
@@ -923,6 +990,37 @@ drop policy if exists "pings_insert" on public.pings;
 create policy "pings_insert" on public.pings
   for insert with check (from_id = auth.uid() and public.shares_circle_with(to_id));
 
+-- Ogni ping genera una notifica push (stesso costo reale di un messaggio
+-- cerchia): stesso limite di 5 al giorno per chi non è Kinly+.
+create or replace function public.enforce_ping_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  sender_is_premium boolean;
+  recent_count integer;
+begin
+  sender_is_premium := public.is_effectively_premium(new.from_id);
+  if not coalesce(sender_is_premium, false) then
+    select count(*) into recent_count
+      from public.pings
+      where from_id = new.from_id
+        and created_at > now() - interval '24 hours';
+    if recent_count >= 5 then
+      raise exception 'free_ping_limit_reached' using errcode = 'P0001';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists enforce_ping_limit_trigger on public.pings;
+create trigger enforce_ping_limit_trigger
+  before insert on public.pings
+  for each row execute function public.enforce_ping_limit();
+
 -- Un "incrocio" rilevato tra due persone della stessa cerchia che si sono
 -- trovate a pochi metri l'una dall'altra con posizioni entrambe fresche:
 -- l'app propone di mandarsi un High Five (riusa la tabella pings).
@@ -1097,6 +1195,37 @@ drop policy if exists "circle_expenses_delete_own" on public.circle_expenses;
 create policy "circle_expenses_delete_own" on public.circle_expenses
   for delete using (paid_by = auth.uid());
 
+-- Ogni spesa genera una notifica push alla cerchia: stesso limite di 5 al
+-- giorno per chi non è Kinly+, come i messaggi cerchia.
+create or replace function public.enforce_expense_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  payer_is_premium boolean;
+  recent_count integer;
+begin
+  payer_is_premium := public.is_effectively_premium(new.paid_by);
+  if not coalesce(payer_is_premium, false) then
+    select count(*) into recent_count
+      from public.circle_expenses
+      where paid_by = new.paid_by
+        and created_at > now() - interval '24 hours';
+    if recent_count >= 5 then
+      raise exception 'free_expense_limit_reached' using errcode = 'P0001';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists enforce_expense_limit_trigger on public.circle_expenses;
+create trigger enforce_expense_limit_trigger
+  before insert on public.circle_expenses
+  for each row execute function public.enforce_expense_limit();
+
 create table if not exists public.expense_shares (
   id uuid primary key default gen_random_uuid(),
   expense_id uuid not null references public.circle_expenses (id) on delete cascade,
@@ -1144,7 +1273,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events', 'speed_events', 'meeting_points', 'meeting_point_arrivals', 'sos_alerts', 'sos_trusted_contacts', 'circle_messages', 'help_requests', 'pings', 'encounters', 'shopping_stops', 'shopping_requests', 'circle_expenses', 'expense_shares']
+  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events', 'speed_events', 'meeting_points', 'meeting_point_arrivals', 'sos_alerts', 'sos_trusted_contacts', 'circle_messages', 'help_requests', 'pings', 'encounters', 'shopping_stops', 'shopping_requests', 'circle_expenses', 'expense_shares', 'circle_member_settings']
   loop
     if not exists (
       select 1 from pg_publication_tables

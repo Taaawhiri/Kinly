@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import '../../models/person.dart';
 import '../../models/ping.dart';
 import '../../models/sharing_mode.dart';
+import '../../services/kinly_repository.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/kinly_map.dart';
 import '../../widgets/sharing_mode_badge.dart';
 import '../../widgets/weather_card.dart';
 import '../premium/location_history_screen.dart';
+import '../premium/paywall_screen.dart';
 import '../premium/speed_alerts_screen.dart';
+import '../premium/statistics_screen.dart';
 import 'radar_screen.dart';
 
 class PersonDetailScreen extends StatelessWidget {
@@ -98,6 +101,14 @@ class PersonDetailScreen extends StatelessWidget {
                           label: 'Cronologia posizioni',
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => LocationHistoryScreen(person: person)),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        _LinkTile(
+                          icon: Icons.route_rounded,
+                          label: 'Statistiche e itinerari',
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => StatisticsScreen(person: person)),
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -214,9 +225,33 @@ class _PingRowState extends State<_PingRow> {
     setState(() => _sent = kind);
     try {
       await AppState.instance.sendPing(toId: widget.person.id, kind: kind);
+    } on FreeLimitException catch (e) {
+      if (mounted) setState(() => _sent = null);
+      if (mounted && e.kind == FreeLimitKind.dailyPingLimit) _showDailyLimitReached();
     } catch (_) {
       if (mounted) setState(() => _sent = null);
     }
+  }
+
+  void _showDailyLimitReached() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Limite giornaliero raggiunto'),
+        content: const Text('Hai già mandato 5 ping oggi: è il limite del piano gratuito. Con Kinly+ puoi mandarne quanti vuoi.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Ho capito')),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen()));
+            },
+            child: const Text('Scopri Kinly+'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

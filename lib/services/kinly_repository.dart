@@ -7,7 +7,7 @@ import 'supabase_client.dart';
 
 /// Sollevata quando un'operazione viene bloccata dai limiti del piano
 /// gratuito (vedi il trigger `enforce_circle_limits` nello schema).
-enum FreeLimitKind { tooManyCircles, circleFull, dailyMessageLimit }
+enum FreeLimitKind { tooManyCircles, circleFull, dailyMessageLimit, dailyPingLimit, dailyExpenseLimit }
 
 class FreeLimitException implements Exception {
   const FreeLimitException(this.kind);
@@ -69,6 +69,25 @@ class KinlyRepository {
 
   Future<void> setSharingMode(SharingMode mode) async {
     await supabase.from('profiles').update({'sharing_mode': mode.dbValue}).eq('id', _myId);
+  }
+
+  /// I miei override di modalità per cerchia (righe assenti = uso quella
+  /// generale per quella cerchia).
+  Future<List<Map<String, dynamic>>> fetchMyCircleSharingSettings() async {
+    return supabase.from('circle_member_settings').select().eq('profile_id', _myId);
+  }
+
+  /// null rimuove l'override (torna a usare la modalità generale in quella
+  /// cerchia).
+  Future<void> setCircleSharingMode(String circleId, SharingMode? mode) async {
+    if (mode == null) {
+      await supabase.from('circle_member_settings').delete().eq('circle_id', circleId).eq('profile_id', _myId);
+    } else {
+      await supabase.from('circle_member_settings').upsert(
+        {'circle_id': circleId, 'profile_id': _myId, 'sharing_mode': mode.dbValue},
+        onConflict: 'circle_id,profile_id',
+      );
+    }
   }
 
   Future<void> updateBatteryPercent(int percent) async {
@@ -171,6 +190,8 @@ class KinlyRepository {
     if (e.message.contains('free_circle_limit_reached')) return const FreeLimitException(FreeLimitKind.tooManyCircles);
     if (e.message.contains('free_member_limit_reached')) return const FreeLimitException(FreeLimitKind.circleFull);
     if (e.message.contains('free_message_limit_reached')) return const FreeLimitException(FreeLimitKind.dailyMessageLimit);
+    if (e.message.contains('free_ping_limit_reached')) return const FreeLimitException(FreeLimitKind.dailyPingLimit);
+    if (e.message.contains('free_expense_limit_reached')) return const FreeLimitException(FreeLimitKind.dailyExpenseLimit);
     return e;
   }
 
@@ -512,7 +533,11 @@ class KinlyRepository {
   }
 
   Future<void> sendPing({required String toId, required String kind}) async {
-    await supabase.from('pings').insert({'from_id': _myId, 'to_id': toId, 'kind': kind});
+    try {
+      await supabase.from('pings').insert({'from_id': _myId, 'to_id': toId, 'kind': kind});
+    } on PostgrestException catch (e) {
+      throw _translateLimitError(e);
+    }
   }
 
   Future<List<Map<String, dynamic>>> fetchEncounters({int limit = 20}) async {
@@ -587,11 +612,16 @@ class KinlyRepository {
     required double amount,
     required Map<String, double> sharesByProfileId,
   }) async {
-    final expense = await supabase
-        .from('circle_expenses')
-        .insert({'circle_id': circleId, 'paid_by': _myId, 'description': description, 'amount': amount})
-        .select()
-        .single();
+    Map<String, dynamic> expense;
+    try {
+      expense = await supabase
+          .from('circle_expenses')
+          .insert({'circle_id': circleId, 'paid_by': _myId, 'description': description, 'amount': amount})
+          .select()
+          .single();
+    } on PostgrestException catch (e) {
+      throw _translateLimitError(e);
+    }
     await supabase.from('expense_shares').insert([
       for (final entry in sharesByProfileId.entries) {'expense_id': expense['id'], 'profile_id': entry.key, 'share_amount': entry.value},
     ]);
@@ -628,6 +658,7 @@ class KinlyRepository {
       'shopping_requests',
       'circle_expenses',
       'expense_shares',
+      'circle_member_settings',
     ]) {
       channel.onPostgresChanges(
         event: PostgresChangeEvent.all,

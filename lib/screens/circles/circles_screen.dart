@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../models/circle_group.dart';
 import '../../models/person.dart';
 import '../../models/routine_anomaly.dart';
+import '../../models/sharing_mode.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/person_avatar.dart';
@@ -86,6 +87,133 @@ class CirclesScreen extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+void _openSharingModeSheet(BuildContext context, CircleGroup circle) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: AppTheme.surface,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+    builder: (sheetContext) => _CircleSharingModeSheet(circle: circle),
+  );
+}
+
+/// Permette di scegliere una modalità di condivisione valida SOLO in questa
+/// cerchia (es. automatica con la famiglia, approssimativa con i colleghi),
+/// invece che la modalità generale valida ovunque. Se condividi la stessa
+/// cerchia in un'altra modalità più permissiva, conta quella: qui scegli solo
+/// il "minimo" che vuoi garantire in questa cerchia specifica.
+class _CircleSharingModeSheet extends StatelessWidget {
+  const _CircleSharingModeSheet({required this.circle});
+  final CircleGroup circle;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: AppState.instance,
+      builder: (context, _) {
+        final state = AppState.instance;
+        final override = state.modeOverrideForCircle(circle.id);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('La tua modalità in "${circle.name}"', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+                const SizedBox(height: 6),
+                Text(
+                  'Vale solo per questa cerchia: nelle altre resta quella generale del tuo profilo.',
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
+                ),
+                const SizedBox(height: 14),
+                _SharingOptionTile(
+                  label: 'Usa la modalità generale',
+                  description: 'Quella scelta nel tuo profilo (${state.myMode.label}).',
+                  icon: Icons.settings_backup_restore_rounded,
+                  color: AppTheme.textSecondary,
+                  selected: override == null,
+                  onTap: () {
+                    state.setCircleSharingMode(circle.id, null);
+                    Navigator.of(context).pop();
+                  },
+                ),
+                for (final mode in SharingMode.values)
+                  _SharingOptionTile(
+                    label: mode.label,
+                    description: mode.description,
+                    icon: mode.icon,
+                    color: mode.color,
+                    selected: override == mode,
+                    onTap: () {
+                      state.setCircleSharingMode(circle.id, mode);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SharingOptionTile extends StatelessWidget {
+  const _SharingOptionTile({
+    required this.label,
+    required this.description,
+    required this.icon,
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+  final String label;
+  final String description;
+  final IconData icon;
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceAlt,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: selected ? color : Colors.transparent, width: 1.6),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.14)),
+              alignment: Alignment.center,
+              child: Icon(icon, color: color, size: 17),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                  Text(description, style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, height: 1.3)),
+                ],
+              ),
+            ),
+            if (selected) Icon(Icons.check_circle_rounded, color: color, size: 18),
+          ],
         ),
       ),
     );
@@ -234,6 +362,11 @@ class _CircleCard extends StatelessWidget {
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleExpensesScreen(circle: circle))),
                 icon: Icon(Icons.receipt_long_outlined, size: 18, color: AppTheme.textSecondary),
                 tooltip: 'Spese di gruppo',
+              ),
+              IconButton(
+                onPressed: () => _openSharingModeSheet(context, circle),
+                icon: Icon(Icons.tune_rounded, size: 18, color: AppTheme.textSecondary),
+                tooltip: 'La tua modalità in questa cerchia',
               ),
             ],
           ),

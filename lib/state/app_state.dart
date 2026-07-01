@@ -61,6 +61,7 @@ class AppState extends ChangeNotifier {
   List<ExpenseShare> _expenseShares = [];
   final Set<String> _dismissedPingIds = {};
   final Set<String> _dismissedEncounterIds = {};
+  Map<String, SharingMode> _circleSharingOverrides = {};
   TimeOfDay? _autoGhostStart;
   TimeOfDay? _autoGhostEnd;
 
@@ -248,6 +249,11 @@ class AppState extends ChangeNotifier {
       final expenseShareRows = await _repo.fetchExpenseShares();
       _expenseShares = expenseShareRows.map(ExpenseShare.fromRow).toList();
 
+      final circleSettingsRows = await _repo.fetchMyCircleSharingSettings();
+      _circleSharingOverrides = {
+        for (final r in circleSettingsRows) r['circle_id'] as String: SharingModeData.fromDb(r['sharing_mode'] as String),
+      };
+
       loadError = null;
     } catch (e) {
       loadError = e.toString();
@@ -304,7 +310,6 @@ class AppState extends ChangeNotifier {
       lastUpdate: location != null ? DateTime.parse(location['updated_at'] as String) : DateTime.now(),
       batteryPercent: (profile['battery_percent'] as num?)?.toInt() ?? 0,
       isSharingWithMe: isSharingWithMe,
-      mode: SharingModeData.fromDb(profile['sharing_mode'] as String? ?? 'automatic'),
       isMe: isMe,
       isPremium: profile['effective_is_premium'] as bool? ?? profile['is_premium'] as bool? ?? false,
       speedAlertKmh: (profile['speed_alert_kmh'] as num?)?.toInt(),
@@ -312,6 +317,7 @@ class AppState extends ChangeNotifier {
       speedKmh: (location?['speed_kmh'] as num?)?.toDouble(),
       avatarKey: profile['avatar_key'] as String?,
       isAdmin: profile['is_admin'] as bool? ?? false,
+      mode: SharingModeData.fromDb(profile['effective_sharing_mode'] as String? ?? profile['sharing_mode'] as String? ?? 'automatic'),
       birthday: profile['birthday'] != null ? DateTime.parse(profile['birthday'] as String) : null,
       statusEmoji: profile['status_emoji'] as String?,
       statusText: profile['status_text'] as String?,
@@ -359,6 +365,7 @@ class AppState extends ChangeNotifier {
     _shoppingRequests = [];
     _circleExpenses = [];
     _expenseShares = [];
+    _circleSharingOverrides = {};
     _dismissedPingIds.clear();
     _dismissedEncounterIds.clear();
     _autoGhostStart = null;
@@ -378,6 +385,20 @@ class AppState extends ChangeNotifier {
     if (_me != null) _me = _me!.copyWith(mode: mode);
     notifyListeners();
     await _repo.setSharingMode(mode);
+    unawaited(_refreshData().then((_) => notifyListeners()));
+  }
+
+  /// null = nessun override, uso la modalità generale in quella cerchia.
+  SharingMode? modeOverrideForCircle(String circleId) => _circleSharingOverrides[circleId];
+
+  Future<void> setCircleSharingMode(String circleId, SharingMode? mode) async {
+    if (mode == null) {
+      _circleSharingOverrides.remove(circleId);
+    } else {
+      _circleSharingOverrides[circleId] = mode;
+    }
+    notifyListeners();
+    await _repo.setCircleSharingMode(circleId, mode);
     unawaited(_refreshData().then((_) => notifyListeners()));
   }
 

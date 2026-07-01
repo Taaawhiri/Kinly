@@ -23,11 +23,13 @@ class PaywallScreen extends StatefulWidget {
 
 const _features = [
   (Icons.history_rounded, 'Cronologia posizioni', 'Rivedi dove sono stati i membri della cerchia nei giorni passati.'),
+  (Icons.route_rounded, 'Statistiche e itinerari', 'Distanza percorsa e mappa dei tragitti fatti, ricostruiti dallo storico.'),
   (Icons.fence_rounded, 'Aree sicure', 'Casa, lavoro, scuola: ricevi una notifica personalizzata quando qualcuno arriva o esce.'),
   (Icons.groups_rounded, 'Cerchie senza limiti', 'Nessun limite al numero di cerchie o di persone per cerchia.'),
   (Icons.speed_rounded, 'Avvisi di guida', 'Sappi quando chi guida supera un limite di velocità impostato.'),
   (Icons.gps_fixed_rounded, 'Tracciamento in background', 'La posizione continua ad aggiornarsi anche con l\'app chiusa.'),
-  (Icons.forum_rounded, 'Messaggi illimitati', 'Manda quanti messaggi vuoi alla tua cerchia, senza il limite giornaliero.'),
+  (Icons.forum_rounded, 'Messaggi, ping e spese illimitati', 'Manda quanti messaggi, ping e spese vuoi, senza il limite giornaliero.'),
+  (Icons.shopping_bag_outlined, 'Portami qualcosa', 'Segnala alla cerchia quando sei al supermercato o al bar, per farti chiedere qualcosa al volo.'),
   (Icons.support_agent_rounded, 'Assistenza prioritaria', 'Supporto dedicato per la tua cerchia, 7 giorni su 7.'),
 ];
 

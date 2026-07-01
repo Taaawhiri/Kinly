@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -7,6 +8,7 @@ import '../../models/person.dart';
 import '../../services/place_search_service.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/address_formatter.dart';
 import '../../widgets/person_avatar.dart';
 
 /// Punto d'incontro condiviso: chiunque nella cerchia può proporne uno (non
@@ -237,9 +239,29 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
   bool _saving = false;
   String? _error;
   List<PlaceResult> _results = [];
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    // Ricerca "dal vivo" mentre scrivi, con un piccolo ritardo per non
+    // interrogare Nominatim ad ogni singola lettera digitata.
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  void _onSearchChanged() {
+    _debounce?.cancel();
+    final query = _searchController.text.trim();
+    if (query.length < 3) {
+      setState(() => _results = []);
+      return;
+    }
+    _debounce = Timer(const Duration(milliseconds: 500), _searchPlaces);
+  }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _nameController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -305,8 +327,7 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
       try {
         final placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
         if (placemarks.isNotEmpty) {
-          final p = placemarks.first;
-          address = [if ((p.street ?? '').isNotEmpty) p.street, if ((p.locality ?? '').isNotEmpty) p.locality].join(', ');
+          address = formatPlacemarkAddress(placemarks.first);
         }
       } catch (_) {
         // Va bene anche senza indirizzo leggibile.
@@ -364,26 +385,18 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
           children: [
             Text('Nuovo punto d\'incontro', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
             const SizedBox(height: 16),
-            TextField(
-              controller: _nameController,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: 'Nome (es. Ingresso stadio, Bar Roma)',
-                filled: true,
-                fillColor: AppTheme.surfaceAlt,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              ),
-            ),
-            const SizedBox(height: 16),
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: TextField(
                     controller: _searchController,
+                    autofocus: true,
                     decoration: InputDecoration(
-                      hintText: 'Cerca un luogo (es. Ristorante da Mario)',
+                      hintText: 'Cerca un luogo o un indirizzo…',
+                      prefixIcon: _searching
+                          ? const Padding(padding: EdgeInsets.all(14), child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)))
+                          : const Icon(Icons.search_rounded),
                       filled: true,
                       fillColor: AppTheme.surfaceAlt,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -392,19 +405,14 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
                     onSubmitted: (_) => _searchPlaces(),
                   ),
                 ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  onPressed: _searching ? null : _searchPlaces,
-                  icon: _searching
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.search_rounded),
-                ),
               ],
             ),
+            // Risultati live: appaiono man mano che scrivi, sia per un punto
+            // di interesse con nome (es. un ristorante) sia per un indirizzo.
             if (_results.isNotEmpty) ...[
               const SizedBox(height: 8),
               Container(
-                constraints: const BoxConstraints(maxHeight: 180),
+                constraints: const BoxConstraints(maxHeight: 220),
                 decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(14)),
                 child: ListView.separated(
                   shrinkWrap: true,
@@ -423,6 +431,25 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
                 ),
               ),
             ],
+            if (_lat != null) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: AppTheme.primary.withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle_rounded, color: AppTheme.primary, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _addressLabel ?? '${_lat!.toStringAsFixed(4)}, ${_lng!.toStringAsFixed(4)}',
+                        style: TextStyle(color: AppTheme.textPrimary, fontSize: 12.5, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 10),
             Row(
               children: const [Expanded(child: Divider()), Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text('oppure')), Expanded(child: Divider())],
@@ -436,13 +463,17 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
               label: Text(_lat == null ? 'Usa la mia posizione attuale' : 'Posizione impostata'),
               style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
             ),
-            if (_lat != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                _addressLabel ?? '${_lat!.toStringAsFixed(4)}, ${_lng!.toStringAsFixed(4)}',
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                hintText: 'Nome (es. Ingresso stadio, Bar Roma)',
+                filled: true,
+                fillColor: AppTheme.surfaceAlt,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
-            ],
+            ),
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: _pickScheduledTime,

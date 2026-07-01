@@ -4,9 +4,11 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/circle_expense.dart';
 import '../../models/circle_group.dart';
 import '../../models/person.dart';
+import '../../services/kinly_repository.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/person_avatar.dart';
+import '../premium/paywall_screen.dart';
 
 /// Spese di gruppo condivise in una cerchia (stile Splitwise): solo un
 /// registro di chi ha pagato cosa, nessun pagamento reale — Kinly non
@@ -235,11 +237,38 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
         sharesByProfileId: {for (final id in _selected) id: share},
       );
       if (mounted) Navigator.of(context).pop();
+    } on FreeLimitException catch (e) {
+      if (mounted && e.kind == FreeLimitKind.dailyExpenseLimit) {
+        _showDailyLimitReached();
+      } else if (mounted) {
+        setState(() => _error = 'Non siamo riusciti a salvare la spesa. Riprova.');
+      }
     } catch (_) {
       if (mounted) setState(() => _error = 'Non siamo riusciti a salvare la spesa. Riprova.');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  void _showDailyLimitReached() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Limite giornaliero raggiunto'),
+        content: const Text('Hai già registrato 5 spese oggi: è il limite del piano gratuito. Con Kinly+ puoi registrarne quante vuoi.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Ho capito')),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen()));
+            },
+            child: const Text('Scopri Kinly+'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

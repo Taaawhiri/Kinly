@@ -6,6 +6,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import '../state/app_state.dart';
+import '../utils/address_formatter.dart';
 import 'background_tracking_settings.dart';
 import 'kinly_repository.dart';
 
@@ -215,6 +216,12 @@ class LocationTracker {
   /// poi via Nominatim solo se non l'ha ancora vista nessuno — e se è un
   /// supermercato/bar/fast-food segnala una sosta alla cerchia.
   Future<void> _checkPoi(Position position, double? speedKmh) async {
+    // Ogni controllo può generare una chiamata a Nominatim (limiti d'uso
+    // gratuiti condivisi con tutta l'app) e una notifica push alla cerchia:
+    // per contenere il costo, è un vantaggio Kinly+ come il tracciamento
+    // in background.
+    if (!AppState.instance.isPremium) return;
+
     final isStationary = speedKmh == null || speedKmh < 3;
     if (!isStationary) return;
 
@@ -350,12 +357,7 @@ class LocationTracker {
     try {
       final placemarks = await placemarkFromCoordinates(lat, lng);
       if (placemarks.isEmpty) return null;
-      final p = placemarks.first;
-      final parts = [
-        if ((p.street ?? '').isNotEmpty) p.street,
-        if ((p.locality ?? '').isNotEmpty) p.locality,
-      ];
-      return parts.isEmpty ? null : parts.join(', ');
+      return formatPlacemarkAddress(placemarks.first);
     } catch (_) {
       // La geocodifica nativa non è disponibile su tutte le piattaforme
       // (es. web/desktop): in quel caso restiamo senza indirizzo leggibile.

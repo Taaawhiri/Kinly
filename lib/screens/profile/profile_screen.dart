@@ -392,7 +392,8 @@ class _PremiumTeaser extends StatelessWidget {
     (Icons.fence_rounded, 'Aree sicure', 'Casa, lavoro, scuola: notifica personalizzata a ogni arrivo o uscita.'),
     (Icons.speed_rounded, 'Avvisi di guida', 'Sappi quando chi guida supera un limite di velocità impostato.'),
     (Icons.gps_fixed_rounded, 'Tracciamento in background', 'La posizione continua ad aggiornarsi anche con l\'app chiusa.'),
-    (Icons.forum_rounded, 'Messaggi illimitati', 'Manda quanti messaggi vuoi alla tua cerchia, senza limiti.'),
+    (Icons.forum_rounded, 'Messaggi, ping e spese illimitati', 'Manda quanti messaggi, ping e spese vuoi, senza limiti.'),
+    (Icons.shopping_bag_outlined, 'Portami qualcosa', 'Segnala alla cerchia quando sei al supermercato o al bar.'),
     (Icons.support_agent_rounded, 'Assistenza prioritaria', 'Supporto dedicato per la tua cerchia, 7 giorni su 7.'),
   ];
 

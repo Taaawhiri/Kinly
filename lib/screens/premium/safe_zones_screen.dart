@@ -6,6 +6,7 @@ import '../../models/safe_zone.dart';
 import '../../services/kinly_repository.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/address_formatter.dart';
 import '../../widgets/safe_zones_map.dart';
 import 'paywall_screen.dart';
 
@@ -243,8 +244,7 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
       try {
         final placemarks = await placemarkFromCoordinates(loc.latitude, loc.longitude);
         if (placemarks.isNotEmpty) {
-          final p = placemarks.first;
-          confirmedAddress = [if ((p.street ?? '').isNotEmpty) p.street, if ((p.locality ?? '').isNotEmpty) p.locality].join(', ');
+          confirmedAddress = formatPlacemarkAddress(placemarks.first);
         }
       } catch (_) {
         // Va bene anche senza indirizzo leggibile: restano comunque le coordinate.
@@ -273,8 +273,7 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
       try {
         final placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
         if (placemarks.isNotEmpty) {
-          final p = placemarks.first;
-          address = [if ((p.street ?? '').isNotEmpty) p.street, if ((p.locality ?? '').isNotEmpty) p.locality].join(', ');
+          address = formatPlacemarkAddress(placemarks.first);
         }
       } catch (_) {
         // Va bene anche senza indirizzo leggibile.
