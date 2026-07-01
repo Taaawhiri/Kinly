@@ -6,9 +6,6 @@ plugins {
     // Legge android/app/google-services.json per configurare Firebase
     // (notifiche push): richiesto da firebase_core.
     id "com.google.gms.google-services"
-    // Carica i simboli/mapping su Firebase Crashlytics, così i crash
-    // arrivano leggibili invece che offuscati.
-    id "com.google.firebase.crashlytics"
 }
 
 android {
