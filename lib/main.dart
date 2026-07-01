@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'package:app_links/app_links.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/auth/biometric_lock_screen.dart';
 import 'screens/auth/sign_in_screen.dart';
+import 'screens/onboarding/join_circle_screen.dart';
 import 'screens/onboarding/onboarding_intro_screen.dart';
 import 'screens/onboarding/welcome_screen.dart';
 import 'screens/root_shell.dart';
@@ -17,7 +19,7 @@ import 'state/theme_controller.dart';
 import 'theme/app_theme.dart';
 
 /// Chiave globale del Navigator: serve ai servizi che devono aprire una
-/// schermata senza avere un BuildContext (es. rilevamento incidenti).
+/// schermata senza avere un BuildContext (deep link, rilevamento incidenti).
 final navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
@@ -99,6 +101,7 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> {
   late Session? _session = supabase.auth.currentSession;
   StreamSubscription<AuthState>? _authSub;
+  StreamSubscription<Uri>? _linkSub;
 
   /// null finché non sappiamo ancora se l'accesso biometrico è attivo su
   /// questo dispositivo; true/false una volta controllato.
@@ -125,6 +128,35 @@ class _AuthGateState extends State<AuthGate> {
         unawaited(_checkOnboarding());
       }
     });
+    unawaited(_listenForInviteLinks());
+  }
+
+  /// Link di invito kinly://join/CODICE: se l'app viene aperta da uno di
+  /// questi (condiviso da chi crea la cerchia), porta dritto alla schermata
+  /// "Entra in una cerchia" con il codice già compilato.
+  Future<void> _listenForInviteLinks() async {
+    try {
+      final appLinks = AppLinks();
+      void handle(Uri uri) {
+        if (uri.scheme != 'kinly' || uri.host != 'join') return;
+        final code = uri.pathSegments.isNotEmpty ? uri.pathSegments.first : null;
+        if (code == null || code.isEmpty || _session == null) return;
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(builder: (_) => JoinCircleScreen(isOnboarding: false, initialCode: code)),
+        );
+      }
+
+      try {
+        final initial = await appLinks.getInitialLink();
+        if (initial != null) handle(initial);
+      } catch (_) {
+        // Nessun link iniziale: partenza normale.
+      }
+      _linkSub = appLinks.uriLinkStream.listen(handle, onError: (_) {});
+    } catch (_) {
+      // Se il plugin dei deep link non è disponibile su questo dispositivo,
+      // l'app parte comunque senza quella scorciatoia.
+    }
   }
 
   Future<void> _checkBiometricLock() async {
@@ -140,6 +172,7 @@ class _AuthGateState extends State<AuthGate> {
   @override
   void dispose() {
     _authSub?.cancel();
+    _linkSub?.cancel();
     super.dispose();
   }
 
