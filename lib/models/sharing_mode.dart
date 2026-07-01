@@ -1,0 +1,51 @@
+import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
+
+/// Come una persona condivide (o non condivide) la propria posizione.
+enum SharingMode { automatic, onRequest, paused }
+
+extension SharingModeData on SharingMode {
+  String get label {
+    switch (this) {
+      case SharingMode.automatic:
+        return 'Automatica';
+      case SharingMode.onRequest:
+        return 'Su richiesta';
+      case SharingMode.paused:
+        return 'Sospesa';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case SharingMode.automatic:
+        return 'La tua posizione è sempre visibile alla tua cerchia, in tempo reale.';
+      case SharingMode.onRequest:
+        return 'Nessuno vede la tua posizione finché non approvi una richiesta.';
+      case SharingMode.paused:
+        return 'Modalità fantasma: sei invisibile, nessuno può chiedere dove sei.';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case SharingMode.automatic:
+        return Icons.my_location;
+      case SharingMode.onRequest:
+        return Icons.mail_outline;
+      case SharingMode.paused:
+        return Icons.visibility_off_outlined;
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case SharingMode.automatic:
+        return AppTheme.accentGreen;
+      case SharingMode.onRequest:
+        return AppTheme.accentAmber;
+      case SharingMode.paused:
+        return AppTheme.textSecondary;
+    }
+  }
+}

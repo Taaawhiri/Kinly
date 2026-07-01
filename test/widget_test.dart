@@ -1,33 +1,50 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:urbis_tcg/main.dart';
+import 'package:cerchia/main.dart';
+import 'package:cerchia/state/app_state.dart';
 
 void main() {
-  testWidgets('URBIS app avvia e mostra la home della collezione', (WidgetTester tester) async {
-    await tester.pumpWidget(const UrbisApp());
+  testWidgets('primo avvio mostra la schermata di benvenuto', (tester) async {
+    AppState.instance.logOut();
+    await tester.pumpWidget(const CerchiaApp());
     await tester.pump();
 
-    expect(find.text('URBIS'), findsOneWidget);
-    expect(find.text('Collezione'), findsOneWidget);
-    expect(find.text('Rarità'), findsOneWidget);
+    expect(find.text('Cerchia'), findsOneWidget);
+    expect(find.text('Crea la tua cerchia'), findsOneWidget);
+    expect(find.text('Ho un codice di invito'), findsOneWidget);
   });
 
-  testWidgets('La vetrina mostra una carta per ogni rarità', (WidgetTester tester) async {
-    await tester.pumpWidget(const UrbisApp());
+  testWidgets('un codice di invito valido apre la mappa della cerchia', (tester) async {
+    AppState.instance.logOut();
+    await tester.pumpWidget(const CerchiaApp());
     await tester.pump();
 
-    await tester.tap(find.text('Rarità'));
+    await tester.tap(find.text('Ho un codice di invito'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Le Rarità'), findsOneWidget);
-    expect(find.text('Comune'), findsWidgets);
+    await tester.enterText(find.byType(TextField), 'FAM-7Q2K');
+    await tester.tap(find.text('Entra'));
+    // La mappa ha pin con un'animazione che si ripete all'infinito, quindi
+    // pumpAndSettle non si fermerebbe mai: avanziamo di pochi frame fissi.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
-    final scrollable = find.byType(CustomScrollView).last;
-    for (var i = 0; i < 6 && find.text('Segreta').evaluate().isEmpty; i++) {
-      await tester.drag(scrollable, const Offset(0, -500));
-      await tester.pump(const Duration(milliseconds: 100));
-    }
-    expect(find.text('Segreta'), findsWidgets);
+    expect(find.text('La tua cerchia'), findsOneWidget);
+    expect(AppState.instance.hasOnboarded, true);
+  });
+
+  testWidgets('un codice di invito inventato mostra un errore', (tester) async {
+    AppState.instance.logOut();
+    await tester.pumpWidget(const CerchiaApp());
+    await tester.pump();
+
+    await tester.tap(find.text('Ho un codice di invito'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'NON-ESISTE');
+    await tester.tap(find.text('Entra'));
+    await tester.pump();
+
+    expect(find.textContaining('Codice non valido'), findsOneWidget);
   });
 }

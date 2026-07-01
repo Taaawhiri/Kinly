@@ -1,28 +1,42 @@
-# URBIS — TCG delle Città del Mondo
+# Cerchia
 
-Mockup Flutter di un trading card game digitale: una collezione di 100
-carte, una per ogni città del mondo, divise in sei rarità crescenti.
+Mockup Flutter di un'app per condividere la posizione con la famiglia, gli
+amici o i colleghi. Accesso solo su invito: niente registrazione pubblica,
+si entra con un codice o creando una nuova cerchia.
 
-## Rarità del set
+## Come funziona (MVP)
 
-| Rarità       | Carte nel set | Drop rate | Stile carta                          |
-|--------------|---------------|-----------|---------------------------------------|
-| Comune       | 40            | 55%       | Bordo argento, palette neutra         |
-| Non Comune   | 28            | 27%       | Bordo verde                           |
-| Rara         | 18            | 12%       | Bordo blu + riflesso statico          |
-| Epica        | 9             | 4.5%      | Bordo viola + bagliore                |
-| Leggendaria  | 4             | 1.2%      | Bordo oro, cornice più ampia          |
-| Segreta      | 1             | 0.3%      | **Foil olografica animata** (Atlantide) |
+- **Cerchie**: gruppi di persone (Famiglia, Amici, Lavoro...), ognuno con un
+  proprio codice di invito.
+- **Condivisione della posizione**: ogni persona scegli una modalità —
+  Automatica (sempre visibile), Su richiesta (serve un'approvazione) o
+  Sospesa (modalità fantasma, invisibile).
+- **Richieste**: si può chiedere la posizione a chi non la condivide in
+  automatico; l'altra persona approva o rifiuta.
+- **Mappa stilizzata**: nessuna chiave API o tile reali — un'illustrazione
+  leggera coerente con il resto dell'app, con i pin delle persone che
+  condividono con te.
+
+Le funzioni premium (cronologia posizioni, aree sicure, avvisi di guida...)
+sono solo abbozzate in anteprima nella tab Profilo: arriveranno con le
+microtransazioni in una fase successiva.
 
 ## Struttura del progetto
 
 ```
 lib/
-  models/      Rarity (metadati/colori) e CityCard
-  data/        Dataset statico delle 100 città
-  theme/       Tema scuro dell'app
-  widgets/     CityCardWidget, FoilOverlay (animazione foil), SkylinePainter
-  screens/     Home/Collezione, Vetrina Rarità, Dettaglio carta
+  models/      Person, CircleGroup, LocationRequest, SharingMode
+  data/        Dati di esempio (mock, nessun backend reale)
+  state/       AppState — stato in memoria per la sessione
+  theme/       Tema chiaro dell'app
+  widgets/     Mappa stilizzata, pin, avatar, badge, chip
+  screens/
+    onboarding/  Benvenuto, crea cerchia, entra con un codice
+    map/         Mappa + elenco persone (Home)
+    circles/     Gestione cerchie e inviti
+    people/      Dettaglio persona
+    requests/    Richieste di posizione in arrivo/uscita
+    profile/     Modalità di condivisione, cerchie, anteprima Cerchia+
 ```
 
 ## Avvio
@@ -31,3 +45,5 @@ lib/
 flutter pub get
 flutter run -d chrome   # o un device/emulatore a scelta
 ```
+
+Per la demo, i codici di invito validi sono `FAM-7Q2K`, `AMI-P91X`, `LAV-3T5B`.
