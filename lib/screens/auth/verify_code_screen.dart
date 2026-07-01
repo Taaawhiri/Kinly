@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -36,6 +37,8 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
       // L'AuthGate alla radice reagisce al cambio di sessione e mostra la
       // schermata giusta: basta tornare in cima allo stack di navigazione.
       Navigator.of(context).popUntil((route) => route.isFirst);
+    } on AuthException catch (e) {
+      setState(() => _error = e.message);
     } catch (e) {
       setState(() => _error = 'Codice non valido o scaduto. Riprova.');
     } finally {
@@ -50,8 +53,10 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Codice inviato di nuovo')));
       }
-    } catch (_) {
-      // Ignorato: l'utente può semplicemente riprovare.
+    } on AuthException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
     } finally {
       if (mounted) setState(() => _resending = false);
     }

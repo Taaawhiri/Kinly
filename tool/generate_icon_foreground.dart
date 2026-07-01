@@ -11,6 +11,12 @@ import 'package:kinly/widgets/app_logo.dart';
 
 void main() {
   testWidgets('genera assets/icon/icon_foreground.png', (tester) async {
+    // La finestra di test di default è 800x600: senza forzarla a un
+    // quadrato, il RepaintBoundary cattura un'immagine non quadrata e
+    // l'icona finale risulta schiacciata.
+    await tester.binding.setSurfaceSize(const Size(1024, 1024));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     final key = GlobalKey();
     await tester.pumpWidget(
       MaterialApp(

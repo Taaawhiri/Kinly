@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_logo.dart';
@@ -41,8 +42,10 @@ class _SignInScreenState extends State<SignInScreen> {
       await AuthService.instance.sendOtp(email: email, name: _nameController.text);
       if (!mounted) return;
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => VerifyCodeScreen(email: email)));
+    } on AuthException catch (e) {
+      setState(() => _error = e.message);
     } catch (e) {
-      setState(() => _error = 'Non siamo riusciti a inviare il codice. Riprova tra poco.');
+      setState(() => _error = 'Non siamo riusciti a inviare il codice. Riprova tra poco.\n$e');
     } finally {
       if (mounted) setState(() => _sending = false);
     }
