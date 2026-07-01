@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
+import '../utils/avatar_catalog.dart';
 import '../utils/color_hex.dart';
 
 /// La mappa vera di Kinly: dati OpenStreetMap via OpenFreeMap (nessuna
@@ -57,6 +58,7 @@ class _KinlyMapState extends State<KinlyMap> {
           a[i].lat != b[i].lat ||
           a[i].lng != b[i].lng ||
           a[i].color != b[i].color ||
+          a[i].avatarKey != b[i].avatarKey ||
           a[i].isFuzzyLocation != b[i].isFuzzyLocation) {
         return false;
       }
@@ -163,9 +165,14 @@ class _KinlyMapState extends State<KinlyMap> {
   }
 
   Future<String> _ensureAvatarImage(MapLibreMapController controller, Person person) async {
-    final name = 'kinly_avatar_${person.id}_${person.color.toHex()}';
+    final avatar = AvatarCatalog.find(person.avatarKey);
+    final name = avatar != null
+        ? 'kinly_avatar_${person.id}_${avatar.key}'
+        : 'kinly_avatar_${person.id}_${person.color.toHex()}';
     if (!_registeredImages.contains(name)) {
-      final bytes = await _renderAvatarPin(person.color, person.initials);
+      final bytes = avatar != null
+          ? await _renderAvatarPinWithEmoji(avatar)
+          : await _renderAvatarPin(person.color, person.initials);
       await controller.addImage(name, bytes);
       _registeredImages.add(name);
     }
@@ -209,6 +216,49 @@ Future<Uint8List> _renderAvatarPin(Color color, String initials) async {
       text: initials,
       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: radius * 0.72),
     ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+  textPainter.paint(canvas, center - Offset(textPainter.width / 2, textPainter.height / 2));
+
+  final picture = recorder.endRecording();
+  final image = await picture.toImage(width.round(), height.round());
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  return byteData!.buffer.asUint8List();
+}
+
+/// Stessa forma del pin con iniziali, ma con lo sfondo a gradiente e
+/// l'emoji dell'avatar a tema scelto (vedi AvatarCatalog), coerente con
+/// come viene mostrato nelle liste e nel dettaglio persona.
+Future<Uint8List> _renderAvatarPinWithEmoji(AvatarOption avatar) async {
+  const double circleSize = 72;
+  const double tailHeight = 22;
+  const double pixelRatio = 2.0;
+  const width = circleSize * pixelRatio;
+  const height = (circleSize + tailHeight) * pixelRatio;
+
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder);
+  const center = Offset(width / 2, (circleSize / 2) * pixelRatio);
+  const radius = (circleSize / 2) * pixelRatio;
+
+  final tail = Path()
+    ..moveTo(center.dx - radius * 0.42, center.dy + radius * 0.82)
+    ..lineTo(center.dx + radius * 0.42, center.dy + radius * 0.82)
+    ..lineTo(center.dx, height)
+    ..close();
+  canvas.drawPath(tail, Paint()..color = avatar.colors.last);
+
+  canvas.drawCircle(center, radius, Paint()..color = Colors.white);
+  final gradientPaint = Paint()
+    ..shader = ui.Gradient.linear(
+      Offset(center.dx - radius, center.dy - radius),
+      Offset(center.dx + radius, center.dy + radius),
+      avatar.colors,
+    );
+  canvas.drawCircle(center, radius * 0.92, gradientPaint);
+
+  final textPainter = TextPainter(
+    text: TextSpan(text: avatar.emoji, style: TextStyle(fontSize: radius * 0.95)),
     textDirection: TextDirection.ltr,
   )..layout();
   textPainter.paint(canvas, center - Offset(textPainter.width / 2, textPainter.height / 2));
