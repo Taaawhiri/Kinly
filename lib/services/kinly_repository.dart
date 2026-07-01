@@ -358,6 +358,38 @@ class KinlyRepository {
   }
 
   // ---------------------------------------------------------------------
+  // Richiesta di aiuto (un gradino sotto l'SOS)
+  // ---------------------------------------------------------------------
+
+  Future<List<Map<String, dynamic>>> fetchHelpRequests() async {
+    return supabase.from('help_requests').select().order('created_at', ascending: false);
+  }
+
+  Future<void> triggerHelpRequest({
+    required String circleId,
+    required String reasonDbValue,
+    String? note,
+    required double lat,
+    required double lng,
+  }) async {
+    await supabase.from('help_requests').insert({
+      'circle_id': circleId,
+      'profile_id': _myId,
+      'reason': reasonDbValue,
+      'note': note,
+      'lat': lat,
+      'lng': lng,
+    });
+  }
+
+  Future<void> resolveHelpRequest(String id) async {
+    await supabase.from('help_requests').update({
+      'status': 'resolved',
+      'resolved_at': DateTime.now().toIso8601String(),
+    }).eq('id', id);
+  }
+
+  // ---------------------------------------------------------------------
   // Contatti SOS di fiducia
   // ---------------------------------------------------------------------
 
@@ -444,6 +476,7 @@ class KinlyRepository {
       'meeting_point_arrivals',
       'sos_alerts',
       'circle_messages',
+      'help_requests',
     ]) {
       channel.onPostgresChanges(
         event: PostgresChangeEvent.all,

@@ -236,6 +236,25 @@ create table if not exists public.sos_trusted_contacts (
 -- notifiche push reali (SOS, aree sicure, richieste di posizione). Un
 -- profilo può avere più righe (più dispositivi); l'invio effettivo lo fa
 -- una Edge Function con la service_role key, non il client.
+-- Richiesta di aiuto: un gradino sotto l'SOS. Motivo predefinito + nota
+-- opzionale + posizione, condivisa con tutta la cerchia (a differenza
+-- dell'SOS, rispetta comunque la modalità di condivisione normale: chi ha
+-- messo in pausa la condivisione non manda comunque la posizione esatta
+-- qui — questo canale non è pensato per bypassare la privacy, solo per
+-- chiedere una mano in modo rapido e strutturato).
+create table if not exists public.help_requests (
+  id uuid primary key default gen_random_uuid(),
+  circle_id uuid not null references public.circles (id) on delete cascade,
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  reason text not null check (reason in ('flat_tire', 'accident', 'followed', 'low_battery', 'other')),
+  note text,
+  lat double precision not null,
+  lng double precision not null,
+  status text not null default 'active' check (status in ('active', 'resolved')),
+  created_at timestamptz not null default now(),
+  resolved_at timestamptz
+);
+
 create table if not exists public.device_tokens (
   profile_id uuid not null references public.profiles (id) on delete cascade,
   token text not null,
@@ -256,6 +275,7 @@ create index if not exists meeting_points_circle_idx on public.meeting_points (c
 create index if not exists meeting_point_arrivals_point_idx on public.meeting_point_arrivals (meeting_point_id);
 create index if not exists sos_alerts_profile_idx on public.sos_alerts (profile_id, created_at desc);
 create index if not exists circle_messages_circle_idx on public.circle_messages (circle_id, created_at desc);
+create index if not exists help_requests_circle_idx on public.help_requests (circle_id, created_at desc);
 
 -- =========================================================================
 -- Funzioni helper (security definer per evitare ricorsione nelle policy RLS)
@@ -522,6 +542,7 @@ alter table public.sos_alerts enable row level security;
 alter table public.sos_trusted_contacts enable row level security;
 alter table public.device_tokens enable row level security;
 alter table public.circle_messages enable row level security;
+alter table public.help_requests enable row level security;
 
 -- Ogni policy è preceduta da un "drop if exists" così l'intero script è
 -- rieseguibile senza errori (es. dopo averlo modificato) anche se le
@@ -758,6 +779,20 @@ drop policy if exists "circle_messages_delete_own" on public.circle_messages;
 create policy "circle_messages_delete_own" on public.circle_messages
   for delete using (sender_id = auth.uid());
 
+-- help_requests: visibili a chi è nella cerchia; ognuno crea/risolve solo
+-- le proprie.
+drop policy if exists "help_requests_select" on public.help_requests;
+create policy "help_requests_select" on public.help_requests
+  for select using (circle_id in (select public.my_circle_ids()));
+
+drop policy if exists "help_requests_insert_self" on public.help_requests;
+create policy "help_requests_insert_self" on public.help_requests
+  for insert with check (profile_id = auth.uid() and circle_id in (select public.my_circle_ids()));
+
+drop policy if exists "help_requests_update_self" on public.help_requests;
+create policy "help_requests_update_self" on public.help_requests
+  for update using (profile_id = auth.uid()) with check (profile_id = auth.uid());
+
 -- device_tokens: ognuno gestisce solo i propri token. La Edge Function che
 -- invia le notifiche usa la service_role key, che scavalca la RLS.
 drop policy if exists "device_tokens_select_own" on public.device_tokens;
@@ -801,7 +836,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events', 'speed_events', 'meeting_points', 'meeting_point_arrivals', 'sos_alerts', 'sos_trusted_contacts', 'circle_messages']
+  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events', 'speed_events', 'meeting_points', 'meeting_point_arrivals', 'sos_alerts', 'sos_trusted_contacts', 'circle_messages', 'help_requests']
   loop
     if not exists (
       select 1 from pg_publication_tables

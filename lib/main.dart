@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/auth/biometric_lock_screen.dart';
 import 'screens/auth/sign_in_screen.dart';
+import 'screens/onboarding/onboarding_intro_screen.dart';
 import 'screens/onboarding/welcome_screen.dart';
 import 'screens/root_shell.dart';
 import 'screens/splash_screen.dart';
 import 'services/biometric_lock_service.dart';
+import 'services/onboarding_settings.dart';
 import 'services/supabase_client.dart';
 import 'state/app_state.dart';
 import 'state/theme_controller.dart';
@@ -80,12 +82,17 @@ class _AuthGateState extends State<AuthGate> {
   /// questo dispositivo; true/false una volta controllato.
   bool? _biometricLockActive;
 
+  /// null finché non sappiamo ancora se l'onboarding introduttivo è già
+  /// stato visto su questo dispositivo.
+  bool? _onboardingSeen;
+
   @override
   void initState() {
     super.initState();
     if (_session != null) {
       unawaited(AppState.instance.initialize());
       unawaited(_checkBiometricLock());
+      unawaited(_checkOnboarding());
     }
     _authSub = supabase.auth.onAuthStateChange.listen((state) {
       final wasSignedIn = _session != null;
@@ -93,6 +100,7 @@ class _AuthGateState extends State<AuthGate> {
       if (state.session != null && !wasSignedIn) {
         unawaited(AppState.instance.initialize());
         unawaited(_checkBiometricLock());
+        unawaited(_checkOnboarding());
       }
     });
   }
@@ -100,6 +108,11 @@ class _AuthGateState extends State<AuthGate> {
   Future<void> _checkBiometricLock() async {
     final enabled = await BiometricLockService.instance.isEnabled();
     if (mounted) setState(() => _biometricLockActive = enabled);
+  }
+
+  Future<void> _checkOnboarding() async {
+    final seen = await OnboardingSettings.instance.hasSeenIntro();
+    if (mounted) setState(() => _onboardingSeen = seen);
   }
 
   @override
@@ -121,7 +134,13 @@ class _AuthGateState extends State<AuthGate> {
       builder: (context, _) {
         final state = AppState.instance;
         if (!state.hasLoadedOnce) return const SplashScreen();
-        if (!state.hasCircles) return const WelcomeScreen();
+        if (!state.hasCircles) {
+          if (_onboardingSeen == null) return const SplashScreen();
+          if (_onboardingSeen == false) {
+            return OnboardingIntroScreen(onDone: () => setState(() => _onboardingSeen = true));
+          }
+          return const WelcomeScreen();
+        }
         return const RootShell();
       },
     );

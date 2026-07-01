@@ -163,6 +163,23 @@ function zoneNotificationText(
   }
 }
 
+/// Testo per le richieste di aiuto: un gradino sotto l'SOS, con un'emoji e
+/// un'etichetta per motivo predefinito.
+function helpRequestReasonText(reason: string): { emoji: string; label: string } {
+  switch (reason) {
+    case 'flat_tire':
+      return { emoji: '🛞', label: 'Gomma bucata' };
+    case 'accident':
+      return { emoji: '🚗', label: 'Incidente' };
+    case 'followed':
+      return { emoji: '👀', label: 'Si sente seguito/a' };
+    case 'low_battery':
+      return { emoji: '🔋', label: 'Batteria scarica' };
+    default:
+      return { emoji: '🆘', label: 'Ha bisogno di aiuto' };
+  }
+}
+
 async function buildNotification(supabase: SupabaseClient, table: string, record: any): Promise<NotificationPlan | null> {
   switch (table) {
     case 'sos_alerts': {
@@ -190,6 +207,15 @@ async function buildNotification(supabase: SupabaseClient, table: string, record
         circleRecipients(supabase, record.circle_id, record.sender_id),
       ]);
       return { recipients, title: name, body: record.body };
+    }
+    case 'help_requests': {
+      const [name, recipients] = await Promise.all([
+        fetchName(supabase, record.profile_id),
+        circleRecipients(supabase, record.circle_id, record.profile_id),
+      ]);
+      const { emoji, label } = helpRequestReasonText(record.reason);
+      const note = record.note ? ` "${record.note}"` : '';
+      return { recipients, title: `${emoji} ${name} ha bisogno di aiuto`, body: `${label}.${note}` };
     }
     default:
       return null;

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/circle_group.dart';
 import '../models/circle_message.dart';
+import '../models/help_request.dart';
 import '../models/location_history_point.dart';
 import '../models/location_request.dart';
 import '../models/meeting_point.dart';
@@ -47,6 +48,7 @@ class AppState extends ChangeNotifier {
   List<SosAlert> _sosAlerts = [];
   Set<String> _sosTrustedContactIds = {};
   List<CircleMessage> _circleMessages = [];
+  List<HelpRequest> _helpRequests = [];
   TimeOfDay? _autoGhostStart;
   TimeOfDay? _autoGhostEnd;
 
@@ -81,6 +83,17 @@ class AppState extends ChangeNotifier {
   /// Contatti scelti per ricevere il mio SOS: se vuoto, avvisa tutte le mie
   /// cerchie (comportamento di default).
   Set<String> get sosTrustedContactIds => Set.unmodifiable(_sosTrustedContactIds);
+
+  /// Richieste di aiuto attive (non risolte) visibili nelle mie cerchie.
+  List<HelpRequest> get activeHelpRequests => _helpRequests.where((h) => h.status == HelpRequestStatus.active).toList();
+
+  /// La mia richiesta di aiuto attiva, se ne ho una in corso.
+  HelpRequest? get myActiveHelpRequest {
+    for (final h in _helpRequests) {
+      if (h.profileId == me.id && h.status == HelpRequestStatus.active) return h;
+    }
+    return null;
+  }
 
   /// Orario di reperibilità (ora locale): fuori da questa finestra nessuno
   /// vede la mia posizione. Null = nessuna limitazione.
@@ -182,6 +195,9 @@ class AppState extends ChangeNotifier {
       final messageRows = await _repo.fetchCircleMessages();
       _circleMessages = messageRows.map(CircleMessage.fromRow).toList();
 
+      final helpRequestRows = await _repo.fetchHelpRequests();
+      _helpRequests = helpRequestRows.map(HelpRequest.fromRow).toList();
+
       loadError = null;
     } catch (e) {
       loadError = e.toString();
@@ -280,6 +296,7 @@ class AppState extends ChangeNotifier {
     _sosAlerts = [];
     _sosTrustedContactIds = {};
     _circleMessages = [];
+    _helpRequests = [];
     _autoGhostStart = null;
     _autoGhostEnd = null;
     activeCircleId = null;
@@ -607,6 +624,28 @@ class AppState extends ChangeNotifier {
 
   Future<void> sendCircleMessage({required String circleId, required String body}) async {
     await _repo.sendCircleMessage(circleId: circleId, body: body);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  // ---------------------------------------------------------------------
+  // Richiesta di aiuto (un gradino sotto l'SOS)
+  // ---------------------------------------------------------------------
+
+  Future<void> triggerHelpRequest({
+    required String circleId,
+    required HelpRequestReason reason,
+    String? note,
+    required double lat,
+    required double lng,
+  }) async {
+    await _repo.triggerHelpRequest(circleId: circleId, reasonDbValue: reason.dbValue, note: note, lat: lat, lng: lng);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  Future<void> resolveHelpRequest(String id) async {
+    await _repo.resolveHelpRequest(id);
     await _refreshData();
     notifyListeners();
   }
