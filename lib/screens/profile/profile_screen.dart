@@ -6,6 +6,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/person_avatar.dart';
 import '../circles/circles_screen.dart';
 import '../premium/paywall_screen.dart';
+import 'admin_support_inbox_screen.dart';
 import 'avatar_picker_screen.dart';
 import 'help_support_screen.dart';
 import 'privacy_security_screen.dart';
@@ -113,6 +114,14 @@ class ProfileScreen extends StatelessWidget {
                 label: 'Aiuto e assistenza',
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpSupportScreen())),
               ),
+              if (state.isAdmin) ...[
+                const SizedBox(height: 10),
+                _NavCard(
+                  icon: Icons.admin_panel_settings_outlined,
+                  label: 'Assistenza · admin',
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AdminSupportInboxScreen())),
+                ),
+              ],
               const SizedBox(height: 10),
               _NavCard(
                 icon: Icons.logout_rounded,

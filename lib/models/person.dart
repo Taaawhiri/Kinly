@@ -40,6 +40,7 @@ class Person {
     this.isFuzzyLocation = false,
     this.speedKmh,
     this.avatarKey,
+    this.isAdmin = false,
   });
 
   final String id;
@@ -78,6 +79,10 @@ class Person {
   /// Chiave dell'avatar a tema scelto (vedi AvatarCatalog); null = iniziali.
   final String? avatarKey;
 
+  /// Amministratore dell'assistenza: vede e risponde a tutti i messaggi di
+  /// supporto (vedi AdminSupportInboxScreen), non solo ai propri.
+  final bool isAdmin;
+
   /// Dedotto dall'ultima velocità nota: nessuna soglia se non condivide o
   /// non c'è ancora un dato di velocità.
   ActivityStatus get activityStatus {
@@ -104,7 +109,14 @@ class Person {
     return '${diff.inDays} g fa';
   }
 
-  Person copyWith({bool? isSharingWithMe, SharingMode? mode}) {
+  Person copyWith({
+    bool? isSharingWithMe,
+    SharingMode? mode,
+    int? speedAlertKmh,
+    bool clearSpeedAlertKmh = false,
+    String? avatarKey,
+    bool clearAvatarKey = false,
+  }) {
     return Person(
       id: id,
       name: name,
@@ -118,10 +130,11 @@ class Person {
       mode: mode ?? this.mode,
       isMe: isMe,
       isPremium: isPremium,
-      speedAlertKmh: speedAlertKmh,
+      speedAlertKmh: clearSpeedAlertKmh ? null : (speedAlertKmh ?? this.speedAlertKmh),
       isFuzzyLocation: isFuzzyLocation,
       speedKmh: speedKmh,
-      avatarKey: avatarKey,
+      avatarKey: clearAvatarKey ? null : (avatarKey ?? this.avatarKey),
+      isAdmin: isAdmin,
     );
   }
 }

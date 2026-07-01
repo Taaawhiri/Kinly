@@ -262,13 +262,20 @@ class KinlyRepository {
     return supabase.from('meeting_points').select();
   }
 
-  Future<void> createMeetingPoint({required String circleId, required String name, required double lat, required double lng}) async {
+  Future<void> createMeetingPoint({
+    required String circleId,
+    required String name,
+    required double lat,
+    required double lng,
+    DateTime? scheduledAt,
+  }) async {
     await supabase.from('meeting_points').insert({
       'circle_id': circleId,
       'name': name,
       'lat': lat,
       'lng': lng,
       'created_by': _myId,
+      'scheduled_at': scheduledAt?.toUtc().toIso8601String(),
     });
   }
 
@@ -299,6 +306,41 @@ class KinlyRepository {
 
   Future<void> sendSupportMessage(String message) async {
     await supabase.from('support_messages').insert({'profile_id': _myId, 'message': message});
+  }
+
+  /// Tutti i messaggi di assistenza (solo per admin: la RLS ritorna solo i
+  /// propri a chi non lo è).
+  Future<List<Map<String, dynamic>>> fetchAllSupportMessages() async {
+    return supabase.from('support_messages').select().order('created_at', ascending: false);
+  }
+
+  Future<void> replyToSupportMessage({required String id, required String reply}) async {
+    await supabase.from('support_messages').update({
+      'admin_reply': reply,
+      'status': 'answered',
+      'replied_at': DateTime.now().toIso8601String(),
+    }).eq('id', id);
+  }
+
+  // ---------------------------------------------------------------------
+  // Contatti SOS di fiducia
+  // ---------------------------------------------------------------------
+
+  Future<List<String>> fetchSosTrustedContactIds() async {
+    final rows = await supabase.from('sos_trusted_contacts').select('contact_id').eq('profile_id', _myId);
+    return rows.map((r) => r['contact_id'] as String).toList();
+  }
+
+  Future<void> addSosTrustedContact(String contactId) async {
+    await supabase.from('sos_trusted_contacts').upsert(
+      {'profile_id': _myId, 'contact_id': contactId},
+      onConflict: 'profile_id,contact_id',
+      ignoreDuplicates: true,
+    );
+  }
+
+  Future<void> removeSosTrustedContact(String contactId) async {
+    await supabase.from('sos_trusted_contacts').delete().eq('profile_id', _myId).eq('contact_id', contactId);
   }
 
   // ---------------------------------------------------------------------

@@ -10,6 +10,7 @@ class MeetingPoint {
     required this.lng,
     required this.createdBy,
     this.expiresAt,
+    this.scheduledAt,
   });
 
   factory MeetingPoint.fromRow(Map<String, dynamic> row) {
@@ -21,6 +22,7 @@ class MeetingPoint {
       lng: (row['lng'] as num).toDouble(),
       createdBy: row['created_by'] as String,
       expiresAt: row['expires_at'] != null ? DateTime.parse(row['expires_at'] as String) : null,
+      scheduledAt: row['scheduled_at'] != null ? DateTime.parse(row['scheduled_at'] as String) : null,
     );
   }
 
@@ -31,6 +33,9 @@ class MeetingPoint {
   final double lng;
   final String createdBy;
   final DateTime? expiresAt;
+
+  /// Orario proposto per il ritrovo (opzionale, scelto da chi crea il punto).
+  final DateTime? scheduledAt;
 
   bool get isExpired => expiresAt != null && expiresAt!.isBefore(DateTime.now());
 }

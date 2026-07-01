@@ -56,6 +56,12 @@ alter table public.profiles add column if not exists auto_ghost_end time;
 -- client (vedi lib/utils/avatar_catalog.dart), non un'immagine caricata.
 alter table public.profiles add column if not exists avatar_key text;
 
+-- Amministratore dell'assistenza: può vedere e rispondere a tutti i
+-- messaggi di supporto, non solo ai propri (vedi support_messages più
+-- sotto). Non è tra le colonne concesse in scrittura a "authenticated" più
+-- in basso, quindi va impostato a mano da SQL Editor, come is_premium.
+alter table public.profiles add column if not exists is_admin boolean not null default false;
+
 create table if not exists public.circles (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -150,6 +156,12 @@ create table if not exists public.support_messages (
   created_at timestamptz not null default now()
 );
 
+-- Risposta di un admin, mostrata a chi ha scritto (vedi Aiuto e assistenza):
+-- è la forma più semplice di "messaggistica interna", un canale a senso
+-- unico admin -> utente, non una chat libera tra utenti.
+alter table public.support_messages add column if not exists admin_reply text;
+alter table public.support_messages add column if not exists replied_at timestamptz;
+
 -- Punto d'incontro condiviso: chiunque nella cerchia può proporne uno (non è
 -- una funzione Kinly+). Gli altri membri vedono la propria distanza dal
 -- punto in tempo reale; l'arrivo si registra da solo quando ci si avvicina
@@ -164,6 +176,10 @@ create table if not exists public.meeting_points (
   expires_at timestamptz,
   created_at timestamptz not null default now()
 );
+
+-- Orario proposto per il ritrovo (opzionale): solo informativo, non aziona
+-- automatismi lato server.
+alter table public.meeting_points add column if not exists scheduled_at timestamptz;
 
 create table if not exists public.meeting_point_arrivals (
   meeting_point_id uuid not null references public.meeting_points (id) on delete cascade,
@@ -185,6 +201,18 @@ create table if not exists public.sos_alerts (
   status text not null default 'active' check (status in ('active', 'resolved')),
   created_at timestamptz not null default now(),
   resolved_at timestamptz
+);
+
+-- Contatti SOS di fiducia: se una persona ne configura almeno uno, il suo
+-- SOS avvisa solo quei contatti invece di tutta la cerchia (vedi la policy
+-- sos_alerts_select più sotto). Se la lista è vuota, il comportamento resta
+-- quello di default: avvisa tutti quelli con cui condivide una cerchia.
+create table if not exists public.sos_trusted_contacts (
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  contact_id uuid not null references public.profiles (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (profile_id, contact_id),
+  check (profile_id <> contact_id)
 );
 
 create index if not exists circle_members_profile_idx on public.circle_members (profile_id);
@@ -426,6 +454,7 @@ alter table public.support_messages enable row level security;
 alter table public.meeting_points enable row level security;
 alter table public.meeting_point_arrivals enable row level security;
 alter table public.sos_alerts enable row level security;
+alter table public.sos_trusted_contacts enable row level security;
 
 -- Ogni policy è preceduta da un "drop if exists" così l'intero script è
 -- rieseguibile senza errori (es. dopo averlo modificato) anche se le
@@ -567,6 +596,17 @@ drop policy if exists "support_messages_insert_own" on public.support_messages;
 create policy "support_messages_insert_own" on public.support_messages
   for insert with check (profile_id = auth.uid());
 
+-- Un admin vede e può rispondere a tutti i messaggi, non solo ai propri.
+drop policy if exists "support_messages_select_admin" on public.support_messages;
+create policy "support_messages_select_admin" on public.support_messages
+  for select using (exists (select 1 from public.profiles where id = auth.uid() and is_admin));
+
+drop policy if exists "support_messages_update_admin" on public.support_messages;
+create policy "support_messages_update_admin" on public.support_messages
+  for update
+  using (exists (select 1 from public.profiles where id = auth.uid() and is_admin))
+  with check (exists (select 1 from public.profiles where id = auth.uid() and is_admin));
+
 -- meeting_points: chiunque nella cerchia può proporne uno e vederli tutti;
 -- solo chi l'ha creato può eliminarlo.
 drop policy if exists "meeting_points_select" on public.meeting_points;
@@ -595,11 +635,25 @@ create policy "meeting_point_arrivals_insert_self" on public.meeting_point_arriv
 
 -- sos_alerts: visibile a chi condivide una cerchia con chi l'ha attivato,
 -- indipendentemente da modalità di condivisione/orario di reperibilità —
--- è l'eccezione di emergenza, deliberata. Solo chi l'ha attivato può
+-- è l'eccezione di emergenza, deliberata. Se chi l'ha attivato ha
+-- configurato dei contatti di fiducia (sos_trusted_contacts), l'SOS avvisa
+-- solo quelli invece di tutta la cerchia. Solo chi l'ha attivato può
 -- risolverlo.
 drop policy if exists "sos_alerts_select" on public.sos_alerts;
 create policy "sos_alerts_select" on public.sos_alerts
-  for select using (profile_id = auth.uid() or public.shares_circle_with(profile_id));
+  for select using (
+    profile_id = auth.uid()
+    or (
+      public.shares_circle_with(profile_id)
+      and (
+        not exists (select 1 from public.sos_trusted_contacts where profile_id = sos_alerts.profile_id)
+        or exists (
+          select 1 from public.sos_trusted_contacts
+          where profile_id = sos_alerts.profile_id and contact_id = auth.uid()
+        )
+      )
+    )
+  );
 
 drop policy if exists "sos_alerts_insert_self" on public.sos_alerts;
 create policy "sos_alerts_insert_self" on public.sos_alerts
@@ -608,6 +662,20 @@ create policy "sos_alerts_insert_self" on public.sos_alerts
 drop policy if exists "sos_alerts_update_self" on public.sos_alerts;
 create policy "sos_alerts_update_self" on public.sos_alerts
   for update using (profile_id = auth.uid()) with check (profile_id = auth.uid());
+
+-- sos_trusted_contacts: ognuno gestisce solo la propria lista, e può
+-- aggiungere solo persone con cui condivide già una cerchia.
+drop policy if exists "sos_trusted_contacts_select_own" on public.sos_trusted_contacts;
+create policy "sos_trusted_contacts_select_own" on public.sos_trusted_contacts
+  for select using (profile_id = auth.uid());
+
+drop policy if exists "sos_trusted_contacts_insert_own" on public.sos_trusted_contacts;
+create policy "sos_trusted_contacts_insert_own" on public.sos_trusted_contacts
+  for insert with check (profile_id = auth.uid() and public.shares_circle_with(contact_id));
+
+drop policy if exists "sos_trusted_contacts_delete_own" on public.sos_trusted_contacts;
+create policy "sos_trusted_contacts_delete_own" on public.sos_trusted_contacts
+  for delete using (profile_id = auth.uid());
 
 -- =========================================================================
 -- Permessi a livello di colonna
@@ -634,7 +702,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events', 'speed_events', 'meeting_points', 'meeting_point_arrivals', 'sos_alerts']
+  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events', 'speed_events', 'meeting_points', 'meeting_point_arrivals', 'sos_alerts', 'sos_trusted_contacts']
   loop
     if not exists (
       select 1 from pg_publication_tables

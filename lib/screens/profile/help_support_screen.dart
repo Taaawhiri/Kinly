@@ -188,6 +188,23 @@ class _SupportMessageTile extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(_formatDate(message.createdAt), style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5)),
+          if (message.adminReply != null) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(10)),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.reply_rounded, size: 15, color: AppTheme.accentGreen),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(message.adminReply!, style: TextStyle(color: AppTheme.textPrimary, fontSize: 12.5, height: 1.4)),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

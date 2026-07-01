@@ -43,6 +43,7 @@ class AppState extends ChangeNotifier {
   List<MeetingPoint> _meetingPoints = [];
   List<MeetingPointArrival> _meetingPointArrivals = [];
   List<SosAlert> _sosAlerts = [];
+  Set<String> _sosTrustedContactIds = {};
   TimeOfDay? _autoGhostStart;
   TimeOfDay? _autoGhostEnd;
 
@@ -52,6 +53,7 @@ class AppState extends ChangeNotifier {
   bool get isSignedIn => AuthService.instance.isSignedIn;
   bool get hasCircles => _circles.isNotEmpty;
   bool get isPremium => me.isPremium;
+  bool get isAdmin => me.isAdmin;
 
   Person get me => _me ?? _placeholderMe();
   List<Person> get others => List.unmodifiable(_others);
@@ -72,6 +74,10 @@ class AppState extends ChangeNotifier {
     }
     return null;
   }
+
+  /// Contatti scelti per ricevere il mio SOS: se vuoto, avvisa tutte le mie
+  /// cerchie (comportamento di default).
+  Set<String> get sosTrustedContactIds => Set.unmodifiable(_sosTrustedContactIds);
 
   /// Orario di reperibilità (ora locale): fuori da questa finestra nessuno
   /// vede la mia posizione. Null = nessuna limitazione.
@@ -166,6 +172,9 @@ class AppState extends ChangeNotifier {
       final sosRows = await _repo.fetchSosAlerts();
       _sosAlerts = sosRows.map(SosAlert.fromRow).toList();
 
+      final trustedContactIds = await _repo.fetchSosTrustedContactIds();
+      _sosTrustedContactIds = trustedContactIds.toSet();
+
       loadError = null;
     } catch (e) {
       loadError = e.toString();
@@ -229,6 +238,7 @@ class AppState extends ChangeNotifier {
       isFuzzyLocation: location?['is_fuzzy'] as bool? ?? false,
       speedKmh: (location?['speed_kmh'] as num?)?.toDouble(),
       avatarKey: profile['avatar_key'] as String?,
+      isAdmin: profile['is_admin'] as bool? ?? false,
     );
   }
 
@@ -260,6 +270,7 @@ class AppState extends ChangeNotifier {
     _meetingPoints = [];
     _meetingPointArrivals = [];
     _sosAlerts = [];
+    _sosTrustedContactIds = {};
     _autoGhostStart = null;
     _autoGhostEnd = null;
     activeCircleId = null;
@@ -274,9 +285,10 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> setMyMode(SharingMode mode) async {
-    await _repo.setSharingMode(mode);
-    await _refreshData();
+    if (_me != null) _me = _me!.copyWith(mode: mode);
     notifyListeners();
+    await _repo.setSharingMode(mode);
+    unawaited(_refreshData().then((_) => notifyListeners()));
   }
 
   Person? personById(String id) {
@@ -449,16 +461,18 @@ class AppState extends ChangeNotifier {
 
   /// Imposta la mia soglia di velocità: null disattiva gli avvisi.
   Future<void> setSpeedAlert(int? kmh) async {
-    await _repo.updateSpeedAlert(kmh);
-    await _refreshData();
+    if (_me != null) _me = _me!.copyWith(speedAlertKmh: kmh, clearSpeedAlertKmh: kmh == null);
     notifyListeners();
+    await _repo.updateSpeedAlert(kmh);
+    unawaited(_refreshData().then((_) => notifyListeners()));
   }
 
   /// Cambia il mio avatar (vedi AvatarCatalog): null torna alle iniziali.
   Future<void> setAvatar(String? avatarKey) async {
-    await _repo.updateAvatar(avatarKey);
-    await _refreshData();
+    if (_me != null) _me = _me!.copyWith(avatarKey: avatarKey, clearAvatarKey: avatarKey == null);
     notifyListeners();
+    await _repo.updateAvatar(avatarKey);
+    unawaited(_refreshData().then((_) => notifyListeners()));
   }
 
   // ---------------------------------------------------------------------
@@ -467,12 +481,14 @@ class AppState extends ChangeNotifier {
 
   /// Passa null a entrambi per disattivare la limitazione oraria.
   Future<void> setAutoGhostSchedule(TimeOfDay? start, TimeOfDay? end) async {
+    _autoGhostStart = start;
+    _autoGhostEnd = end;
+    notifyListeners();
     await _repo.updateAutoGhostSchedule(
       startUtc: start == null ? null : _localTimeToUtcString(start),
       endUtc: end == null ? null : _localTimeToUtcString(end),
     );
-    await _refreshData();
-    notifyListeners();
+    unawaited(_refreshData().then((_) => notifyListeners()));
   }
 
   // ---------------------------------------------------------------------
@@ -493,8 +509,14 @@ class AppState extends ChangeNotifier {
   bool hasArrived(String meetingPointId, String profileId) =>
       _meetingPointArrivals.any((a) => a.meetingPointId == meetingPointId && a.profileId == profileId);
 
-  Future<void> createMeetingPoint({required String circleId, required String name, required double lat, required double lng}) async {
-    await _repo.createMeetingPoint(circleId: circleId, name: name, lat: lat, lng: lng);
+  Future<void> createMeetingPoint({
+    required String circleId,
+    required String name,
+    required double lat,
+    required double lng,
+    DateTime? scheduledAt,
+  }) async {
+    await _repo.createMeetingPoint(circleId: circleId, name: name, lat: lat, lng: lng, scheduledAt: scheduledAt);
     await _refreshData();
     notifyListeners();
   }
@@ -537,4 +559,32 @@ class AppState extends ChangeNotifier {
     await _refreshData();
     notifyListeners();
   }
+
+  /// Aggiunge o toglie una persona dai contatti scelti per il mio SOS.
+  Future<void> toggleSosTrustedContact(String contactId) async {
+    final enabled = _sosTrustedContactIds.contains(contactId);
+    if (enabled) {
+      _sosTrustedContactIds = {..._sosTrustedContactIds}..remove(contactId);
+    } else {
+      _sosTrustedContactIds = {..._sosTrustedContactIds, contactId};
+    }
+    notifyListeners();
+    if (enabled) {
+      await _repo.removeSosTrustedContact(contactId);
+    } else {
+      await _repo.addSosTrustedContact(contactId);
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Assistenza (admin)
+  // ---------------------------------------------------------------------
+
+  Future<List<SupportMessage>> fetchAllSupportMessagesForAdmin() async {
+    final rows = await _repo.fetchAllSupportMessages();
+    return rows.map(SupportMessage.fromRow).toList();
+  }
+
+  Future<void> replyToSupportMessage({required String id, required String reply}) =>
+      _repo.replyToSupportMessage(id: id, reply: reply);
 }

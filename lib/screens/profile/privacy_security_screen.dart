@@ -4,6 +4,7 @@ import '../../services/auth_service.dart';
 import '../../services/biometric_lock_service.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../people/sos_contacts_screen.dart';
 import 'change_password_screen.dart';
 
 class PrivacySecurityScreen extends StatefulWidget {
@@ -200,6 +201,21 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       ],
                     ],
                   ),
+                ),
+                const SizedBox(height: 24),
+                Text('SOS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                const SizedBox(height: 6),
+                Text(
+                  state.sosTrustedContactIds.isEmpty
+                      ? 'Per ora avvisa tutte le tue cerchie. Puoi scegliere solo alcune persone.'
+                      : 'Avvisa solo ${state.sosTrustedContactIds.length} persone scelte, non tutta la cerchia.',
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
+                ),
+                const SizedBox(height: 10),
+                _ActionTile(
+                  icon: Icons.emergency_outlined,
+                  label: 'Chi avvisare in caso di SOS',
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SosContactsScreen())),
                 ),
                 const SizedBox(height: 24),
                 Text('Avviso di velocità', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),

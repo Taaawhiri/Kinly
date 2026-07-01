@@ -175,18 +175,48 @@ class _CreateSafeZoneSheet extends StatefulWidget {
 
 class _CreateSafeZoneSheetState extends State<_CreateSafeZoneSheet> {
   final _nameController = TextEditingController();
+  final _addressController = TextEditingController();
   double _radius = 150;
   double? _lat;
   double? _lng;
   String? _addressLabel;
   bool _locating = false;
+  bool _searching = false;
   bool _saving = false;
   String? _error;
 
   @override
   void dispose() {
     _nameController.dispose();
+    _addressController.dispose();
     super.dispose();
+  }
+
+  Future<void> _searchAddress() async {
+    final query = _addressController.text.trim();
+    if (query.isEmpty) return;
+    setState(() {
+      _searching = true;
+      _error = null;
+    });
+    try {
+      final locations = await locationFromAddress(query);
+      if (locations.isEmpty) {
+        if (mounted) setState(() => _error = 'Indirizzo non trovato. Prova a essere più preciso.');
+        return;
+      }
+      final loc = locations.first;
+      if (!mounted) return;
+      setState(() {
+        _lat = loc.latitude;
+        _lng = loc.longitude;
+        _addressLabel = query;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Non siamo riusciti a cercare questo indirizzo. Riprova.');
+    } finally {
+      if (mounted) setState(() => _searching = false);
+    }
   }
 
   Future<void> _useCurrentLocation() async {
@@ -287,6 +317,32 @@ class _CreateSafeZoneSheetState extends State<_CreateSafeZoneSheet> {
                   : const Icon(Icons.my_location_rounded, size: 18),
               label: Text(_lat == null ? 'Usa la mia posizione attuale' : 'Posizione impostata'),
               style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _addressController,
+                    decoration: InputDecoration(
+                      hintText: 'Oppure inserisci un indirizzo',
+                      filled: true,
+                      fillColor: AppTheme.surfaceAlt,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                    onSubmitted: (_) => _searchAddress(),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton.filled(
+                  onPressed: _searching ? null : _searchAddress,
+                  icon: _searching
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Icon(Icons.search_rounded),
+                ),
+              ],
             ),
             if (_lat != null) ...[
               const SizedBox(height: 8),
