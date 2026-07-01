@@ -16,16 +16,14 @@ void main() {
       MaterialApp(
         home: RepaintBoundary(
           key: key,
+          // flutter_launcher_icons applica già un inset del 16% per lato
+          // per ricavare la safe-zone dell'adaptive icon: qui il logo deve
+          // quindi arrivare quasi al bordo, senza un margine nostro extra
+          // (altrimenti il segno risulta troppo piccolo/decentrato).
           child: const SizedBox(
             width: 1024,
             height: 1024,
-            child: Center(
-              child: SizedBox(
-                width: 1024 * 0.62,
-                height: 1024 * 0.62,
-                child: CerchiaLogo(size: 1024 * 0.62, transparent: true),
-              ),
-            ),
+            child: CerchiaLogo(size: 1024, transparent: true),
           ),
         ),
       ),
