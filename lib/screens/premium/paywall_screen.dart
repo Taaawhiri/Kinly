@@ -169,6 +169,10 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       ],
                     ),
                   ),
+                const SizedBox(height: 24),
+                Text('Confronta i piani', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                const SizedBox(height: 12),
+                const _PlanComparisonTable(),
                 const SizedBox(height: 12),
                 if (familyOwnerName != null) ...[
                   Container(
@@ -366,6 +370,106 @@ class _PlanCard extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+const _comparisonRows = [
+  ('Cerchie e membri', 'Fino a 2 / 6', 'Illimitati', 'Illimitati'),
+  ('Messaggi, ping, spese', '5 al giorno', 'Illimitati', 'Illimitati'),
+  ('Aree sicure (creare)', null, 'check', 'check'),
+  ('Cronologia posizioni', null, 'check', 'check'),
+  ('Statistiche e itinerari', null, 'check', 'check'),
+  ('Avvisi di guida', null, 'check', 'check'),
+  ('Tracciamento in background', null, 'check', 'check'),
+  ('Portami qualcosa', null, 'check', 'check'),
+  ('Assistenza prioritaria', null, 'check', 'check'),
+  ('Chi beneficia', 'Solo tu', 'Solo tu', 'Fino a 6 persone'),
+  ('Prezzo', 'Gratis', '3,90 €/mese', '9,90 €/mese'),
+];
+
+/// Tabella riassuntiva Free / Individual / Family: utile per decidere
+/// rapidamente senza dover leggere le descrizioni una per una.
+class _PlanComparisonTable extends StatelessWidget {
+  const _PlanComparisonTable();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.antiAlias,
+      child: Table(
+        columnWidths: const {0: FlexColumnWidth(1.5), 1: FlexColumnWidth(1), 2: FlexColumnWidth(1), 3: FlexColumnWidth(1)},
+        children: [
+          TableRow(
+            decoration: BoxDecoration(color: AppTheme.surfaceAlt),
+            children: [
+              const _TableCell('', header: true),
+              _TableCell('Free', header: true),
+              _TableCell('Individual', header: true),
+              _TableCell('Family', header: true),
+            ],
+          ),
+          for (final row in _comparisonRows)
+            TableRow(
+              decoration: BoxDecoration(border: Border(top: BorderSide(color: AppTheme.divider, width: 0.6))),
+              children: [
+                _TableCell(row.$1, alignStart: true),
+                _TableValueCell(row.$2),
+                _TableValueCell(row.$3),
+                _TableValueCell(row.$4),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TableCell extends StatelessWidget {
+  const _TableCell(this.text, {this.header = false, this.alignStart = false});
+  final String text;
+  final bool header;
+  final bool alignStart;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      child: Text(
+        text,
+        textAlign: alignStart ? TextAlign.left : TextAlign.center,
+        style: TextStyle(
+          fontWeight: header ? FontWeight.w800 : FontWeight.w600,
+          fontSize: header ? 11.5 : 11.5,
+          color: header ? AppTheme.textSecondary : AppTheme.textPrimary,
+        ),
+      ),
+    );
+  }
+}
+
+class _TableValueCell extends StatelessWidget {
+  const _TableValueCell(this.value);
+  final String? value;
+
+  @override
+  Widget build(BuildContext context) {
+    if (value == null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Center(child: Icon(Icons.close_rounded, size: 15, color: AppTheme.textSecondary)),
+      );
+    }
+    if (value == 'check') {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 10),
+        child: Center(child: Icon(Icons.check_rounded, size: 16, color: AppTheme.accentGreen)),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+      child: Text(value!, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 11, color: AppTheme.textPrimary)),
     );
   }
 }
