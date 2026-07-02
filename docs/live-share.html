@@ -4,21 +4,82 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Posizione live - Kinly</title>
+<link rel="icon" href="icon.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-  body { margin: 0; font-family: system-ui, sans-serif; }
-  #map { position: fixed; inset: 0; }
-  .banner {
-    position: fixed; top: 12px; left: 12px; right: 12px; z-index: 1000;
-    background: white; border-radius: 14px; padding: 12px 16px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.15); font-size: 14px;
+  :root {
+    --primary: #4A63E7;
+    --coral: #FF6B6B;
+    --text: #1C2233;
+    --text-secondary: #5B6478;
   }
-  .banner b { color: #4A63E7; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, sans-serif; color: var(--text); }
+  #map { position: fixed; inset: 0; background: #F4F6FB; }
+
+  .banner {
+    position: fixed; top: 14px; left: 14px; right: 14px; z-index: 1000;
+    max-width: 380px;
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 12px 16px;
+    box-shadow: 0 6px 20px rgba(28, 34, 51, 0.14);
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .banner .logo {
+    width: 30px; height: 30px; border-radius: 9px;
+    flex: none;
+  }
+  .banner .text { line-height: 1.4; }
+  .banner b { color: var(--primary); }
+  .banner .live-dot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--coral); margin-right: 5px;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
   .expired { color: #C0392B; font-weight: 600; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  /* I controlli +/- sono in basso a destra (vedi position: 'bottomright'
+     nello script): cosi' non finiscono mai sotto il banner in alto, anche
+     su schermi stretti. Qui solo lo stile per farli somigliare all'app. */
+  .leaflet-control-zoom { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 14px rgba(28,34,51,0.18) !important; border: none !important; }
+  .leaflet-control-zoom a { color: var(--primary) !important; }
+  .leaflet-control-attribution { border-radius: 8px 0 0 0 !important; font-size: 10.5px !important; }
+
+  /* Marcatore: cerchio pieno del colore dell'app con un alone che pulsa,
+     al posto del pin blu di default di Leaflet. */
+  .kinly-marker {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--primary);
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(28,34,51,0.3);
+    position: relative;
+  }
+  .kinly-marker::after {
+    content: '';
+    position: absolute; inset: -10px;
+    border-radius: 50%;
+    background: rgba(74, 99, 231, 0.25);
+    animation: ring 2s ease-out infinite;
+  }
+  @keyframes ring {
+    0% { transform: scale(0.5); opacity: 0.8; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
 </style>
 </head>
 <body>
-<div class="banner" id="banner">Caricamento...</div>
+<div class="banner" id="banner">
+  <img class="logo" src="icon.png" alt="">
+  <div class="text" id="bannerText">Caricamento...</div>
+</div>
 <div id="map"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -29,31 +90,40 @@
   var token = params.get('t');
   var apiUrl = 'https://tteqhmlcsgduuzlcqbrt.supabase.co/functions/v1/live-share?t=' + encodeURIComponent(token || '');
 
-  var map = L.map('map').setView([45.4642, 9.19], 13);
+  var map = L.map('map', { zoomControl: false }).setView([45.4642, 9.19], 13);
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap'
   }).addTo(map);
+
+  var kinlyIcon = L.divIcon({
+    className: '',
+    html: '<div class="kinly-marker"></div>',
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+  });
+
   var marker = null;
   var centered = false;
-  var banner = document.getElementById('banner');
+  var bannerText = document.getElementById('bannerText');
 
   function refresh() {
     if (!token) {
-      banner.innerHTML = '<span class="expired">Link non valido.</span>';
+      bannerText.innerHTML = '<span class="expired">Link non valido.</span>';
       return;
     }
     fetch(apiUrl)
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (data.expired) {
-          banner.innerHTML = '<span class="expired">Questo link e\' scaduto.</span>';
+          bannerText.innerHTML = '<span class="expired">Questo link e\' scaduto.</span>';
           return;
         }
-        banner.innerHTML = 'Posizione live di <b>' + (data.name || 'Qualcuno') + '</b> - condivisa con Kinly';
+        bannerText.innerHTML = '<span class="live-dot"></span>Posizione live di <b>' + (data.name || 'Qualcuno') + '</b>';
         if (data.lat == null) { setTimeout(refresh, 15000); return; }
         var pos = [data.lat, data.lng];
         if (!marker) {
-          marker = L.marker(pos).addTo(map);
+          marker = L.marker(pos, { icon: kinlyIcon }).addTo(map);
         } else {
           marker.setLatLng(pos);
         }
