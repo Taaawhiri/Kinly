@@ -563,14 +563,34 @@ class _CoachMarkOverlayState extends State<_CoachMarkOverlay> {
 
   void _measure() {
     final box = widget.targetKey?.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null || !box.hasSize) {
+    // Il riquadro va posizionato con Positioned dentro lo Stack di questo
+    // overlay: localToGlobal senza `ancestor` restituisce le coordinate
+    // rispetto alla radice dell'app (schermo intero), che pero' non
+    // coincidono con l'origine locale di questo Stack (spostata in basso
+    // dell'altezza di AppBar/status bar). Usarle cosi' com'erano faceva
+    // scivolare il riquadro molto piu' in basso del punto vero.
+    final overlayBox = context.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize || overlayBox == null) {
       // Punto di ancoraggio non disegnato (es. schermo molto corto): salta
       // il passo invece di mostrare un riquadro senza senso.
       widget.onNext();
       return;
     }
-    final topLeft = box.localToGlobal(Offset.zero);
+    final topLeft = box.localToGlobal(Offset.zero, ancestor: overlayBox);
     if (mounted) setState(() => _targetRect = topLeft & box.size);
+  }
+
+  /// Altezza approssimativa della nuvoletta (titolo + testo + pallini/
+  /// pulsanti): usata solo per capire se, in alto, finirebbe per coprire il
+  /// riquadro evidenziato.
+  static const _estimatedTooltipHeight = 170.0;
+
+  double _tooltipTop(BuildContext context, Rect? rect) {
+    final topInset = MediaQuery.of(context).padding.top + 16;
+    if (rect != null && rect.top < topInset + _estimatedTooltipHeight) {
+      return rect.bottom + 14;
+    }
+    return topInset;
   }
 
   @override
@@ -606,14 +626,18 @@ class _CoachMarkOverlayState extends State<_CoachMarkOverlay> {
               ),
             ),
           ),
-        // La nuvoletta resta sempre in alto, indipendentemente da dove si
-        // trova il riquadro evidenziato: provare a metterla "vicino" al
-        // riquadro la faceva finire fuori schermo o sotto ad altri elementi
-        // su alcuni layout (es. schermi corti, versione web).
+        // La nuvoletta resta di norma in alto, indipendentemente da dove si
+        // trova il riquadro evidenziato: provare a metterla sempre "vicino"
+        // al riquadro la faceva finire fuori schermo o sotto ad altri
+        // elementi su alcuni layout (es. schermi corti, versione web).
+        // Eccezione: al passo 1 l'intestazione della cerchia è proprio in
+        // cima alla pagina, quindi la posizione fissa in alto ci finirebbe
+        // sopra coprendola — in quel caso soltanto la spostiamo appena sotto
+        // al riquadro evidenziato.
         Positioned(
           left: 20,
           right: 20,
-          top: MediaQuery.of(context).padding.top + 16,
+          top: _tooltipTop(context, rect),
           child: Material(
             color: Colors.transparent,
             child: Container(
