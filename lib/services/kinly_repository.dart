@@ -688,13 +688,33 @@ class KinlyRepository {
   // rilevante, così l'app può ricaricare i dati e restare aggiornata.
   // ---------------------------------------------------------------------
 
-  RealtimeChannel subscribeToChanges(void Function() onChange) {
+  /// [onLocationChange] gestisce da sola i cambi sulla tabella `locations`
+  /// (il grosso del traffico realtime: scatta ad ogni spostamento di
+  /// chiunque nella cerchia), passando solo il profile_id cambiato — così
+  /// chi ascolta può aggiornare in modo mirato la sola persona interessata
+  /// invece di ricaricare tutto. [onOtherChange] resta il comportamento
+  /// precedente ("ricarica tutto") per le altre tabelle, molto meno
+  /// frequenti (messaggi, spese, aree sicure...).
+  RealtimeChannel subscribeToChanges(void Function() onOtherChange, void Function(String profileId) onLocationChange) {
     final channel = supabase.channel('kinly_live_updates');
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'locations',
+      callback: (payload) {
+        final row = payload.newRecord.isNotEmpty ? payload.newRecord : payload.oldRecord;
+        final profileId = row['profile_id'] as String?;
+        if (profileId != null) {
+          onLocationChange(profileId);
+        } else {
+          onOtherChange();
+        }
+      },
+    );
     for (final table in [
       'profiles',
       'circle_members',
       'circles',
-      'locations',
       'location_requests',
       'safe_zones',
       'safe_zone_events',
@@ -716,7 +736,7 @@ class KinlyRepository {
         event: PostgresChangeEvent.all,
         schema: 'public',
         table: table,
-        callback: (payload) => onChange(),
+        callback: (payload) => onOtherChange(),
       );
     }
     channel.subscribe();

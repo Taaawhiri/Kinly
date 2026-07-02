@@ -151,7 +151,7 @@ class AppState extends ChangeNotifier {
     hasLoadedOnce = true;
     notifyListeners();
 
-    _channel ??= _repo.subscribeToChanges(_scheduleRefresh);
+    _channel ??= _repo.subscribeToChanges(_scheduleRefresh, _handleLocationChange);
     unawaited(LocationTracker.instance.start());
     unawaited(PushNotificationService.instance.initialize());
     unawaited(WalkMeHomeService.instance.restore());
@@ -294,6 +294,95 @@ class AppState extends ChangeNotifier {
       await _refreshData();
       notifyListeners();
     });
+  }
+
+  /// Profili per cui è già in corso una fetch mirata: evita di far partire
+  /// più richieste in parallelo per la stessa persona se più eventi
+  /// realtime arrivano ravvicinati (es. più fix GPS quasi in contemporanea).
+  final Set<String> _pendingLocationFetches = {};
+
+  /// Aggiorna SOLO la posizione della persona cambiata invece di rifare
+  /// l'intero caricamento (~20 query): la tabella `locations` è di gran
+  /// lunga la più "rumorosa" via realtime (cambia ad ogni spostamento di
+  /// chiunque nella cerchia), quindi è quella che più beneficia di un
+  /// aggiornamento mirato invece che di un refresh completo, per il
+  /// consumo di banda del piano gratuito di Supabase.
+  Future<void> _handleLocationChange(String profileId) async {
+    if (_pendingLocationFetches.contains(profileId)) return;
+    _pendingLocationFetches.add(profileId);
+    try {
+      final myId = AuthService.instance.currentUserId;
+      if (myId == null) return;
+
+      // Stessa RPC del refresh completo: applica già lato server sia la
+      // visibilità (equivalente RLS) sia l'arrotondamento della modalità
+      // "approssimativa", quindi il risultato è identico a quello che si
+      // otterrebbe con un refresh completo.
+      final rows = await _repo.fetchLocations([profileId]);
+      final location = rows.isEmpty ? null : rows.first;
+      final isSharingWithMe = location != null;
+
+      if (profileId == myId) {
+        final current = _me;
+        if (current == null) {
+          _scheduleRefresh();
+          return;
+        }
+        _me = _patchPersonLocation(current, location, isSharingWithMe: true);
+      } else {
+        final index = _others.indexWhere((p) => p.id == profileId);
+        if (index == -1) {
+          // Persona non ancora nello stato locale (es. appena entrata in
+          // una cerchia insieme alla mia): un refresh completo la aggiunge
+          // correttamente, con tutti gli altri campi del profilo.
+          _scheduleRefresh();
+          return;
+        }
+        _others[index] = _patchPersonLocation(_others[index], location, isSharingWithMe: isSharingWithMe);
+      }
+      notifyListeners();
+    } catch (_) {
+      // In caso di errore meglio un refresh completo che uno stato a metà.
+      _scheduleRefresh();
+    } finally {
+      _pendingLocationFetches.remove(profileId);
+    }
+  }
+
+  /// Ricostruisce i soli campi legati alla posizione di [person] (vedi
+  /// _buildPerson, di cui questo è il sotto-insieme "posizione"): usato per
+  /// l'aggiornamento mirato di _handleLocationChange, per non toccare nome,
+  /// avatar, stato o altri campi che non c'entrano con questo cambiamento.
+  Person _patchPersonLocation(Person person, Map<String, dynamic>? location, {required bool isSharingWithMe}) {
+    final canSeeLocation = person.isMe || isSharingWithMe;
+    return Person(
+      id: person.id,
+      name: person.name,
+      color: person.color,
+      lat: location != null ? (location['lat'] as num).toDouble() : null,
+      lng: location != null ? (location['lng'] as num).toDouble() : null,
+      address: location?['address'] as String? ??
+          (canSeeLocation ? 'Posizione non ancora disponibile' : 'Ultima posizione non disponibile'),
+      lastUpdate: location != null ? DateTime.parse(location['updated_at'] as String) : person.lastUpdate,
+      batteryPercent: person.batteryPercent,
+      isSharingWithMe: isSharingWithMe,
+      mode: person.mode,
+      isMe: person.isMe,
+      isPremium: person.isPremium,
+      speedAlertKmh: person.speedAlertKmh,
+      isFuzzyLocation: location?['is_fuzzy'] as bool? ?? false,
+      speedKmh: (location?['speed_kmh'] as num?)?.toDouble(),
+      avatarKey: person.avatarKey,
+      isAdmin: person.isAdmin,
+      birthday: person.birthday,
+      statusEmoji: person.statusEmoji,
+      statusText: person.statusText,
+      statusExpiresAt: person.statusExpiresAt,
+      paymentLink: person.paymentLink,
+      premiumTier: person.premiumTier,
+      phoneNumber: person.phoneNumber,
+      weeklySummaryEnabled: person.weeklySummaryEnabled,
+    );
   }
 
   Person _buildPerson(
