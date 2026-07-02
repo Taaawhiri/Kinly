@@ -89,7 +89,17 @@
   }
   .feature.visible { opacity: 1; transform: translateY(0); }
   .feature.visible:hover { box-shadow: 0 10px 24px rgba(28, 34, 51, 0.08); transform: translateY(-3px); }
-  .feature .emoji { font-size: 26px; margin-bottom: 8px; }
+  .icon-badge {
+    width: 44px; height: 44px;
+    border-radius: 13px;
+    background: rgba(74, 99, 231, 0.12);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+  }
+  .icon-badge svg { width: 22px; height: 22px; }
   .feature b { display: block; font-size: 14px; margin-bottom: 4px; }
   .feature span { font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; }
 
@@ -148,42 +158,88 @@
     <h2>Cosa fa Kinly</h2>
     <div class="features">
       <div class="feature">
-        <div class="emoji">👨‍👩‍👧‍👦</div>
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="8" r="3"/>
+            <path d="M3.5 20c0-3 2.5-5.5 5.5-5.5s5.5 2.5 5.5 5.5"/>
+            <circle cx="17" cy="7" r="2.3"/>
+            <path d="M14.8 14.8c2.7.3 4.7 2.5 4.7 5.2"/>
+          </svg>
+        </div>
         <b>Cerchie private</b>
         <span>Solo chi inviti vede dove sei, mai un elenco pubblico.</span>
       </div>
       <div class="feature">
-        <div class="emoji">🆘</div>
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3 20 20 4 20 Z"/>
+            <line x1="12" y1="9.5" x2="12" y2="14.5"/>
+            <circle cx="12" cy="17.3" r="0.6" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
         <b>SOS e richieste di aiuto</b>
         <span>Un tocco per avvisare la tua cerchia con la posizione esatta.</span>
       </div>
       <div class="feature">
-        <div class="emoji">🛟</div>
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3 20 6 20 11C20 16 16.5 20 12 21 7.5 20 4 16 4 11L4 6Z"/>
+            <path d="M9 12l2 2 4-4.5"/>
+          </svg>
+        </div>
         <b>Aree sicure</b>
         <span>Sai subito quando chi ami arriva o esce da casa, scuola, lavoro.</span>
       </div>
       <div class="feature">
-        <div class="emoji">📍</div>
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 21C12 21 19 14.5 19 9.5A7 7 0 0 0 5 9.5C5 14.5 12 21 12 21Z"/>
+            <circle cx="12" cy="9.5" r="2.4"/>
+          </svg>
+        </div>
         <b>Punti d'incontro</b>
         <span>Organizza dove trovarvi e vedete tutti la distanza in tempo reale.</span>
       </div>
       <div class="feature">
-        <div class="emoji">🔗</div>
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 15l6-6"/>
+            <path d="M8.5 17a4 4 0 0 1 0-6l2-2"/>
+            <path d="M15.5 7a4 4 0 0 1 0 6l-2 2"/>
+          </svg>
+        </div>
         <b>Link "seguimi"</b>
         <span>Condividi la posizione anche con chi non ha l'app, per un tempo limitato.</span>
       </div>
       <div class="feature">
-        <div class="emoji">🌫️</div>
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 18h10a4 4 0 0 0 .5-7.97A5.5 5.5 0 0 0 7.1 9.5 4 4 0 0 0 7 18Z"/>
+          </svg>
+        </div>
         <b>Modalita' sfumata</b>
         <span>Scegli tu quanto essere precisi: zona invece che indirizzo esatto.</span>
       </div>
       <div class="feature">
-        <div class="emoji">🚶</div>
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="5" r="2.3"/>
+            <path d="M12 8v6l-3 7"/>
+            <path d="M12 14l4 6"/>
+            <path d="M9 11l-3 2"/>
+            <path d="M15 10l3 1.5"/>
+          </svg>
+        </div>
         <b>Accompagnami</b>
         <span>Avvia un conto alla rovescia per il rientro: se non confermi, la cerchia viene avvisata da sola.</span>
       </div>
       <div class="feature">
-        <div class="emoji">🛒</div>
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 8h12l-1 12H7Z"/>
+            <path d="M9 8V6a3 3 0 0 1 6 0v2"/>
+          </svg>
+        </div>
         <b>Portami qualcosa</b>
         <span>Se sei vicino a un negozio, la cerchia puo' chiederti al volo di prendere qualcosa.</span>
       </div>
