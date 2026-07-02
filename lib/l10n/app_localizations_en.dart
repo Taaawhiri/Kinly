@@ -726,4 +726,140 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get requestsEmptyMessage => 'When someone wants to see your location, or you want to see theirs, the request will appear here.';
+
+  @override
+  String get profileStatusFriends => 'With friends';
+
+  @override
+  String get profileStatusHome => 'At home';
+
+  @override
+  String get profileStatusFree => 'Free';
+
+  @override
+  String get profileStatusBusyDay => 'Busy day';
+
+  @override
+  String get profileStatusPickerTitle => 'Your status today';
+
+  @override
+  String get profileStatusPickerHint => 'Visible to your circle on the map until tonight.';
+
+  @override
+  String get profileStatusCustomHint => 'Or write your own (with an emoji 🙂)';
+
+  @override
+  String get profileRemoveStatus => 'Remove status';
+
+  @override
+  String profileActiveCircles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count active circles',
+      one: '$count active circle',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get profileYourStatus => 'Your status';
+
+  @override
+  String get profileAppearance => 'Appearance';
+
+  @override
+  String get profileThemeLight => 'Light';
+
+  @override
+  String get profileThemeDark => 'Dark';
+
+  @override
+  String get profileSharingModeHeader => 'Sharing mode';
+
+  @override
+  String get profileYourCirclesHeader => 'Your circles';
+
+  @override
+  String profileCirclesManage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count circles · manage members and invites',
+      one: '$count circle · manage members and invites',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get profileKinlyPlusHeader => 'Kinly+';
+
+  @override
+  String get profileActive => 'Active';
+
+  @override
+  String get profileNotActive => 'Not active';
+
+  @override
+  String get profileManageSubscription => 'Manage Kinly+ subscription';
+
+  @override
+  String get profileOtherHeader => 'Other';
+
+  @override
+  String get profilePrivacySecurity => 'Privacy and safety';
+
+  @override
+  String get profileHelpSupport => 'Help and support';
+
+  @override
+  String get profileAdminSupport => 'Support · admin';
+
+  @override
+  String get profileReviewOnboarding => 'Review onboarding · admin (test)';
+
+  @override
+  String get profileLogout => 'Log out';
+
+  @override
+  String get profileFeatureLocationHistoryTitle => 'Location history';
+
+  @override
+  String get profileFeatureLocationHistoryDesc => 'Review where circle members have been over the past days.';
+
+  @override
+  String get profileFeatureSafeZonesTitle => 'Safe zones';
+
+  @override
+  String get profileFeatureSafeZonesDesc => 'Home, work, school: a custom notification on every arrival or departure.';
+
+  @override
+  String get profileFeatureDrivingAlertsTitle => 'Driving alerts';
+
+  @override
+  String get profileFeatureDrivingAlertsDesc => 'Know when a driver exceeds a speed limit you set.';
+
+  @override
+  String get profileFeatureBackgroundTrackingTitle => 'Background tracking';
+
+  @override
+  String get profileFeatureBackgroundTrackingDesc => 'Location keeps updating even with the app closed.';
+
+  @override
+  String get profileFeatureUnlimitedTitle => 'Unlimited messages, pings and expenses';
+
+  @override
+  String get profileFeatureUnlimitedDesc => 'Send as many messages, pings and expenses as you want, with no limits.';
+
+  @override
+  String get profileFeatureShoppingTitle => 'Bring me something';
+
+  @override
+  String get profileFeatureShoppingDesc => 'Let the circle know when you\'re at the supermarket or a bar.';
+
+  @override
+  String get profileFeaturePrioritySupportTitle => 'Priority support';
+
+  @override
+  String get profileFeaturePrioritySupportDesc => 'Dedicated support for your circle, 7 days a week.';
 }

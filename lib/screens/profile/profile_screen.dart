@@ -14,14 +14,15 @@ import 'avatar_picker_screen.dart';
 import 'help_support_screen.dart';
 import 'privacy_security_screen.dart';
 
-const _statusPresets = [
-  ('🎉', 'Con amici'),
-  ('🏠', 'A casa'),
-  ('🟢', 'Libero/a'),
-  ('🔋', 'Giornata pesante'),
-];
+List<(String, String)> _statusPresets(AppLocalizations l10n) => [
+      ('🎉', l10n.profileStatusFriends),
+      ('🏠', l10n.profileStatusHome),
+      ('🟢', l10n.profileStatusFree),
+      ('🔋', l10n.profileStatusBusyDay),
+    ];
 
 void _openStatusPicker(BuildContext context) {
+  final l10n = AppLocalizations.of(context)!;
   final controller = TextEditingController(text: AppState.instance.me.statusText ?? '');
   showModalBottomSheet(
     context: context,
@@ -34,15 +35,15 @@ void _openStatusPicker(BuildContext context) {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Il tuo stato di oggi', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+          Text(l10n.profileStatusPickerTitle, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
           const SizedBox(height: 6),
-          Text('Visibile alla tua cerchia sulla mappa fino a stanotte.', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+          Text(l10n.profileStatusPickerHint, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
           const SizedBox(height: 16),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final preset in _statusPresets)
+              for (final preset in _statusPresets(l10n))
                 ActionChip(
                   avatar: Text(preset.$1, style: const TextStyle(fontSize: 16)),
                   label: Text(preset.$2),
@@ -61,7 +62,7 @@ void _openStatusPicker(BuildContext context) {
                   controller: controller,
                   maxLength: 30,
                   decoration: InputDecoration(
-                    hintText: 'Oppure scrivi il tuo (con emoji 🙂)',
+                    hintText: l10n.profileStatusCustomHint,
                     filled: true,
                     fillColor: AppTheme.surfaceAlt,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -88,7 +89,7 @@ void _openStatusPicker(BuildContext context) {
                 AppState.instance.clearStatus();
                 Navigator.of(sheetContext).pop();
               },
-              child: const Text('Rimuovi stato'),
+              child: Text(l10n.profileRemoveStatus),
             ),
           ],
         ],
@@ -106,8 +107,9 @@ class ProfileScreen extends StatelessWidget {
       listenable: Listenable.merge([AppState.instance, ThemeController.instance, LocaleController.instance]),
       builder: (context, _) {
         final state = AppState.instance;
+        final l10n = AppLocalizations.of(context)!;
         return Scaffold(
-          appBar: AppBar(title: Text(AppLocalizations.of(context)!.navProfile)),
+          appBar: AppBar(title: Text(l10n.navProfile)),
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
@@ -133,7 +135,7 @@ class ProfileScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(state.me.name, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
-                        Text('${state.circles.length} cerchie attive', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+                        Text(l10n.profileActiveCircles(state.circles.length), style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
                       ],
                     ),
                   ),
@@ -143,7 +145,7 @@ class ProfileScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(20)),
                       child: Text(
-                        state.me.hasActiveStatus ? '${state.me.statusEmoji} ${state.me.statusText ?? ''}'.trim() : 'Il tuo stato',
+                        state.me.hasActiveStatus ? '${state.me.statusEmoji} ${state.me.statusText ?? ''}'.trim() : l10n.profileYourStatus,
                         style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                       ),
                     ),
@@ -151,30 +153,30 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 28),
-              const _Header('Aspetto'),
+              _Header(l10n.profileAppearance),
               const SizedBox(height: 10),
               _AppearancePicker(preference: ThemeController.instance.preference),
               const SizedBox(height: 24),
-              _Header(AppLocalizations.of(context)!.languageSectionTitle),
+              _Header(l10n.languageSectionTitle),
               const SizedBox(height: 10),
               _LanguagePicker(locale: LocaleController.instance.locale),
               const SizedBox(height: 24),
-              const _Header('Modalità di condivisione'),
+              _Header(l10n.profileSharingModeHeader),
               const SizedBox(height: 10),
               for (final mode in SharingMode.values)
                 _ModeCard(mode: mode, selected: state.myMode == mode, onTap: () => state.setMyMode(mode)),
               const SizedBox(height: 24),
-              const _Header('Le tue cerchie'),
+              _Header(l10n.profileYourCirclesHeader),
               const SizedBox(height: 10),
               _NavCard(
                 icon: Icons.groups_rounded,
-                label: '${state.circles.length} cerchie · gestisci membri e inviti',
+                label: l10n.profileCirclesManage(state.circles.length),
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CirclesScreen())),
               ),
               const SizedBox(height: 24),
               Row(
                 children: [
-                  const Expanded(child: _Header('Kinly+')),
+                  Expanded(child: _Header(l10n.profileKinlyPlusHeader)),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
@@ -182,7 +184,7 @@ class ProfileScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      state.isPremium ? 'Attivo' : 'Non attivo',
+                      state.isPremium ? l10n.profileActive : l10n.profileNotActive,
                       style: TextStyle(
                         color: state.isPremium ? AppTheme.accentGreen : AppTheme.accentAmber,
                         fontWeight: FontWeight.w700,
@@ -200,34 +202,34 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 10),
               _NavCard(
                 icon: Icons.workspace_premium_outlined,
-                label: state.isPremium ? 'Gestisci abbonamento Kinly+' : 'Scopri Kinly+',
+                label: state.isPremium ? l10n.profileManageSubscription : l10n.circleMessagesDiscoverPlus,
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen())),
               ),
               const SizedBox(height: 24),
-              const _Header('Altro'),
+              _Header(l10n.profileOtherHeader),
               const SizedBox(height: 10),
               _NavCard(
                 icon: Icons.shield_outlined,
-                label: 'Privacy e sicurezza',
+                label: l10n.profilePrivacySecurity,
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PrivacySecurityScreen())),
               ),
               const SizedBox(height: 10),
               _NavCard(
                 icon: Icons.help_outline_rounded,
-                label: 'Aiuto e assistenza',
+                label: l10n.profileHelpSupport,
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpSupportScreen())),
               ),
               if (state.isAdmin) ...[
                 const SizedBox(height: 10),
                 _NavCard(
                   icon: Icons.admin_panel_settings_outlined,
-                  label: 'Assistenza · admin',
+                  label: l10n.profileAdminSupport,
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AdminSupportInboxScreen())),
                 ),
                 const SizedBox(height: 10),
                 _NavCard(
                   icon: Icons.play_circle_outline_rounded,
-                  label: 'Rivedi onboarding · admin (test)',
+                  label: l10n.profileReviewOnboarding,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => OnboardingIntroScreen(onDone: () => Navigator.of(context).pop())),
                   ),
@@ -236,7 +238,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 10),
               _NavCard(
                 icon: Icons.logout_rounded,
-                label: 'Esci',
+                label: l10n.profileLogout,
                 destructive: true,
                 onTap: () async {
                   await state.logOut();
@@ -265,19 +267,19 @@ class _AppearancePicker extends StatelessWidget {
   const _AppearancePicker({required this.preference});
   final AppThemePreference preference;
 
-  static const _options = [
-    (AppThemePreference.system, Icons.brightness_auto_rounded, 'Sistema'),
-    (AppThemePreference.light, Icons.light_mode_rounded, 'Chiaro'),
-    (AppThemePreference.dark, Icons.dark_mode_rounded, 'Scuro'),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final options = [
+      (AppThemePreference.system, Icons.brightness_auto_rounded, l10n.languageSystem),
+      (AppThemePreference.light, Icons.light_mode_rounded, l10n.profileThemeLight),
+      (AppThemePreference.dark, Icons.dark_mode_rounded, l10n.profileThemeDark),
+    ];
     return Row(
       children: [
-        for (final option in _options) ...[
+        for (final option in options) ...[
           Expanded(child: _AppearanceOption(option: option, selected: preference == option.$1)),
-          if (option != _options.last) const SizedBox(width: 10),
+          if (option != options.last) const SizedBox(width: 10),
         ],
       ],
     );
@@ -458,18 +460,19 @@ class _PremiumTeaser extends StatelessWidget {
   const _PremiumTeaser({required this.isPremium});
   final bool isPremium;
 
-  static const _features = [
-    (Icons.history_rounded, 'Cronologia posizioni', 'Rivedi dove sono stati i membri della cerchia nei giorni passati.'),
-    (Icons.fence_rounded, 'Aree sicure', 'Casa, lavoro, scuola: notifica personalizzata a ogni arrivo o uscita.'),
-    (Icons.speed_rounded, 'Avvisi di guida', 'Sappi quando chi guida supera un limite di velocità impostato.'),
-    (Icons.gps_fixed_rounded, 'Tracciamento in background', 'La posizione continua ad aggiornarsi anche con l\'app chiusa.'),
-    (Icons.forum_rounded, 'Messaggi, ping e spese illimitati', 'Manda quanti messaggi, ping e spese vuoi, senza limiti.'),
-    (Icons.shopping_bag_outlined, 'Portami qualcosa', 'Segnala alla cerchia quando sei al supermercato o al bar.'),
-    (Icons.support_agent_rounded, 'Assistenza prioritaria', 'Supporto dedicato per la tua cerchia, 7 giorni su 7.'),
-  ];
+  List<(IconData, String, String)> _features(AppLocalizations l10n) => [
+        (Icons.history_rounded, l10n.profileFeatureLocationHistoryTitle, l10n.profileFeatureLocationHistoryDesc),
+        (Icons.fence_rounded, l10n.profileFeatureSafeZonesTitle, l10n.profileFeatureSafeZonesDesc),
+        (Icons.speed_rounded, l10n.profileFeatureDrivingAlertsTitle, l10n.profileFeatureDrivingAlertsDesc),
+        (Icons.gps_fixed_rounded, l10n.profileFeatureBackgroundTrackingTitle, l10n.profileFeatureBackgroundTrackingDesc),
+        (Icons.forum_rounded, l10n.profileFeatureUnlimitedTitle, l10n.profileFeatureUnlimitedDesc),
+        (Icons.shopping_bag_outlined, l10n.profileFeatureShoppingTitle, l10n.profileFeatureShoppingDesc),
+        (Icons.support_agent_rounded, l10n.profileFeaturePrioritySupportTitle, l10n.profileFeaturePrioritySupportDesc),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final accent = isPremium ? AppTheme.accentGreen : AppTheme.primary;
     return Container(
       padding: const EdgeInsets.all(16),
@@ -480,7 +483,7 @@ class _PremiumTeaser extends StatelessWidget {
       ),
       child: Column(
         children: [
-          for (final f in _features)
+          for (final f in _features(l10n))
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(

@@ -1372,6 +1372,246 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Quando qualcuno vorrà vedere la tua posizione, o tu quella di qualcun altro, la richiesta apparirà qui.'**
   String get requestsEmptyMessage;
+
+  /// No description provided for @profileStatusFriends.
+  ///
+  /// In it, this message translates to:
+  /// **'Con amici'**
+  String get profileStatusFriends;
+
+  /// No description provided for @profileStatusHome.
+  ///
+  /// In it, this message translates to:
+  /// **'A casa'**
+  String get profileStatusHome;
+
+  /// No description provided for @profileStatusFree.
+  ///
+  /// In it, this message translates to:
+  /// **'Libero/a'**
+  String get profileStatusFree;
+
+  /// No description provided for @profileStatusBusyDay.
+  ///
+  /// In it, this message translates to:
+  /// **'Giornata pesante'**
+  String get profileStatusBusyDay;
+
+  /// No description provided for @profileStatusPickerTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Il tuo stato di oggi'**
+  String get profileStatusPickerTitle;
+
+  /// No description provided for @profileStatusPickerHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Visibile alla tua cerchia sulla mappa fino a stanotte.'**
+  String get profileStatusPickerHint;
+
+  /// No description provided for @profileStatusCustomHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Oppure scrivi il tuo (con emoji 🙂)'**
+  String get profileStatusCustomHint;
+
+  /// No description provided for @profileRemoveStatus.
+  ///
+  /// In it, this message translates to:
+  /// **'Rimuovi stato'**
+  String get profileRemoveStatus;
+
+  /// No description provided for @profileActiveCircles.
+  ///
+  /// In it, this message translates to:
+  /// **'{count, plural, one{{count} cerchia attiva} other{{count} cerchie attive}}'**
+  String profileActiveCircles(int count);
+
+  /// No description provided for @profileYourStatus.
+  ///
+  /// In it, this message translates to:
+  /// **'Il tuo stato'**
+  String get profileYourStatus;
+
+  /// No description provided for @profileAppearance.
+  ///
+  /// In it, this message translates to:
+  /// **'Aspetto'**
+  String get profileAppearance;
+
+  /// No description provided for @profileThemeLight.
+  ///
+  /// In it, this message translates to:
+  /// **'Chiaro'**
+  String get profileThemeLight;
+
+  /// No description provided for @profileThemeDark.
+  ///
+  /// In it, this message translates to:
+  /// **'Scuro'**
+  String get profileThemeDark;
+
+  /// No description provided for @profileSharingModeHeader.
+  ///
+  /// In it, this message translates to:
+  /// **'Modalità di condivisione'**
+  String get profileSharingModeHeader;
+
+  /// No description provided for @profileYourCirclesHeader.
+  ///
+  /// In it, this message translates to:
+  /// **'Le tue cerchie'**
+  String get profileYourCirclesHeader;
+
+  /// No description provided for @profileCirclesManage.
+  ///
+  /// In it, this message translates to:
+  /// **'{count, plural, one{{count} cerchia · gestisci membri e inviti} other{{count} cerchie · gestisci membri e inviti}}'**
+  String profileCirclesManage(int count);
+
+  /// No description provided for @profileKinlyPlusHeader.
+  ///
+  /// In it, this message translates to:
+  /// **'Kinly+'**
+  String get profileKinlyPlusHeader;
+
+  /// No description provided for @profileActive.
+  ///
+  /// In it, this message translates to:
+  /// **'Attivo'**
+  String get profileActive;
+
+  /// No description provided for @profileNotActive.
+  ///
+  /// In it, this message translates to:
+  /// **'Non attivo'**
+  String get profileNotActive;
+
+  /// No description provided for @profileManageSubscription.
+  ///
+  /// In it, this message translates to:
+  /// **'Gestisci abbonamento Kinly+'**
+  String get profileManageSubscription;
+
+  /// No description provided for @profileOtherHeader.
+  ///
+  /// In it, this message translates to:
+  /// **'Altro'**
+  String get profileOtherHeader;
+
+  /// No description provided for @profilePrivacySecurity.
+  ///
+  /// In it, this message translates to:
+  /// **'Privacy e sicurezza'**
+  String get profilePrivacySecurity;
+
+  /// No description provided for @profileHelpSupport.
+  ///
+  /// In it, this message translates to:
+  /// **'Aiuto e assistenza'**
+  String get profileHelpSupport;
+
+  /// No description provided for @profileAdminSupport.
+  ///
+  /// In it, this message translates to:
+  /// **'Assistenza · admin'**
+  String get profileAdminSupport;
+
+  /// No description provided for @profileReviewOnboarding.
+  ///
+  /// In it, this message translates to:
+  /// **'Rivedi onboarding · admin (test)'**
+  String get profileReviewOnboarding;
+
+  /// No description provided for @profileLogout.
+  ///
+  /// In it, this message translates to:
+  /// **'Esci'**
+  String get profileLogout;
+
+  /// No description provided for @profileFeatureLocationHistoryTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Cronologia posizioni'**
+  String get profileFeatureLocationHistoryTitle;
+
+  /// No description provided for @profileFeatureLocationHistoryDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Rivedi dove sono stati i membri della cerchia nei giorni passati.'**
+  String get profileFeatureLocationHistoryDesc;
+
+  /// No description provided for @profileFeatureSafeZonesTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Aree sicure'**
+  String get profileFeatureSafeZonesTitle;
+
+  /// No description provided for @profileFeatureSafeZonesDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Casa, lavoro, scuola: notifica personalizzata a ogni arrivo o uscita.'**
+  String get profileFeatureSafeZonesDesc;
+
+  /// No description provided for @profileFeatureDrivingAlertsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Avvisi di guida'**
+  String get profileFeatureDrivingAlertsTitle;
+
+  /// No description provided for @profileFeatureDrivingAlertsDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Sappi quando chi guida supera un limite di velocità impostato.'**
+  String get profileFeatureDrivingAlertsDesc;
+
+  /// No description provided for @profileFeatureBackgroundTrackingTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Tracciamento in background'**
+  String get profileFeatureBackgroundTrackingTitle;
+
+  /// No description provided for @profileFeatureBackgroundTrackingDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'La posizione continua ad aggiornarsi anche con l\'app chiusa.'**
+  String get profileFeatureBackgroundTrackingDesc;
+
+  /// No description provided for @profileFeatureUnlimitedTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Messaggi, ping e spese illimitati'**
+  String get profileFeatureUnlimitedTitle;
+
+  /// No description provided for @profileFeatureUnlimitedDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Manda quanti messaggi, ping e spese vuoi, senza limiti.'**
+  String get profileFeatureUnlimitedDesc;
+
+  /// No description provided for @profileFeatureShoppingTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Portami qualcosa'**
+  String get profileFeatureShoppingTitle;
+
+  /// No description provided for @profileFeatureShoppingDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Segnala alla cerchia quando sei al supermercato o al bar.'**
+  String get profileFeatureShoppingDesc;
+
+  /// No description provided for @profileFeaturePrioritySupportTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Assistenza prioritaria'**
+  String get profileFeaturePrioritySupportTitle;
+
+  /// No description provided for @profileFeaturePrioritySupportDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Supporto dedicato per la tua cerchia, 7 giorni su 7.'**
+  String get profileFeaturePrioritySupportDesc;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

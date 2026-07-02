@@ -726,4 +726,140 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get requestsEmptyMessage => 'Quando qualcuno vorrà vedere la tua posizione, o tu quella di qualcun altro, la richiesta apparirà qui.';
+
+  @override
+  String get profileStatusFriends => 'Con amici';
+
+  @override
+  String get profileStatusHome => 'A casa';
+
+  @override
+  String get profileStatusFree => 'Libero/a';
+
+  @override
+  String get profileStatusBusyDay => 'Giornata pesante';
+
+  @override
+  String get profileStatusPickerTitle => 'Il tuo stato di oggi';
+
+  @override
+  String get profileStatusPickerHint => 'Visibile alla tua cerchia sulla mappa fino a stanotte.';
+
+  @override
+  String get profileStatusCustomHint => 'Oppure scrivi il tuo (con emoji 🙂)';
+
+  @override
+  String get profileRemoveStatus => 'Rimuovi stato';
+
+  @override
+  String profileActiveCircles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cerchie attive',
+      one: '$count cerchia attiva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get profileYourStatus => 'Il tuo stato';
+
+  @override
+  String get profileAppearance => 'Aspetto';
+
+  @override
+  String get profileThemeLight => 'Chiaro';
+
+  @override
+  String get profileThemeDark => 'Scuro';
+
+  @override
+  String get profileSharingModeHeader => 'Modalità di condivisione';
+
+  @override
+  String get profileYourCirclesHeader => 'Le tue cerchie';
+
+  @override
+  String profileCirclesManage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cerchie · gestisci membri e inviti',
+      one: '$count cerchia · gestisci membri e inviti',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get profileKinlyPlusHeader => 'Kinly+';
+
+  @override
+  String get profileActive => 'Attivo';
+
+  @override
+  String get profileNotActive => 'Non attivo';
+
+  @override
+  String get profileManageSubscription => 'Gestisci abbonamento Kinly+';
+
+  @override
+  String get profileOtherHeader => 'Altro';
+
+  @override
+  String get profilePrivacySecurity => 'Privacy e sicurezza';
+
+  @override
+  String get profileHelpSupport => 'Aiuto e assistenza';
+
+  @override
+  String get profileAdminSupport => 'Assistenza · admin';
+
+  @override
+  String get profileReviewOnboarding => 'Rivedi onboarding · admin (test)';
+
+  @override
+  String get profileLogout => 'Esci';
+
+  @override
+  String get profileFeatureLocationHistoryTitle => 'Cronologia posizioni';
+
+  @override
+  String get profileFeatureLocationHistoryDesc => 'Rivedi dove sono stati i membri della cerchia nei giorni passati.';
+
+  @override
+  String get profileFeatureSafeZonesTitle => 'Aree sicure';
+
+  @override
+  String get profileFeatureSafeZonesDesc => 'Casa, lavoro, scuola: notifica personalizzata a ogni arrivo o uscita.';
+
+  @override
+  String get profileFeatureDrivingAlertsTitle => 'Avvisi di guida';
+
+  @override
+  String get profileFeatureDrivingAlertsDesc => 'Sappi quando chi guida supera un limite di velocità impostato.';
+
+  @override
+  String get profileFeatureBackgroundTrackingTitle => 'Tracciamento in background';
+
+  @override
+  String get profileFeatureBackgroundTrackingDesc => 'La posizione continua ad aggiornarsi anche con l\'app chiusa.';
+
+  @override
+  String get profileFeatureUnlimitedTitle => 'Messaggi, ping e spese illimitati';
+
+  @override
+  String get profileFeatureUnlimitedDesc => 'Manda quanti messaggi, ping e spese vuoi, senza limiti.';
+
+  @override
+  String get profileFeatureShoppingTitle => 'Portami qualcosa';
+
+  @override
+  String get profileFeatureShoppingDesc => 'Segnala alla cerchia quando sei al supermercato o al bar.';
+
+  @override
+  String get profileFeaturePrioritySupportTitle => 'Assistenza prioritaria';
+
+  @override
+  String get profileFeaturePrioritySupportDesc => 'Supporto dedicato per la tua cerchia, 7 giorni su 7.';
 }
