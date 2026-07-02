@@ -2,7 +2,7 @@
 //
 // Pagina pubblica "seguimi": chi riceve il link (anche SENZA l'app Kinly)
 // apre nel browser una piccola mappa con la posizione live di chi l'ha
-// condiviso, finché il link non scade. L'accesso è autorizzato solo dal
+// condiviso, finche' il link non scade. L'accesso e' autorizzato solo dal
 // token (lungo e casuale) contenuto nel link: la funzione lo verifica in
 // public.live_share_links e legge la posizione con la service role key.
 //
@@ -12,7 +12,7 @@
 // (oppure, dal Dashboard, disattiva "Verify JWT" per questa funzione).
 //
 // Nessun segreto da configurare: usa SUPABASE_URL e
-// SUPABASE_SERVICE_ROLE_KEY già presenti di default in ogni Edge Function.
+// SUPABASE_SERVICE_ROLE_KEY gia' presenti di default in ogni Edge Function.
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -25,7 +25,7 @@ function htmlPage(name: string, token: string): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${name} · posizione live · Kinly</title>
+<title>${name} &middot; posizione live &middot; Kinly</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
   body { margin: 0; font-family: system-ui, sans-serif; }
@@ -40,7 +40,7 @@ function htmlPage(name: string, token: string): string {
 </style>
 </head>
 <body>
-<div class="banner" id="banner">Posizione live di <b>${name}</b> · condivisa con Kinly</div>
+<div class="banner" id="banner">Posizione live di <b>${name}</b> &middot; condivisa con Kinly</div>
 <div id="map"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -56,7 +56,7 @@ function htmlPage(name: string, token: string): string {
       const res = await fetch(location.pathname + '?t=${token}&format=json');
       const data = await res.json();
       if (data.expired) {
-        document.getElementById('banner').innerHTML = '<span class="expired">Questo link è scaduto.</span>';
+        document.getElementById('banner').innerHTML = '<span class="expired">Questo link \\u00e8 scaduto.</span>';
         return;
       }
       if (data.lat == null) return;
@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
   }
 
   if (expired) {
-    return new Response('<html><body style="font-family:sans-serif;padding:40px;text-align:center"><h2>Questo link è scaduto.</h2></body></html>', {
+    return new Response('<html><body style="font-family:sans-serif;padding:40px;text-align:center"><h2>Questo link &egrave; scaduto.</h2></body></html>', {
       headers: { 'Content-Type': 'text/html; charset=utf-8' },
     });
   }
