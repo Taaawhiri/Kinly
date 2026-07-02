@@ -63,6 +63,7 @@ Deno.serve(async (req) => {
       lat: loc?.lat ?? null,
       lng: loc?.lng ?? null,
       updated_at: loc?.updated_at ?? null,
+      expires_at: link!.expires_at,
     }),
     { headers: jsonHeaders },
   );

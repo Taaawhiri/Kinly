@@ -40,6 +40,7 @@
     background: var(--coral); margin-right: 5px;
     animation: pulse 1.6s ease-in-out infinite;
   }
+  .countdown { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
   .expired { color: #C0392B; font-weight: 600; }
   @keyframes pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
@@ -86,14 +87,44 @@
   .battery-row { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
   .battery-row svg { width: 20px; height: 20px; flex: none; }
   .updated-at { font-size: 11.5px; color: var(--text-secondary); margin-top: 4px; }
+
+  /* Pulsante "Naviga qui": in basso a sinistra, cosi' non si scontra con i
+     controlli +/- della mappa che sono a destra. Compare solo quando
+     conosciamo gia' una posizione da raggiungere. */
+  .nav-fab {
+    position: fixed; left: 16px; bottom: 20px; z-index: 1000;
+    display: none;
+    align-items: center; gap: 8px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    padding: 12px 18px 12px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    box-shadow: 0 6px 18px rgba(74, 99, 231, 0.4);
+    cursor: pointer;
+  }
+  .nav-fab.visible { display: flex; }
+  .nav-fab svg { width: 19px; height: 19px; flex: none; }
 </style>
 </head>
 <body>
 <div class="banner" id="banner">
   <img class="logo" src="icon.png" alt="">
-  <div class="text" id="bannerText">Caricamento...</div>
+  <div class="text">
+    <div id="bannerText">Caricamento...</div>
+    <div class="countdown" id="countdown"></div>
+  </div>
 </div>
 <div id="map"></div>
+<button class="nav-fab" id="navButton" type="button">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+  </svg>
+  Naviga qui
+</button>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
   // Stessa tavolozza di avatar a tema dell'app (vedi lib/utils/avatar_catalog.dart):
@@ -131,6 +162,18 @@
       '</svg>';
   }
 
+  function formatCountdown(expiresAt) {
+    if (!expiresAt) return '';
+    var msLeft = new Date(expiresAt).getTime() - Date.now();
+    if (msLeft <= 0) return '';
+    var minutes = Math.round(msLeft / 60000);
+    if (minutes < 1) return 'Scade tra meno di un minuto';
+    if (minutes < 60) return 'Scade tra ' + minutes + ' min';
+    var hours = Math.floor(minutes / 60);
+    var restMinutes = minutes % 60;
+    return 'Scade tra ' + hours + 'h' + (restMinutes > 0 ? ' ' + restMinutes + 'min' : '');
+  }
+
   function popupHtml(name, batteryPercent, updatedAt) {
     var battery = (batteryPercent == null)
       ? '<div class="battery-row">Batteria non disponibile</div>'
@@ -160,7 +203,16 @@
 
   var marker = null;
   var centered = false;
+  var currentPos = null;
   var bannerText = document.getElementById('bannerText');
+  var countdown = document.getElementById('countdown');
+  var navButton = document.getElementById('navButton');
+
+  navButton.addEventListener('click', function () {
+    if (!currentPos) return;
+    var url = 'https://www.google.com/maps/dir/?api=1&destination=' + currentPos[0] + ',' + currentPos[1];
+    window.open(url, '_blank');
+  });
 
   function refresh() {
     if (!token) {
@@ -172,12 +224,17 @@
       .then(function (data) {
         if (data.expired) {
           bannerText.innerHTML = '<span class="expired">Questo link e\' scaduto.</span>';
+          countdown.textContent = '';
+          navButton.classList.remove('visible');
           return;
         }
         var name = data.name || 'Qualcuno';
         bannerText.innerHTML = '<span class="live-dot"></span>Posizione live di <b>' + name + '</b>';
+        countdown.textContent = formatCountdown(data.expires_at);
         if (data.lat == null) { setTimeout(refresh, 15000); return; }
-        var pos = [data.lat, data.lng];
+        currentPos = [data.lat, data.lng];
+        navButton.classList.add('visible');
+        var pos = currentPos;
         var icon = L.divIcon({
           className: '',
           html: markerHtml(name, data.color, data.avatar_key),
