@@ -73,7 +73,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         }
 
         final now = DateTime.now();
-        final weekMeters = trips.where((t) => now.difference(t.end) <= const Duration(days: 7)).fold(0.0, (sum, t) => sum + t.distanceMeters);
+        final weekTrips = trips.where((t) => now.difference(t.end) <= const Duration(days: 7)).toList();
+        final weekMeters = weekTrips.fold(0.0, (sum, t) => sum + t.distanceMeters);
         final monthMeters = trips.where((t) => now.difference(t.end) <= const Duration(days: 30)).fold(0.0, (sum, t) => sum + t.distanceMeters);
 
         return ListView(
@@ -85,6 +86,28 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 const SizedBox(width: 12),
                 Expanded(child: _StatCard(label: 'Ultimi 30 giorni', value: _formatDistance(monthMeters))),
               ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(16)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text('Riepilogo settimanale', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
+                      const Spacer(),
+                      Text(
+                        '${weekTrips.length} ${weekTrips.length == 1 ? "tragitto" : "tragitti"}',
+                        style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _WeeklyDistanceChart(trips: weekTrips),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
             Text('Itinerari recenti', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
@@ -124,6 +147,92 @@ class _StatCard extends StatelessWidget {
           Text(value, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: AppTheme.textPrimary)),
         ],
       ),
+    );
+  }
+}
+
+/// Barre per gli ultimi 7 giorni (oggi compreso), stile "riepilogo
+/// settimanale": distanza percorsa per giorno, un colpo d'occhio invece dei
+/// soli km totali della settimana.
+class _WeeklyDistanceChart extends StatelessWidget {
+  const _WeeklyDistanceChart({required this.trips});
+  final List<Trip> trips;
+
+  static const _dayLabels = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
+
+  @override
+  Widget build(BuildContext context) {
+    final today = DateTime.now();
+    final days = List.generate(7, (i) => DateTime(today.year, today.month, today.day).subtract(Duration(days: 6 - i)));
+    final metersByDay = <DateTime, double>{for (final d in days) d: 0};
+    for (final trip in trips) {
+      final day = DateTime(trip.end.year, trip.end.month, trip.end.day);
+      if (metersByDay.containsKey(day)) metersByDay[day] = metersByDay[day]! + trip.distanceMeters;
+    }
+    final maxMeters = metersByDay.values.fold(0.0, (a, b) => a > b ? a : b);
+
+    return SizedBox(
+      height: 96,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          for (final day in days) ...[
+            Expanded(
+              child: _DayBar(
+                fraction: maxMeters <= 0 ? 0 : metersByDay[day]! / maxMeters,
+                label: _dayLabels[day.weekday - 1],
+                isToday: day.day == today.day && day.month == today.month && day.year == today.year,
+              ),
+            ),
+            if (day != days.last) const SizedBox(width: 6),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _DayBar extends StatelessWidget {
+  const _DayBar({required this.fraction, required this.label, required this.isToday});
+  final double fraction;
+  final String label;
+  final bool isToday;
+
+  @override
+  Widget build(BuildContext context) {
+    // Altezza minima anche a zero, cosi' il giorno resta visibile come
+    // "barretta" invece di sparire del tutto quando non ci si è mossi.
+    final barHeight = 6.0 + fraction.clamp(0.0, 1.0) * 58.0;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 64,
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutCubic,
+              width: double.infinity,
+              height: barHeight,
+              margin: const EdgeInsets.symmetric(horizontal: 2),
+              decoration: BoxDecoration(
+                color: isToday ? AppTheme.primary : AppTheme.primary.withOpacity(0.28),
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11.5,
+            fontWeight: isToday ? FontWeight.w800 : FontWeight.w600,
+            color: isToday ? AppTheme.primary : AppTheme.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -193,7 +302,7 @@ class _TripDetailScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            SizedBox(height: 280, child: TripRouteMap(points: trip.points)),
+            SizedBox(height: 280 + 48, child: TripRouteMap(points: trip.points)),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.all(20),

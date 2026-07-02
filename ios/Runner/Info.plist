@@ -49,5 +49,9 @@
 	<string>Kinly usa la tua posizione per condividerla con le persone della tua cerchia, secondo la modalità che scegli tu.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Kinly usa la tua posizione per condividerla con le persone della tua cerchia, secondo la modalità che scegli tu.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Per scegliere una foto profilo dalla tua libreria.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Per scattare una foto profilo.</string>
 </dict>
 </plist>

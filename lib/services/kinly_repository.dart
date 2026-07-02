@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/circle_group.dart';
 import '../models/safe_zone.dart';
@@ -121,6 +122,36 @@ class KinlyRepository {
   /// iniziali colorate.
   Future<void> updateAvatar(String? avatarKey) async {
     await supabase.from('profiles').update({'avatar_key': avatarKey}).eq('id', _myId);
+  }
+
+  /// Carica una foto profilo (già ridotta e compressa lato client, vedi
+  /// image_resizer.dart) e ritorna l'URL pubblico da salvare sul profilo.
+  /// Percorso fisso per utente (con upsert) invece di un nome generato ad
+  /// ogni caricamento: così una foto sostituita non lascia file orfani nel
+  /// bucket. Il timestamp in coda all'URL serve solo a rompere la cache del
+  /// browser quando la foto cambia — il file sul server è sempre lo stesso.
+  Future<String> uploadProfilePhoto(List<int> jpegBytes) async {
+    final path = '$_myId/avatar.jpg';
+    await supabase.storage.from('avatars').uploadBinary(
+          path,
+          Uint8List.fromList(jpegBytes),
+          fileOptions: const FileOptions(upsert: true, contentType: 'image/jpeg'),
+        );
+    final url = supabase.storage.from('avatars').getPublicUrl(path);
+    return '$url?t=${DateTime.now().millisecondsSinceEpoch}';
+  }
+
+  Future<void> updatePhotoUrl(String? url) async {
+    await supabase.from('profiles').update({'photo_url': url}).eq('id', _myId);
+  }
+
+  Future<void> deleteProfilePhoto() async {
+    try {
+      await supabase.storage.from('avatars').remove(['$_myId/avatar.jpg']);
+    } catch (_) {
+      // Va bene se il file non esiste già: l'importante è che dopo questa
+      // chiamata non ce ne sia più uno associato al profilo.
+    }
   }
 
   /// Orario di reperibilità (valori già convertiti in UTC, formato

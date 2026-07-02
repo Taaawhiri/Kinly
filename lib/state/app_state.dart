@@ -373,6 +373,7 @@ class AppState extends ChangeNotifier {
       isFuzzyLocation: location?['is_fuzzy'] as bool? ?? false,
       speedKmh: (location?['speed_kmh'] as num?)?.toDouble(),
       avatarKey: person.avatarKey,
+      photoUrl: person.photoUrl,
       isAdmin: person.isAdmin,
       birthday: person.birthday,
       statusEmoji: person.statusEmoji,
@@ -409,6 +410,7 @@ class AppState extends ChangeNotifier {
       isFuzzyLocation: location?['is_fuzzy'] as bool? ?? false,
       speedKmh: (location?['speed_kmh'] as num?)?.toDouble(),
       avatarKey: profile['avatar_key'] as String?,
+      photoUrl: profile['photo_url'] as String?,
       isAdmin: profile['is_admin'] as bool? ?? false,
       mode: SharingModeData.fromDb(profile['effective_sharing_mode'] as String? ?? profile['sharing_mode'] as String? ?? 'automatic'),
       birthday: profile['birthday'] != null ? DateTime.parse(profile['birthday'] as String) : null,
@@ -726,6 +728,25 @@ class AppState extends ChangeNotifier {
     if (_me != null) _me = _me!.copyWith(avatarKey: avatarKey, clearAvatarKey: avatarKey == null);
     notifyListeners();
     await _repo.updateAvatar(avatarKey);
+    unawaited(_refreshData().then((_) => notifyListeners()));
+  }
+
+  /// Carica una foto profilo vera: [jpegBytes] è già ridotta e compressa dal
+  /// chiamante (vedi utils/image_resizer.dart) prima di arrivare qui. Ha la
+  /// precedenza sull'avatar a tema quando presente (vedi PersonAvatar).
+  Future<void> setProfilePhoto(List<int> jpegBytes) async {
+    final url = await _repo.uploadProfilePhoto(jpegBytes);
+    await _repo.updatePhotoUrl(url);
+    if (_me != null) _me = _me!.copyWith(photoUrl: url);
+    notifyListeners();
+    unawaited(_refreshData().then((_) => notifyListeners()));
+  }
+
+  Future<void> removeProfilePhoto() async {
+    if (_me != null) _me = _me!.copyWith(clearPhotoUrl: true);
+    notifyListeners();
+    await _repo.deleteProfilePhoto();
+    await _repo.updatePhotoUrl(null);
     unawaited(_refreshData().then((_) => notifyListeners()));
   }
 

@@ -53,6 +53,7 @@ class Person {
     this.isFuzzyLocation = false,
     this.speedKmh,
     this.avatarKey,
+    this.photoUrl,
     this.isAdmin = false,
     this.birthday,
     this.statusEmoji,
@@ -99,6 +100,10 @@ class Person {
 
   /// Chiave dell'avatar a tema scelto (vedi AvatarCatalog); null = iniziali.
   final String? avatarKey;
+
+  /// Foto profilo vera caricata dall'utente: se presente ha la precedenza
+  /// sull'avatar a tema/iniziali (vedi PersonAvatar). Null = nessuna foto.
+  final String? photoUrl;
 
   /// Amministratore dell'assistenza: vede e risponde a tutti i messaggi di
   /// supporto (vedi AdminSupportInboxScreen), non solo ai propri.
@@ -175,6 +180,8 @@ class Person {
     bool clearSpeedAlertKmh = false,
     String? avatarKey,
     bool clearAvatarKey = false,
+    String? photoUrl,
+    bool clearPhotoUrl = false,
     DateTime? birthday,
     String? statusEmoji,
     String? statusText,
@@ -202,6 +209,7 @@ class Person {
       isFuzzyLocation: isFuzzyLocation,
       speedKmh: speedKmh,
       avatarKey: clearAvatarKey ? null : (avatarKey ?? this.avatarKey),
+      photoUrl: clearPhotoUrl ? null : (photoUrl ?? this.photoUrl),
       isAdmin: isAdmin,
       birthday: birthday ?? this.birthday,
       statusEmoji: clearStatus ? null : (statusEmoji ?? this.statusEmoji),

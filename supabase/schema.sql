@@ -96,6 +96,11 @@ alter table public.profiles add column if not exists auto_ghost_end time;
 -- client (vedi lib/utils/avatar_catalog.dart), non un'immagine caricata.
 alter table public.profiles add column if not exists avatar_key text;
 
+-- Foto profilo vera, caricata dall'utente nel bucket storage "avatars"
+-- (vedi più sotto): se presente ha la precedenza sull'avatar a
+-- tema/iniziali. Null = nessuna foto caricata.
+alter table public.profiles add column if not exists photo_url text;
+
 -- Amministratore dell'assistenza: può vedere e rispondere a tutti i
 -- messaggi di supporto, non solo ai propri (vedi support_messages più
 -- sotto). Non è tra le colonne concesse in scrittura a "authenticated" più
@@ -1285,6 +1290,43 @@ create policy "expense_shares_insert" on public.expense_shares
   );
 
 -- =========================================================================
+-- Storage: foto profilo
+-- =========================================================================
+
+-- Bucket pubblico in lettura (le foto profilo non sono informazioni
+-- sensibili quanto la posizione, e servono a chiunque nella cerchia veda
+-- quella persona): ogni file vive sotto "{user_id}/avatar.jpg", un solo
+-- file per utente con upsert, così cambiare foto non lascia file orfani.
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+drop policy if exists "avatars_read_public" on storage.objects;
+create policy "avatars_read_public" on storage.objects
+  for select using (bucket_id = 'avatars');
+
+drop policy if exists "avatars_insert_own" on storage.objects;
+create policy "avatars_insert_own" on storage.objects
+  for insert with check (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "avatars_update_own" on storage.objects;
+create policy "avatars_update_own" on storage.objects
+  for update using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "avatars_delete_own" on storage.objects;
+create policy "avatars_delete_own" on storage.objects
+  for delete using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- =========================================================================
 -- Condivisione posizione via link pubblico (per chi NON ha l'app)
 -- =========================================================================
 
@@ -1329,7 +1371,7 @@ create policy "live_share_links_delete_own" on public.live_share_links
 revoke update on public.profiles from authenticated;
 grant update (
   name, color, sharing_mode, battery_percent, speed_alert_kmh, auto_ghost_start, auto_ghost_end, avatar_key,
-  birthday, status_emoji, status_text, status_expires_at, payment_link, phone_number, weekly_summary_enabled
+  photo_url, birthday, status_emoji, status_text, status_expires_at, payment_link, phone_number, weekly_summary_enabled
 ) on public.profiles to authenticated;
 
 -- =========================================================================

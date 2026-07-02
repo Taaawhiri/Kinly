@@ -12,6 +12,10 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+    <!-- Per scattare una foto profilo dalla schermata avatar (la scelta
+         dalla galleria non richiede questo permesso, usa il selettore di
+         sistema). -->
+    <uses-permission android:name="android.permission.CAMERA"/>
     <application
         android:label="Kinly"
         android:name="${applicationName}"
