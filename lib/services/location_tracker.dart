@@ -11,6 +11,7 @@ import '../state/app_state.dart';
 import '../utils/address_formatter.dart';
 import 'background_tracking_settings.dart';
 import 'kinly_repository.dart';
+import 'place_search_service.dart';
 import 'walk_me_home_service.dart';
 
 /// Esito del tentativo di attivare il tracciamento in background: usato
@@ -62,6 +63,15 @@ class LocationTracker {
   static const _minHistoryInterval = Duration(minutes: 3);
   DateTime? _lastProcessedAt;
   DateTime? _lastHistoryAppendAt;
+
+  /// Un fix con un raggio di incertezza oltre questa soglia (~5 km) non
+  /// viene considerato attendibile e si scarta, invece di essere condiviso
+  /// con la cerchia o salvato nello storico. Serve soprattutto su web/
+  /// desktop: senza un GPS vero, il browser stima la posizione da Wi-Fi o
+  /// perfino dal solo indirizzo IP, e quest'ultimo può sbagliare di decine
+  /// di km (da qui una posizione mostrata a citta' di distanza da quella
+  /// reale). Su GPS vero l'accuratezza è quasi sempre ben sotto questa soglia.
+  static const _maxAcceptableAccuracyMeters = 5000;
 
   /// "Portami qualcosa": ultimo controllo del punto di interesse, per non
   /// richiamare Nominatim (o anche solo la cache Supabase) ad ogni singolo
@@ -187,6 +197,11 @@ class LocationTracker {
   }
 
   Future<void> _onPosition(Position position) async {
+    // Un fix troppo impreciso (tipicamente stima via IP su desktop/browser
+    // senza Wi-Fi scan) e' peggio che inutile: meglio restare senza un
+    // aggiornamento che condividerne uno sbagliato di decine di km.
+    if (position.accuracy.isFinite && position.accuracy > _maxAcceptableAccuracyMeters) return;
+
     final now = DateTime.now();
     if (_lastProcessedAt != null && now.difference(_lastProcessedAt!) < _minProcessInterval) return;
     _lastProcessedAt = now;
@@ -364,15 +379,22 @@ class LocationTracker {
   }
 
   Future<String?> _reverseGeocode(double lat, double lng) async {
-    try {
-      final placemarks = await placemarkFromCoordinates(lat, lng);
-      if (placemarks.isEmpty) return null;
-      return formatPlacemarkAddress(placemarks.first);
-    } catch (_) {
-      // La geocodifica nativa non è disponibile su tutte le piattaforme
-      // (es. web/desktop): in quel caso restiamo senza indirizzo leggibile.
-      return null;
+    // Su web il pacchetto nativo `geocoding` non ha alcuna implementazione:
+    // fallirebbe sempre, quindi lì saltiamo dritti a Nominatim (una pura
+    // chiamata HTTP, funziona ovunque) invece di tentarlo inutilmente.
+    if (!kIsWeb) {
+      try {
+        final placemarks = await placemarkFromCoordinates(lat, lng);
+        if (placemarks.isNotEmpty) {
+          final formatted = formatPlacemarkAddress(placemarks.first);
+          if (formatted != null) return formatted;
+        }
+      } catch (_) {
+        // Va bene provare comunque con Nominatim invece di restare senza
+        // indirizzo leggibile.
+      }
     }
+    return PlaceSearchService.instance.reverseGeocode(lat, lng);
   }
 
   Future<void> _updateBattery() async {

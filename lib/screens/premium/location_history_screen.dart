@@ -28,10 +28,56 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
         : Future.value(const []);
   }
 
+  Future<void> _confirmAndDeleteHistory() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Cancellare la cronologia?'),
+        content: const Text(
+          'Elimina tutti i punti registrati finora, incluse le statistiche di itinerari già calcolate da questi dati. Non si può annullare.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Annulla')),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.accentCoral),
+            child: const Text('Cancella'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await AppState.instance.deleteMyLocationHistory();
+      if (mounted) {
+        setState(() => _future = Future.value(const []));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cronologia cancellata.')));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a cancellare la cronologia. Riprova.')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Ha senso solo sulla propria: la RLS non permetterebbe comunque di
+    // cancellare lo storico di qualcun altro.
+    final canDelete = widget.person.isMe && AppState.instance.isPremium;
     return Scaffold(
-      appBar: AppBar(title: Text('Cronologia · ${widget.person.name}')),
+      appBar: AppBar(
+        title: Text('Cronologia · ${widget.person.name}'),
+        actions: [
+          if (canDelete)
+            IconButton(
+              icon: const Icon(Icons.delete_outline_rounded),
+              tooltip: 'Cancella cronologia',
+              onPressed: _confirmAndDeleteHistory,
+            ),
+        ],
+      ),
       body: SafeArea(
         child: AppState.instance.isPremium ? _buildHistory() : _buildUpsell(),
       ),

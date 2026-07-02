@@ -260,6 +260,15 @@ class KinlyRepository {
         .limit(limit);
   }
 
+  /// Cancella tutto il MIO storico posizioni: gli "itinerari" nelle
+  /// statistiche sono ricostruiti al volo da questi punti (non c'è una
+  /// tabella separata), quindi svuotare qui basta a far sparire anche quelli.
+  /// Solo sulle mie righe: la RLS non permetterebbe comunque di toccare
+  /// quelle di qualcun altro.
+  Future<void> deleteMyLocationHistory() async {
+    await supabase.from('location_history').delete().eq('profile_id', _myId);
+  }
+
   // ---------------------------------------------------------------------
   // Aree sicure (Kinly+)
   // ---------------------------------------------------------------------

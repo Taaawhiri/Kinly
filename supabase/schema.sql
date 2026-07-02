@@ -802,6 +802,13 @@ drop policy if exists "location_history_insert_self" on public.location_history;
 create policy "location_history_insert_self" on public.location_history
   for insert with check (profile_id = auth.uid());
 
+-- Permette di cancellare la propria cronologia (tasto "Cancella cronologia"
+-- nella schermata Cronologia posizioni): mancava del tutto una policy di
+-- delete, quindi finora nessuno poteva svuotarla, nemmeno sui propri dati.
+drop policy if exists "location_history_delete_own" on public.location_history;
+create policy "location_history_delete_own" on public.location_history
+  for delete using (profile_id = auth.uid());
+
 -- safe_zones (Kinly+): visibili a chi è nella cerchia; create solo da chi
 -- è premium.
 drop policy if exists "safe_zones_select" on public.safe_zones;

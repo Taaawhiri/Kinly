@@ -504,6 +504,11 @@ class AppState extends ChangeNotifier {
     return rows.map(LocationHistoryPoint.fromRow).toList();
   }
 
+  /// Cancella tutta la MIA cronologia posizioni: gli itinerari nelle
+  /// statistiche sono ricostruiti al volo da questi punti, quindi spariscono
+  /// anche quelli senza bisogno di toccare altro.
+  Future<void> deleteMyLocationHistory() => _repo.deleteMyLocationHistory();
+
   List<SafeZone> safeZonesForCircle(String circleId) => _safeZones.where((z) => z.circleId == circleId).toList();
 
   SafeZone? safeZoneById(String id) {

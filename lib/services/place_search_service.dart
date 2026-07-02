@@ -44,4 +44,39 @@ class PlaceSearchService {
       );
     }).toList();
   }
+
+  static const _reverseEndpoint = 'https://nominatim.openstreetmap.org/reverse';
+
+  /// Indirizzo leggibile da coordinate, via Nominatim invece del pacchetto
+  /// nativo `geocoding`: quest'ultimo non ha alcuna implementazione sul web,
+  /// quindi lì restituiva sempre null (mostrando le coordinate al posto
+  /// dell'indirizzo in cronologia posizioni e itinerari). Essendo una pura
+  /// chiamata HTTP, questa funziona su qualunque piattaforma.
+  Future<String?> reverseGeocode(double lat, double lng) async {
+    try {
+      final uri = Uri.parse(_reverseEndpoint).replace(queryParameters: {
+        'lat': lat.toString(),
+        'lon': lng.toString(),
+        'format': 'jsonv2',
+      });
+      final response = await http.get(uri, headers: {'User-Agent': 'KinlyApp/1.0'});
+      if (response.statusCode != 200) return null;
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final address = data['address'] as Map<String, dynamic>?;
+      if (address == null) return data['display_name'] as String?;
+
+      final road = address['road'] as String?;
+      final houseNumber = address['house_number'] as String?;
+      final locality = (address['city'] ?? address['town'] ?? address['village'] ?? address['county']) as String?;
+
+      final parts = [
+        if (road != null) (houseNumber != null ? '$road $houseNumber' : road),
+        if (locality != null) locality,
+      ];
+      if (parts.isNotEmpty) return parts.join(', ');
+      return data['display_name'] as String?;
+    } catch (_) {
+      return null;
+    }
+  }
 }
