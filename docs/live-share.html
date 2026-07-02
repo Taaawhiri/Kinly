@@ -53,26 +53,39 @@
   .leaflet-control-zoom a { color: var(--primary) !important; }
   .leaflet-control-attribution { border-radius: 8px 0 0 0 !important; font-size: 10.5px !important; }
 
-  /* Marcatore: cerchio pieno del colore dell'app con un alone che pulsa,
-     al posto del pin blu di default di Leaflet. */
+  /* Marcatore: l'avatar scelto dalla persona (emoji su sfondo sfumato,
+     come nell'app) con un alone che pulsa, al posto del pin di default
+     di Leaflet. Se non ha scelto un avatar, ripiega sull'iniziale del
+     nome col suo colore. */
   .kinly-marker {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: var(--primary);
+    width: 40px; height: 40px; border-radius: 50%;
     border: 3px solid white;
     box-shadow: 0 2px 8px rgba(28,34,51,0.3);
     position: relative;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 19px;
+    color: white;
+    font-weight: 700;
   }
   .kinly-marker::after {
     content: '';
     position: absolute; inset: -10px;
     border-radius: 50%;
-    background: rgba(74, 99, 231, 0.25);
+    background: rgba(74, 99, 231, 0.22);
     animation: ring 2s ease-out infinite;
+    z-index: -1;
   }
   @keyframes ring {
-    0% { transform: scale(0.5); opacity: 0.8; }
-    100% { transform: scale(1.6); opacity: 0; }
+    0% { transform: scale(0.6); opacity: 0.8; }
+    100% { transform: scale(1.5); opacity: 0; }
   }
+
+  /* Popup della batteria, aperto toccando l'avatar sulla mappa. */
+  .leaflet-popup-content-wrapper { border-radius: 14px !important; box-shadow: 0 8px 24px rgba(28,34,51,0.18) !important; }
+  .leaflet-popup-content { margin: 12px 14px !important; font-family: system-ui, -apple-system, sans-serif; }
+  .battery-row { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+  .battery-row svg { width: 20px; height: 20px; flex: none; }
+  .updated-at { font-size: 11.5px; color: var(--text-secondary); margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -83,6 +96,55 @@
 <div id="map"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+  // Stessa tavolozza di avatar a tema dell'app (vedi lib/utils/avatar_catalog.dart):
+  // emoji su sfondo sfumato a due colori, scelta dalla persona nel suo profilo.
+  var AVATARS = {
+    fox:     { emoji: '🦊', colors: ['#FF9A56', '#FF6B35'] },
+    cat:     { emoji: '🐱', colors: ['#B388EB', '#8C6FD1'] },
+    dog:     { emoji: '🐶', colors: ['#FFC15E', '#FF9F1C'] },
+    owl:     { emoji: '🦉', colors: ['#6E7F9E', '#4A5A79'] },
+    panda:   { emoji: '🐼', colors: ['#8FA3BF', '#5E7290'] },
+    koala:   { emoji: '🐨', colors: ['#9FB4C9', '#71879E'] },
+    lion:    { emoji: '🦁', colors: ['#FFC857', '#E8A73B'] },
+    rabbit:  { emoji: '🐰', colors: ['#FF9EC4', '#E87DA6'] },
+    bear:    { emoji: '🐻', colors: ['#B08968', '#8A6647'] },
+    penguin: { emoji: '🐧', colors: ['#5CC8D7', '#3A9CAB'] },
+  };
+
+  function markerHtml(name, color, avatarKey) {
+    var avatar = AVATARS[avatarKey];
+    if (avatar) {
+      var bg = 'linear-gradient(135deg,' + avatar.colors[0] + ',' + avatar.colors[1] + ')';
+      return '<div class="kinly-marker" style="background:' + bg + '">' + avatar.emoji + '</div>';
+    }
+    var initial = (name || '?').trim().charAt(0).toUpperCase() || '?';
+    return '<div class="kinly-marker" style="background:' + (color || '#4A63E7') + '">' + initial + '</div>';
+  }
+
+  function batteryIcon(pct) {
+    var color = pct <= 20 ? '#C0392B' : (pct <= 40 ? '#E8A73B' : '#2E9E5B');
+    var fillWidth = Math.max(2, Math.round((pct / 100) * 14));
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+      '<rect x="2" y="7" width="17" height="10" rx="2"/>' +
+      '<path d="M21 10v4" stroke-width="2.2"/>' +
+      '<rect x="4" y="9" width="' + fillWidth + '" height="6" fill="' + color + '" stroke="none"/>' +
+      '</svg>';
+  }
+
+  function popupHtml(name, batteryPercent, updatedAt) {
+    var battery = (batteryPercent == null)
+      ? '<div class="battery-row">Batteria non disponibile</div>'
+      : '<div class="battery-row">' + batteryIcon(batteryPercent) + '<span>' + batteryPercent + '% di batteria</span></div>';
+    var when = '';
+    if (updatedAt) {
+      try {
+        var d = new Date(updatedAt);
+        when = '<div class="updated-at">Aggiornato alle ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) + '</div>';
+      } catch (_) {}
+    }
+    return battery + when;
+  }
+
   // Il token arriva dall'URL della pagina stessa (?t=...): questa pagina e'
   // statica e uguale per tutti, e' l'API Supabase sotto a decidere di chi e'
   // la posizione e se il link e' ancora valido.
@@ -95,13 +157,6 @@
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap'
   }).addTo(map);
-
-  var kinlyIcon = L.divIcon({
-    className: '',
-    html: '<div class="kinly-marker"></div>',
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
-  });
 
   var marker = null;
   var centered = false;
@@ -119,13 +174,24 @@
           bannerText.innerHTML = '<span class="expired">Questo link e\' scaduto.</span>';
           return;
         }
-        bannerText.innerHTML = '<span class="live-dot"></span>Posizione live di <b>' + (data.name || 'Qualcuno') + '</b>';
+        var name = data.name || 'Qualcuno';
+        bannerText.innerHTML = '<span class="live-dot"></span>Posizione live di <b>' + name + '</b>';
         if (data.lat == null) { setTimeout(refresh, 15000); return; }
         var pos = [data.lat, data.lng];
+        var icon = L.divIcon({
+          className: '',
+          html: markerHtml(name, data.color, data.avatar_key),
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+          popupAnchor: [0, -18],
+        });
+        var popup = popupHtml(name, data.battery_percent, data.updated_at);
         if (!marker) {
-          marker = L.marker(pos, { icon: kinlyIcon }).addTo(map);
+          marker = L.marker(pos, { icon: icon }).addTo(map).bindPopup(popup);
         } else {
           marker.setLatLng(pos);
+          marker.setIcon(icon);
+          marker.setPopupContent(popup);
         }
         if (!centered) { map.setView(pos, 15); centered = true; }
         setTimeout(refresh, 15000);

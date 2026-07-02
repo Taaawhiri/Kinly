@@ -50,13 +50,16 @@ Deno.serve(async (req) => {
 
   const [{ data: loc }, { data: profile }] = await Promise.all([
     supabase.from('locations').select('lat, lng, updated_at').eq('profile_id', link!.profile_id).maybeSingle(),
-    supabase.from('profiles').select('name').eq('id', link!.profile_id).single(),
+    supabase.from('profiles').select('name, color, avatar_key, battery_percent').eq('id', link!.profile_id).single(),
   ]);
 
   return new Response(
     JSON.stringify({
       expired: false,
       name: profile?.name ?? 'Qualcuno',
+      color: profile?.color ?? '#4A63E7',
+      avatar_key: profile?.avatar_key ?? null,
+      battery_percent: profile?.battery_percent ?? null,
       lat: loc?.lat ?? null,
       lng: loc?.lng ?? null,
       updated_at: loc?.updated_at ?? null,
