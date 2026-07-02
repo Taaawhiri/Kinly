@@ -937,12 +937,16 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             ),
             if (!_webNoticeDismissed)
               SafeArea(
-                // Sotto la barra di ricerca, non sopra: alla stessa altezza
-                // finivano incollati uno sull'altro, illeggibili entrambi.
+                // Sotto la barra di ricerca, non sopra (altrimenti finiscono
+                // incollati uno sull'altro) e con lo stesso margine destro
+                // della barra di ricerca: su schermi stretti (mobile web)
+                // senza quel margine finiva largo quanto lo schermo, sotto
+                // la pillola SOS/Aiuto/Accompagnami a destra — la "X" per
+                // chiuderlo restava così coperta e non cliccabile.
                 child: Align(
                   alignment: Alignment.topCenter,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 78, 16, 0),
+                    padding: const EdgeInsets.fromLTRB(16, 78, 92, 0),
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 420),
                       child: _WebCompanionNotice(onDismiss: _dismissWebNotice),

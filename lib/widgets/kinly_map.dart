@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import '../models/meeting_point.dart';
@@ -10,6 +11,16 @@ import '../theme/app_theme.dart';
 import '../utils/avatar_catalog.dart';
 import '../utils/color_hex.dart';
 import '../utils/geo_circle.dart';
+
+/// I pin persona/punto d'incontro vengono disegnati a questa risoluzione
+/// (2x le dimensioni "logiche") per restare nitidi sugli schermi ad alta
+/// densità. Su Android/iOS il plugin comunica questo fattore alla mappa
+/// nativa, che quindi li mostra già alla dimensione giusta; il plugin web
+/// invece lo ignora sempre (vedi `addImage` in maplibre_gl_web, che passa
+/// `pixelRatio: 1` in modo fisso) e mostrerebbe l'immagine a grandezza
+/// doppia — da qui l'avatar "enorme" sul browser. Su web compensiamo
+/// dimezzando `iconSize` in fase di aggiunta del simbolo.
+const double _avatarBitmapPixelRatio = 2.0;
 
 /// La mappa vera di Kinly: dati OpenStreetMap via OpenFreeMap (nessuna
 /// chiave, nessun limite d'uso), con uno stile personalizzato nei colori
@@ -233,13 +244,18 @@ class _KinlyMapState extends State<KinlyMap> {
     }
 
     await controller.clearSymbols();
+    // Su web l'immagine viene sempre registrata come se fosse a 1x (vedi
+    // commento su _avatarBitmapPixelRatio): compensiamo qui riducendo la
+    // dimensione visualizzata, così il pin torna alla stessa grandezza
+    // "logica" che si vede su Android/iOS invece di apparire doppio.
+    final iconSize = kIsWeb ? 1 / _avatarBitmapPixelRatio : 1.0;
     for (final person in people) {
       final imageName = await _ensureAvatarImage(controller, person);
       await controller.addSymbol(
         SymbolOptions(
           geometry: LatLng(person.lat!, person.lng!),
           iconImage: imageName,
-          iconSize: 1,
+          iconSize: iconSize,
           iconAnchor: 'bottom',
         ),
         {'personId': person.id},
@@ -253,7 +269,7 @@ class _KinlyMapState extends State<KinlyMap> {
           SymbolOptions(
             geometry: LatLng(point.lat, point.lng),
             iconImage: meetingImageName,
-            iconSize: 1,
+            iconSize: iconSize,
             iconAnchor: 'bottom',
           ),
           {'meetingPointId': point.id},
