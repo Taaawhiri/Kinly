@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
@@ -724,11 +725,16 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                             ),
                             Expanded(
                               child: people.isEmpty
-                                  ? Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
+                                  // Anche vuoto, deve restare un ListView con lo stesso
+                                  // scrollController del DraggableScrollableSheet: è da lì
+                                  // che il foglio capisce il gesto di trascinamento su/giù.
+                                  // Un Center al posto della lista lo disconnetterebbe.
+                                  ? ListView(
+                                      controller: scrollController,
+                                      physics: const AlwaysScrollableScrollPhysics(),
+                                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                                      children: [
+                                        Column(
                                           children: [
                                             Icon(Icons.person_add_alt_1_rounded, size: 32, color: AppTheme.textSecondary),
                                             const SizedBox(height: 10),
@@ -739,7 +745,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                                             ),
                                           ],
                                         ),
-                                      ),
+                                      ],
                                     )
                                   : ListView.separated(
                                       controller: scrollController,
@@ -1237,11 +1243,50 @@ class _CenterOnMeButton extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: loading
               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.2))
-              : Icon(Icons.gps_fixed_rounded, color: AppTheme.primary, size: 20),
+              : SizedBox(width: 20, height: 20, child: CustomPaint(painter: _GpsIconPainter(color: AppTheme.primary))),
         ),
       ),
     );
   }
+}
+
+/// Icona GPS disegnata a mano invece di usare un glifo Material: i glifi
+/// "my_location"/"gps_fixed" hanno il punto centrale otticamente decentrato
+/// nel loro riquadro, visibile proprio dentro un pulsante circolare piccolo.
+/// Disegnando noi il cerchio e il puntino sullo stesso centro esatto del
+/// canvas, la centratura è garantita.
+class _GpsIconPainter extends CustomPainter {
+  const _GpsIconPainter({required this.color});
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final ringPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8;
+    final tickPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round;
+    const ringRadius = 5.5;
+    const tickLength = 3.0;
+    const tickGap = 1.5;
+    canvas.drawCircle(center, ringRadius, ringPaint);
+    canvas.drawCircle(center, 2.2, Paint()..color = color);
+    for (final angle in [-90.0, 0.0, 90.0, 180.0]) {
+      final rad = angle * 3.1415926535 / 180;
+      final dir = Offset(math.cos(rad), math.sin(rad));
+      final start = center + dir * (ringRadius + tickGap);
+      final end = start + dir * tickLength;
+      canvas.drawLine(start, end, tickPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _GpsIconPainter oldDelegate) => oldDelegate.color != color;
 }
 
 class _HelpRequestSheetState extends State<_HelpRequestSheet> {

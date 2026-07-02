@@ -9,18 +9,32 @@ class NearbyPoiService {
   NearbyPoiService._();
   static final instance = NearbyPoiService._();
 
-  // Il server pubblico principale (overpass-api.de) è spesso sovraccarico o
-  // lento nelle ore di punta: proviamo prima un mirror alternativo e
-  // ripieghiamo sul principale solo se il primo non risponde, invece di
-  // affidarci a un solo server.
+  // I server pubblici Overpass (nessuno dei quali richiede una chiave) sono
+  // spesso sovraccarichi o lenti nelle ore di punta, uno più dell'altro a
+  // seconda del momento: proviamo in sequenza più mirror indipendenti
+  // invece di affidarci a uno o due soli, così un singolo server in
+  // difficoltà non fa sparire del tutto i punti di interesse.
   static const _endpoints = [
     'https://overpass.kumi.systems/api/interpreter',
     'https://overpass-api.de/api/interpreter',
+    'https://overpass.openstreetmap.fr/api/interpreter',
+    'https://overpass.openstreetmap.ru/api/interpreter',
+    'https://overpass.private.coffee/api/interpreter',
   ];
 
+  /// Tempo massimo per ogni singolo server: deve superare il `timeout`
+  /// dichiarato nella query stessa, altrimenti annulliamo la richiesta
+  /// lato client proprio mentre il server starebbe per rispondere.
+  static const _perServerTimeout = Duration(seconds: 20);
+
+  /// Lancia un'eccezione solo se NESSUN server ha risposto affatto: una
+  /// risposta valida con zero risultati (nessun locale nei paraggi) non è
+  /// un errore e va distinta da un'indisponibilità totale dei server, così
+  /// chi chiama può scegliere di tenere gli ultimi punti mostrati invece di
+  /// farli sparire per un singolo tentativo sfortunato.
   Future<List<NearbyPoi>> nearby(double lat, double lng, {int radiusMeters = 600}) async {
     final query = '''
-[out:json][timeout:15];
+[out:json][timeout:18];
 (
   node["amenity"~"^(restaurant|cafe|bar|pub|pharmacy)\$"](around:$radiusMeters,$lat,$lng);
   node["shop"="supermarket"](around:$radiusMeters,$lat,$lng);
@@ -28,6 +42,7 @@ class NearbyPoiService {
 out center 25;
 ''';
 
+    Object? lastError;
     for (final endpoint in _endpoints) {
       try {
         final response = await http
@@ -36,13 +51,15 @@ out center 25;
               headers: {'Content-Type': 'application/x-www-form-urlencoded'},
               body: {'data': query},
             )
-            .timeout(const Duration(seconds: 12));
+            .timeout(_perServerTimeout);
         if (response.statusCode == 200) return _parse(response.body);
-      } catch (_) {
+        lastError = 'HTTP ${response.statusCode} da $endpoint';
+      } catch (e) {
+        lastError = e;
         // Prova il prossimo server prima di arrenderti.
       }
     }
-    return [];
+    throw Exception('Nessun server Overpass raggiungibile: $lastError');
   }
 
   List<NearbyPoi> _parse(String body) {
