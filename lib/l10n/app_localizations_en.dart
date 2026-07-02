@@ -92,6 +92,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonSomeone => 'Someone';
 
   @override
+  String get commonSave => 'Save';
+
+  @override
+  String get commonRemove => 'Remove';
+
+  @override
+  String get commonNotNow => 'Not now';
+
+  @override
+  String get commonActivate => 'Activate';
+
+  @override
+  String get commonDone => 'Done';
+
+  @override
   String get mapNeedCircleFirst => 'Create or join a circle first.';
 
   @override
@@ -862,4 +877,221 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileFeaturePrioritySupportDesc => 'Dedicated support for your circle, 7 days a week.';
+
+  @override
+  String get privacyTitle => 'Privacy and safety';
+
+  @override
+  String get privacyLocationVisibilityInfo => 'Your location is only visible to people in one of your circles, and only according to the sharing mode you choose from your profile (automatic, on request, or paused).';
+
+  @override
+  String get privacySosSmsNumberTitle => 'SOS SMS number';
+
+  @override
+  String get privacyPhoneExampleHint => 'E.g. +1 555 1234567';
+
+  @override
+  String get privacyPlusFeatureTitle => 'Kinly+ feature';
+
+  @override
+  String get privacyCrashDetectionPlusBody => 'Crash detection (automatic SOS after a violent impact while driving) is a Kinly+ benefit.';
+
+  @override
+  String get privacyBackgroundTrackingPlusBody => 'Background tracking (location keeps updating even with the app closed) is a Kinly+ benefit.';
+
+  @override
+  String get privacyEnableBackgroundTrackingTitle => 'Enable background tracking?';
+
+  @override
+  String get privacyEnableBackgroundTrackingBody => 'Your location will keep updating even when Kinly isn\'t in the foreground. It uses more battery and always shows a persistent notification while active, as required by Android.';
+
+  @override
+  String get privacyExtraStepTitle => 'One more step needed';
+
+  @override
+  String get privacyExtraStepBody => 'Your Android requires manually enabling the \"Allow all the time\" location permission from system settings, then come back here and turn the switch back on.';
+
+  @override
+  String get privacyOpenSettings => 'Open settings';
+
+  @override
+  String get privacyGrantLocationFirst => 'You need to grant Kinly location permission first.';
+
+  @override
+  String get privacyBiometricAuthFailed => 'We couldn\'t verify your identity.';
+
+  @override
+  String get privacyOtherDevicesSignedOut => 'All other devices have been signed out.';
+
+  @override
+  String get privacyOperationFailed => 'We couldn\'t complete the operation. Please try again.';
+
+  @override
+  String get privacyBirthdayTitle => 'Date of birth';
+
+  @override
+  String get privacyDateHint => 'DD/MM/YYYY';
+
+  @override
+  String get privacyInvalidDate => 'Invalid date';
+
+  @override
+  String get privacyPaymentLinkTitle => 'Payment link';
+
+  @override
+  String get privacyPaymentLinkHint => 'E.g. Satispay link, PayPal.me/...';
+
+  @override
+  String get privacyPhoneNumberTitle => 'Phone number';
+
+  @override
+  String get privacyAccountHeader => 'Account';
+
+  @override
+  String get privacyPersonalInfoHeader => 'Personal info';
+
+  @override
+  String get privacyBiometricHeader => 'Biometric access';
+
+  @override
+  String get privacyBackgroundTrackingHeader => 'Background tracking';
+
+  @override
+  String get privacyGhostScheduleHeader => 'Availability hours';
+
+  @override
+  String get privacySosHeader => 'SOS';
+
+  @override
+  String get privacySpeedAlertHeader => 'Speed alert';
+
+  @override
+  String get privacyWeeklySummaryHeader => 'Weekly summary';
+
+  @override
+  String get privacyGuideHeader => 'Guide';
+
+  @override
+  String get privacyChangePassword => 'Change password';
+
+  @override
+  String get privacySignOutOtherDevices => 'Sign out other devices';
+
+  @override
+  String get privacyPersonalInfoHint => 'Optional: only used for a birthday icon among circle members, to open a direct payment from group expenses, and so whoever receives your SOS or help request can call you.';
+
+  @override
+  String get privacyAddBirthday => 'Add date of birth';
+
+  @override
+  String privacyBirthdaySet(String date) {
+    return 'Birthday: $date';
+  }
+
+  @override
+  String get privacyAddPaymentLink => 'Add payment link';
+
+  @override
+  String get privacyPaymentLinkSet => 'Payment link set';
+
+  @override
+  String get privacyAddPhoneNumber => 'Add phone number';
+
+  @override
+  String privacyPhoneNumberSet(String phone) {
+    return 'Number: $phone';
+  }
+
+  @override
+  String get privacyBiometricHint => 'Require fingerprint, face or device code every time you open Kinly.';
+
+  @override
+  String get privacyBiometricUnlock => 'Biometric unlock';
+
+  @override
+  String get privacyBackgroundTrackingHint => 'By default Kinly only updates your location while it\'s open. Turn this on to keep it updating in the background too: it uses more battery and always shows a persistent notification while active.';
+
+  @override
+  String get privacyEnableInBackground => 'Enable in background';
+
+  @override
+  String get privacyGhostScheduleHint => 'Useful for work: outside this time window no one sees your location, in any of your circles (automatic \"clock-out\").';
+
+  @override
+  String get privacyLimitHours => 'Limit hours';
+
+  @override
+  String get privacyFrom => 'From';
+
+  @override
+  String get privacyTo => 'To';
+
+  @override
+  String get privacySosAllCircles => 'For now this notifies all your circles. You can choose only some people.';
+
+  @override
+  String privacySosSelectedCount(int count) {
+    return 'Notifies only $count chosen people, not the whole circle.';
+  }
+
+  @override
+  String get privacySosWhoToNotify => 'Who to notify in case of SOS';
+
+  @override
+  String get privacySosSmsNumberEmpty => 'SOS SMS number (if you\'re offline)';
+
+  @override
+  String privacySosSmsNumberSet(String number) {
+    return 'SOS via SMS: $number';
+  }
+
+  @override
+  String get privacyCrashDetectionTitle => 'Crash detection';
+
+  @override
+  String get privacyCrashDetectionDesc => 'After a violent impact while driving, a countdown starts: if you don\'t cancel it, automatic SOS.';
+
+  @override
+  String get privacySpeedAlertHint => 'Set your own threshold: circle members with Kinly+ get an alert if you exceed it while driving.';
+
+  @override
+  String get privacyEnableAlert => 'Enable alert';
+
+  @override
+  String get privacyThreshold => 'Threshold';
+
+  @override
+  String privacySpeedKmh(int speed) {
+    return '$speed km/h';
+  }
+
+  @override
+  String get privacyWeeklySummaryHint => 'A weekly notification with the circle\'s activity: SOS, help requests, safe zone entries, speed alerts.';
+
+  @override
+  String get privacyReceiveSummary => 'Receive the summary';
+
+  @override
+  String get privacyReviewCirclesGuide => 'Review the circles guide';
+
+  @override
+  String get changePasswordMismatch => 'The two passwords don\'t match.';
+
+  @override
+  String get changePasswordGenericError => 'We couldn\'t change the password. Please try again.';
+
+  @override
+  String get changePasswordDoneTitle => 'Password updated';
+
+  @override
+  String get changePasswordDoneBody => 'From now on, use the new password to sign in.';
+
+  @override
+  String get changePasswordNew => 'New password';
+
+  @override
+  String get changePasswordMinChars => 'At least 6 characters.';
+
+  @override
+  String get changePasswordConfirmHint => 'Confirm password';
 }

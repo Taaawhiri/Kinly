@@ -92,6 +92,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get commonSomeone => 'Qualcuno';
 
   @override
+  String get commonSave => 'Salva';
+
+  @override
+  String get commonRemove => 'Rimuovi';
+
+  @override
+  String get commonNotNow => 'Non ora';
+
+  @override
+  String get commonActivate => 'Attiva';
+
+  @override
+  String get commonDone => 'Fatto';
+
+  @override
   String get mapNeedCircleFirst => 'Crea o entra in una cerchia prima.';
 
   @override
@@ -862,4 +877,221 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get profileFeaturePrioritySupportDesc => 'Supporto dedicato per la tua cerchia, 7 giorni su 7.';
+
+  @override
+  String get privacyTitle => 'Privacy e sicurezza';
+
+  @override
+  String get privacyLocationVisibilityInfo => 'La tua posizione è visibile solo a chi fa parte di una tua cerchia, e solo secondo la modalità di condivisione che scegli dal profilo (automatica, su richiesta o sospesa).';
+
+  @override
+  String get privacySosSmsNumberTitle => 'Numero SOS via SMS';
+
+  @override
+  String get privacyPhoneExampleHint => 'Es. +39 333 1234567';
+
+  @override
+  String get privacyPlusFeatureTitle => 'Funzione Kinly+';
+
+  @override
+  String get privacyCrashDetectionPlusBody => 'Il rilevamento incidenti (SOS automatico dopo un urto violento in auto) è un vantaggio Kinly+.';
+
+  @override
+  String get privacyBackgroundTrackingPlusBody => 'Il tracciamento in background (la posizione continua ad aggiornarsi anche con l\'app chiusa) è un vantaggio Kinly+.';
+
+  @override
+  String get privacyEnableBackgroundTrackingTitle => 'Attivare il tracciamento in background?';
+
+  @override
+  String get privacyEnableBackgroundTrackingBody => 'La tua posizione continuerà ad aggiornarsi anche quando Kinly non è in primo piano. Consuma più batteria e mostra sempre una notifica fissa mentre è attivo, come richiesto da Android.';
+
+  @override
+  String get privacyExtraStepTitle => 'Serve un passaggio in più';
+
+  @override
+  String get privacyExtraStepBody => 'Il tuo Android richiede di attivare a mano il permesso di posizione \"Consenti sempre\" dalle impostazioni di sistema, poi torna qui e riattiva l\'interruttore.';
+
+  @override
+  String get privacyOpenSettings => 'Apri impostazioni';
+
+  @override
+  String get privacyGrantLocationFirst => 'Prima serve concedere il permesso di posizione a Kinly.';
+
+  @override
+  String get privacyBiometricAuthFailed => 'Non siamo riusciti a verificare la tua identità.';
+
+  @override
+  String get privacyOtherDevicesSignedOut => 'Tutti gli altri dispositivi sono stati disconnessi.';
+
+  @override
+  String get privacyOperationFailed => 'Non siamo riusciti a completare l\'operazione. Riprova.';
+
+  @override
+  String get privacyBirthdayTitle => 'Data di nascita';
+
+  @override
+  String get privacyDateHint => 'GG/MM/AAAA';
+
+  @override
+  String get privacyInvalidDate => 'Data non valida';
+
+  @override
+  String get privacyPaymentLinkTitle => 'Link di pagamento';
+
+  @override
+  String get privacyPaymentLinkHint => 'Es. link Satispay, PayPal.me/...';
+
+  @override
+  String get privacyPhoneNumberTitle => 'Numero di telefono';
+
+  @override
+  String get privacyAccountHeader => 'Account';
+
+  @override
+  String get privacyPersonalInfoHeader => 'Info personali';
+
+  @override
+  String get privacyBiometricHeader => 'Accesso biometrico';
+
+  @override
+  String get privacyBackgroundTrackingHeader => 'Tracciamento in background';
+
+  @override
+  String get privacyGhostScheduleHeader => 'Orario di reperibilità';
+
+  @override
+  String get privacySosHeader => 'SOS';
+
+  @override
+  String get privacySpeedAlertHeader => 'Avviso di velocità';
+
+  @override
+  String get privacyWeeklySummaryHeader => 'Riepilogo settimanale';
+
+  @override
+  String get privacyGuideHeader => 'Guida';
+
+  @override
+  String get privacyChangePassword => 'Cambia password';
+
+  @override
+  String get privacySignOutOtherDevices => 'Esci dagli altri dispositivi';
+
+  @override
+  String get privacyPersonalInfoHint => 'Facoltative: usate solo per un\'iconcina di compleanno tra i membri della cerchia, per aprire un pagamento diretto dalle spese di gruppo e per farti chiamare da chi riceve un tuo SOS o richiesta di aiuto.';
+
+  @override
+  String get privacyAddBirthday => 'Aggiungi data di nascita';
+
+  @override
+  String privacyBirthdaySet(String date) {
+    return 'Compleanno: $date';
+  }
+
+  @override
+  String get privacyAddPaymentLink => 'Aggiungi link di pagamento';
+
+  @override
+  String get privacyPaymentLinkSet => 'Link di pagamento impostato';
+
+  @override
+  String get privacyAddPhoneNumber => 'Aggiungi numero di telefono';
+
+  @override
+  String privacyPhoneNumberSet(String phone) {
+    return 'Numero: $phone';
+  }
+
+  @override
+  String get privacyBiometricHint => 'Richiedi impronta, volto o codice del dispositivo ogni volta che apri Kinly.';
+
+  @override
+  String get privacyBiometricUnlock => 'Sblocco biometrico';
+
+  @override
+  String get privacyBackgroundTrackingHint => 'Per impostazione predefinita Kinly aggiorna la tua posizione solo mentre è aperta. Attivalo per farla continuare anche in background: consuma più batteria e mostra sempre una notifica fissa mentre è attivo.';
+
+  @override
+  String get privacyEnableInBackground => 'Attiva in background';
+
+  @override
+  String get privacyGhostScheduleHint => 'Utile per il lavoro: fuori da questa fascia oraria nessuno vede la tua posizione, in nessuna delle tue cerchie (\"clock-out\" automatico).';
+
+  @override
+  String get privacyLimitHours => 'Limita l\'orario';
+
+  @override
+  String get privacyFrom => 'Dalle';
+
+  @override
+  String get privacyTo => 'Alle';
+
+  @override
+  String get privacySosAllCircles => 'Per ora avvisa tutte le tue cerchie. Puoi scegliere solo alcune persone.';
+
+  @override
+  String privacySosSelectedCount(int count) {
+    return 'Avvisa solo $count persone scelte, non tutta la cerchia.';
+  }
+
+  @override
+  String get privacySosWhoToNotify => 'Chi avvisare in caso di SOS';
+
+  @override
+  String get privacySosSmsNumberEmpty => 'Numero SOS via SMS (se sei offline)';
+
+  @override
+  String privacySosSmsNumberSet(String number) {
+    return 'SOS via SMS: $number';
+  }
+
+  @override
+  String get privacyCrashDetectionTitle => 'Rilevamento incidenti';
+
+  @override
+  String get privacyCrashDetectionDesc => 'Dopo un urto violento mentre sei in auto, parte un conto alla rovescia: se non lo annulli, SOS automatico.';
+
+  @override
+  String get privacySpeedAlertHint => 'Imposta una tua soglia: chi ha Kinly+ nella tua cerchia riceve un avviso se la superi guidando.';
+
+  @override
+  String get privacyEnableAlert => 'Attiva avviso';
+
+  @override
+  String get privacyThreshold => 'Soglia';
+
+  @override
+  String privacySpeedKmh(int speed) {
+    return '$speed km/h';
+  }
+
+  @override
+  String get privacyWeeklySummaryHint => 'Una notifica alla settimana con l\'attività della cerchia: SOS, richieste di aiuto, ingressi in aree sicure, avvisi di velocità.';
+
+  @override
+  String get privacyReceiveSummary => 'Ricevi il riepilogo';
+
+  @override
+  String get privacyReviewCirclesGuide => 'Rivedi la guida delle cerchie';
+
+  @override
+  String get changePasswordMismatch => 'Le due password non coincidono.';
+
+  @override
+  String get changePasswordGenericError => 'Non siamo riusciti a cambiare la password. Riprova.';
+
+  @override
+  String get changePasswordDoneTitle => 'Password aggiornata';
+
+  @override
+  String get changePasswordDoneBody => 'D\'ora in poi usa la nuova password per accedere.';
+
+  @override
+  String get changePasswordNew => 'Nuova password';
+
+  @override
+  String get changePasswordMinChars => 'Almeno 6 caratteri.';
+
+  @override
+  String get changePasswordConfirmHint => 'Conferma password';
 }

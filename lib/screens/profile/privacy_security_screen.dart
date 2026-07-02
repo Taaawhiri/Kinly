@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/auth_service.dart';
 import '../../services/background_tracking_settings.dart';
 import '../../services/biometric_lock_service.dart';
@@ -60,19 +61,20 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
 
   Future<void> _editEmergencySmsNumber() async {
     final controller = TextEditingController(text: _emergencySmsNumber ?? '');
+    final l10n = AppLocalizations.of(context)!;
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Numero SOS via SMS'),
+        title: Text(l10n.privacySosSmsNumberTitle),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.phone,
-          decoration: const InputDecoration(hintText: 'Es. +39 333 1234567'),
+          decoration: InputDecoration(hintText: l10n.privacyPhoneExampleHint),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(''), child: const Text('Rimuovi')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text.trim()), child: const Text('Salva')),
+          TextButton(onPressed: () => Navigator.of(context).pop(''), child: Text(l10n.commonRemove)),
+          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text.trim()), child: Text(l10n.commonSave)),
         ],
       ),
     );
@@ -84,15 +86,16 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
 
   Future<void> _toggleCrashDetection(bool value) async {
     if (value && !AppState.instance.isPremium) {
+      final l10n = AppLocalizations.of(context)!;
       final goToPaywall = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: const Text('Funzione Kinly+'),
-          content: const Text('Il rilevamento incidenti (SOS automatico dopo un urto violento in auto) è un vantaggio Kinly+.'),
+          title: Text(l10n.privacyPlusFeatureTitle),
+          content: Text(l10n.privacyCrashDetectionPlusBody),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Non ora')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Scopri Kinly+')),
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonNotNow)),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.circleMessagesDiscoverPlus)),
           ],
         ),
       );
@@ -111,6 +114,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   }
 
   Future<void> _toggleBackgroundTracking(bool value) async {
+    final l10n = AppLocalizations.of(context)!;
     if (!value) {
       setState(() => _backgroundTrackingEnabled = false);
       await LocationTracker.instance.disableBackgroundTracking();
@@ -122,13 +126,11 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
         context: context,
         builder: (context) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: const Text('Funzione Kinly+'),
-          content: const Text(
-            'Il tracciamento in background (la posizione continua ad aggiornarsi anche con l\'app chiusa) è un vantaggio Kinly+.',
-          ),
+          title: Text(l10n.privacyPlusFeatureTitle),
+          content: Text(l10n.privacyBackgroundTrackingPlusBody),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Non ora')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Scopri Kinly+')),
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonNotNow)),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.circleMessagesDiscoverPlus)),
           ],
         ),
       );
@@ -142,14 +144,11 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Attivare il tracciamento in background?'),
-        content: const Text(
-          'La tua posizione continuerà ad aggiornarsi anche quando Kinly non è in primo piano. '
-          'Consuma più batteria e mostra sempre una notifica fissa mentre è attivo, come richiesto da Android.',
-        ),
+        title: Text(l10n.privacyEnableBackgroundTrackingTitle),
+        content: Text(l10n.privacyEnableBackgroundTrackingBody),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Annulla')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Attiva')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonCancel)),
+          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.commonActivate)),
         ],
       ),
     );
@@ -168,20 +167,18 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
         context: context,
         builder: (context) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: const Text('Serve un passaggio in più'),
-          content: const Text(
-            'Il tuo Android richiede di attivare a mano il permesso di posizione "Consenti sempre" dalle impostazioni di sistema, poi torna qui e riattiva l\'interruttore.',
-          ),
+          title: Text(l10n.privacyExtraStepTitle),
+          content: Text(l10n.privacyExtraStepBody),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Non ora')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Apri impostazioni')),
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonNotNow)),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.privacyOpenSettings)),
           ],
         ),
       );
       if (openSettings == true) await Geolocator.openAppSettings();
     } else if (result == BackgroundTrackingResult.locationPermissionDenied) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Prima serve concedere il permesso di posizione a Kinly.')),
+        SnackBar(content: Text(l10n.privacyGrantLocationFirst)),
       );
     }
   }
@@ -203,7 +200,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       final confirmed = await BiometricLockService.instance.authenticate();
       if (!confirmed) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a verificare la tua identità.')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.privacyBiometricAuthFailed)));
         }
         return;
       }
@@ -217,11 +214,11 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     try {
       await AuthService.instance.signOutOtherSessions();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tutti gli altri dispositivi sono stati disconnessi.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.privacyOtherDevicesSignedOut)));
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a completare l\'operazione. Riprova.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.privacyOperationFailed)));
       }
     } finally {
       if (mounted) setState(() => _signingOutOthers = false);
@@ -249,32 +246,33 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   Future<void> _pickBirthday() async {
     final existing = AppState.instance.me.birthday;
     final controller = TextEditingController(text: existing != null ? formatSlashDate(existing) : '');
+    final l10n = AppLocalizations.of(context)!;
     String? error;
     final picked = await showDialog<DateTime>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: const Text('Data di nascita'),
+          title: Text(l10n.privacyBirthdayTitle),
           content: TextField(
             controller: controller,
             autofocus: true,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly, DateSlashFormatter()],
-            decoration: InputDecoration(hintText: 'GG/MM/AAAA', errorText: error),
+            decoration: InputDecoration(hintText: l10n.privacyDateHint, errorText: error),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Annulla')),
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.commonCancel)),
             FilledButton(
               onPressed: () {
                 final date = parseSlashDate(controller.text);
                 if (date == null) {
-                  setDialogState(() => error = 'Data non valida');
+                  setDialogState(() => error = l10n.privacyInvalidDate);
                   return;
                 }
                 Navigator.of(context).pop(date);
               },
-              child: const Text('Salva'),
+              child: Text(l10n.commonSave),
             ),
           ],
         ),
@@ -285,19 +283,20 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
 
   Future<void> _editPaymentLink() async {
     final controller = TextEditingController(text: AppState.instance.me.paymentLink ?? '');
+    final l10n = AppLocalizations.of(context)!;
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Link di pagamento'),
+        title: Text(l10n.privacyPaymentLinkTitle),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.url,
-          decoration: const InputDecoration(hintText: 'Es. link Satispay, PayPal.me/...'),
+          decoration: InputDecoration(hintText: l10n.privacyPaymentLinkHint),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(''), child: const Text('Rimuovi')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text.trim()), child: const Text('Salva')),
+          TextButton(onPressed: () => Navigator.of(context).pop(''), child: Text(l10n.commonRemove)),
+          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text.trim()), child: Text(l10n.commonSave)),
         ],
       ),
     );
@@ -307,19 +306,20 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
 
   Future<void> _editPhoneNumber() async {
     final controller = TextEditingController(text: AppState.instance.me.phoneNumber ?? '');
+    final l10n = AppLocalizations.of(context)!;
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Numero di telefono'),
+        title: Text(l10n.privacyPhoneNumberTitle),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.phone,
-          decoration: const InputDecoration(hintText: 'Es. +39 333 1234567'),
+          decoration: InputDecoration(hintText: l10n.privacyPhoneExampleHint),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(''), child: const Text('Rimuovi')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text.trim()), child: const Text('Salva')),
+          TextButton(onPressed: () => Navigator.of(context).pop(''), child: Text(l10n.commonRemove)),
+          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text.trim()), child: Text(l10n.commonSave)),
         ],
       ),
     );
@@ -335,8 +335,9 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
         final state = AppState.instance;
         final speedAlertEnabled = state.me.speedAlertKmh != null;
         final ghostScheduleEnabled = state.autoGhostStart != null && state.autoGhostEnd != null;
+        final l10n = AppLocalizations.of(context)!;
         return Scaffold(
-          appBar: AppBar(title: const Text('Privacy e sicurezza')),
+          appBar: AppBar(title: Text(l10n.privacyTitle)),
           body: SafeArea(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
@@ -351,7 +352,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'La tua posizione è visibile solo a chi fa parte di una tua cerchia, e solo secondo la modalità di condivisione che scegli dal profilo (automatica, su richiesta o sospesa).',
+                          l10n.privacyLocationVisibilityInfo,
                           style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                         ),
                       ),
@@ -359,53 +360,53 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text('Account', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                Text(l10n.privacyAccountHeader, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                 const SizedBox(height: 10),
                 _ActionTile(
                   icon: Icons.lock_outline_rounded,
-                  label: 'Cambia password',
+                  label: l10n.privacyChangePassword,
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ChangePasswordScreen())),
                 ),
                 const SizedBox(height: 10),
                 _ActionTile(
                   icon: Icons.phonelink_erase_outlined,
-                  label: 'Esci dagli altri dispositivi',
+                  label: l10n.privacySignOutOtherDevices,
                   loading: _signingOutOthers,
                   onTap: _signingOutOthers ? null : _signOutOthers,
                 ),
                 const SizedBox(height: 24),
-                Text('Info personali', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                Text(l10n.privacyPersonalInfoHeader, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                 const SizedBox(height: 6),
                 Text(
-                  'Facoltative: usate solo per un\'iconcina di compleanno tra i membri della cerchia, per aprire un pagamento diretto dalle spese di gruppo e per farti chiamare da chi riceve un tuo SOS o richiesta di aiuto.',
+                  l10n.privacyPersonalInfoHint,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                 ),
                 const SizedBox(height: 10),
                 _ActionTile(
                   icon: Icons.cake_outlined,
                   label: state.me.birthday == null
-                      ? 'Aggiungi data di nascita'
-                      : 'Compleanno: ${state.me.birthday!.day.toString().padLeft(2, '0')}/${state.me.birthday!.month.toString().padLeft(2, '0')}',
+                      ? l10n.privacyAddBirthday
+                      : l10n.privacyBirthdaySet('${state.me.birthday!.day.toString().padLeft(2, '0')}/${state.me.birthday!.month.toString().padLeft(2, '0')}'),
                   onTap: _pickBirthday,
                 ),
                 const SizedBox(height: 10),
                 _ActionTile(
                   icon: Icons.payments_outlined,
-                  label: state.me.paymentLink == null ? 'Aggiungi link di pagamento' : 'Link di pagamento impostato',
+                  label: state.me.paymentLink == null ? l10n.privacyAddPaymentLink : l10n.privacyPaymentLinkSet,
                   onTap: _editPaymentLink,
                 ),
                 const SizedBox(height: 10),
                 _ActionTile(
                   icon: Icons.call_outlined,
-                  label: state.me.phoneNumber == null ? 'Aggiungi numero di telefono' : 'Numero: ${state.me.phoneNumber}',
+                  label: state.me.phoneNumber == null ? l10n.privacyAddPhoneNumber : l10n.privacyPhoneNumberSet(state.me.phoneNumber!),
                   onTap: _editPhoneNumber,
                 ),
                 if (!_biometricLoading && _biometricSupported) ...[
                   const SizedBox(height: 24),
-                  Text('Accesso biometrico', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                  Text(l10n.privacyBiometricHeader, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                   const SizedBox(height: 6),
                   Text(
-                    'Richiedi impronta, volto o codice del dispositivo ogni volta che apri Kinly.',
+                    l10n.privacyBiometricHint,
                     style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                   ),
                   const SizedBox(height: 10),
@@ -415,7 +416,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     child: Row(
                       children: [
                         Expanded(
-                          child: Text('Sblocco biometrico', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                          child: Text(l10n.privacyBiometricUnlock, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
                         ),
                         Switch(value: _biometricEnabled, onChanged: _toggleBiometric),
                       ],
@@ -426,7 +427,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   const SizedBox(height: 24),
                   Row(
                     children: [
-                      Text('Tracciamento in background', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                      Text(l10n.privacyBackgroundTrackingHeader, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                       if (!AppState.instance.isPremium) ...[
                         const SizedBox(width: 8),
                         Container(
@@ -439,7 +440,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Per impostazione predefinita Kinly aggiorna la tua posizione solo mentre è aperta. Attivalo per farla continuare anche in background: consuma più batteria e mostra sempre una notifica fissa mentre è attivo.',
+                    l10n.privacyBackgroundTrackingHint,
                     style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                   ),
                   const SizedBox(height: 10),
@@ -449,7 +450,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     child: Row(
                       children: [
                         Expanded(
-                          child: Text('Attiva in background', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                          child: Text(l10n.privacyEnableInBackground, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
                         ),
                         if (_backgroundTrackingBusy)
                           const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.2))
@@ -460,10 +461,10 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ),
                 ],
                 const SizedBox(height: 24),
-                Text('Orario di reperibilità', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                Text(l10n.privacyGhostScheduleHeader, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                 const SizedBox(height: 6),
                 Text(
-                  'Utile per il lavoro: fuori da questa fascia oraria nessuno vede la tua posizione, in nessuna delle tue cerchie ("clock-out" automatico).',
+                  l10n.privacyGhostScheduleHint,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                 ),
                 const SizedBox(height: 10),
@@ -475,7 +476,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: Text('Limita l\'orario', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                            child: Text(l10n.privacyLimitHours, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
                           ),
                           Switch(value: ghostScheduleEnabled, onChanged: _toggleGhostSchedule),
                         ],
@@ -486,7 +487,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                           children: [
                             Expanded(
                               child: _TimeField(
-                                label: 'Dalle',
+                                label: l10n.privacyFrom,
                                 time: state.autoGhostStart!,
                                 onTap: () => _pickGhostTime(isStart: true),
                               ),
@@ -494,7 +495,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _TimeField(
-                                label: 'Alle',
+                                label: l10n.privacyTo,
                                 time: state.autoGhostEnd!,
                                 onTap: () => _pickGhostTime(isStart: false),
                               ),
@@ -506,26 +507,26 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text('SOS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                Text(l10n.privacySosHeader, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                 const SizedBox(height: 6),
                 Text(
                   state.sosTrustedContactIds.isEmpty
-                      ? 'Per ora avvisa tutte le tue cerchie. Puoi scegliere solo alcune persone.'
-                      : 'Avvisa solo ${state.sosTrustedContactIds.length} persone scelte, non tutta la cerchia.',
+                      ? l10n.privacySosAllCircles
+                      : l10n.privacySosSelectedCount(state.sosTrustedContactIds.length),
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                 ),
                 const SizedBox(height: 10),
                 _ActionTile(
                   icon: Icons.emergency_outlined,
-                  label: 'Chi avvisare in caso di SOS',
+                  label: l10n.privacySosWhoToNotify,
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SosContactsScreen())),
                 ),
                 const SizedBox(height: 10),
                 _ActionTile(
                   icon: Icons.sms_outlined,
                   label: _emergencySmsNumber == null
-                      ? 'Numero SOS via SMS (se sei offline)'
-                      : 'SOS via SMS: $_emergencySmsNumber',
+                      ? l10n.privacySosSmsNumberEmpty
+                      : l10n.privacySosSmsNumberSet(_emergencySmsNumber!),
                   onTap: _editEmergencySmsNumber,
                 ),
                 const SizedBox(height: 10),
@@ -541,7 +542,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                             Row(
                               children: [
                                 Flexible(
-                                  child: Text('Rilevamento incidenti', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                                  child: Text(l10n.privacyCrashDetectionTitle, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
                                 ),
                                 if (!AppState.instance.isPremium) ...[
                                   const SizedBox(width: 8),
@@ -555,7 +556,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Dopo un urto violento mentre sei in auto, parte un conto alla rovescia: se non lo annulli, SOS automatico.',
+                              l10n.privacyCrashDetectionDesc,
                               style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, height: 1.3),
                             ),
                           ],
@@ -566,10 +567,10 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text('Avviso di velocità', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                Text(l10n.privacySpeedAlertHeader, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                 const SizedBox(height: 6),
                 Text(
-                  'Imposta una tua soglia: chi ha Kinly+ nella tua cerchia riceve un avviso se la superi guidando.',
+                  l10n.privacySpeedAlertHint,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                 ),
                 const SizedBox(height: 10),
@@ -581,7 +582,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: Text('Attiva avviso', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                            child: Text(l10n.privacyEnableAlert, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
                           ),
                           Switch(
                             value: speedAlertEnabled,
@@ -593,9 +594,9 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                         const Divider(height: 24),
                         Row(
                           children: [
-                            Text('Soglia', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+                            Text(l10n.privacyThreshold, style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
                             const Spacer(),
-                            Text('$_speedThreshold km/h', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                            Text(l10n.privacySpeedKmh(_speedThreshold), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                           ],
                         ),
                         Slider(
@@ -603,7 +604,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                           min: 30,
                           max: 200,
                           divisions: 34,
-                          label: '$_speedThreshold km/h',
+                          label: l10n.privacySpeedKmh(_speedThreshold),
                           onChanged: (v) => setState(() => _speedThreshold = v.round()),
                           onChangeEnd: (v) => AppState.instance.setSpeedAlert(v.round()),
                         ),
@@ -612,10 +613,10 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text('Riepilogo settimanale', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                Text(l10n.privacyWeeklySummaryHeader, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                 const SizedBox(height: 6),
                 Text(
-                  'Una notifica alla settimana con l\'attività della cerchia: SOS, richieste di aiuto, ingressi in aree sicure, avvisi di velocità.',
+                  l10n.privacyWeeklySummaryHint,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                 ),
                 const SizedBox(height: 10),
@@ -625,7 +626,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: Text('Ricevi il riepilogo', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                        child: Text(l10n.privacyReceiveSummary, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
                       ),
                       Switch(
                         value: state.me.weeklySummaryEnabled,
@@ -635,11 +636,11 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text('Guida', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                Text(l10n.privacyGuideHeader, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                 const SizedBox(height: 10),
                 _ActionTile(
                   icon: Icons.help_outline_rounded,
-                  label: 'Rivedi la guida delle cerchie',
+                  label: l10n.privacyReviewCirclesGuide,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const CirclesScreen(forceCoachMark: true)),
                   ),

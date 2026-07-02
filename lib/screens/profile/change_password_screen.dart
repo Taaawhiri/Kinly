@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -25,13 +26,14 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     final password = _passwordController.text;
     if (password.length < 6) {
-      setState(() => _error = 'La password deve avere almeno 6 caratteri.');
+      setState(() => _error = l10n.authPasswordTooShort);
       return;
     }
     if (password != _confirmController.text) {
-      setState(() => _error = 'Le due password non coincidono.');
+      setState(() => _error = l10n.changePasswordMismatch);
       return;
     }
     setState(() {
@@ -45,7 +47,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     } on AuthException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
-      if (mounted) setState(() => _error = 'Non siamo riusciti a cambiare la password. Riprova.');
+      if (mounted) setState(() => _error = l10n.changePasswordGenericError);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -54,7 +56,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cambia password')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.privacyChangePassword)),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
@@ -65,6 +67,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }
 
   Widget _buildDone() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -76,10 +79,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           child: const Icon(Icons.check_rounded, color: AppTheme.accentGreen, size: 34),
         ),
         const SizedBox(height: 20),
-        Text('Password aggiornata', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+        Text(l10n.changePasswordDoneTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
         const SizedBox(height: 8),
         Text(
-          'D\'ora in poi usa la nuova password per accedere.',
+          l10n.changePasswordDoneBody,
           textAlign: TextAlign.center,
           style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5),
         ),
@@ -87,26 +90,27 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         FilledButton(
           onPressed: () => Navigator.of(context).pop(),
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-          child: const Text('Fatto'),
+          child: Text(l10n.commonDone),
         ),
       ],
     );
   }
 
   Widget _buildForm() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Nuova password', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+        Text(l10n.changePasswordNew, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
         const SizedBox(height: 6),
-        Text('Almeno 6 caratteri.', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5)),
+        Text(l10n.changePasswordMinChars, style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5)),
         const SizedBox(height: 20),
         TextField(
           controller: _passwordController,
           obscureText: true,
           autofocus: true,
           decoration: InputDecoration(
-            hintText: 'Nuova password',
+            hintText: l10n.changePasswordNew,
             filled: true,
             fillColor: AppTheme.surface,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -119,7 +123,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           obscureText: true,
           onSubmitted: (_) => _submit(),
           decoration: InputDecoration(
-            hintText: 'Conferma password',
+            hintText: l10n.changePasswordConfirmHint,
             filled: true,
             fillColor: AppTheme.surface,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -136,7 +140,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
           child: _saving
               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
-              : const Text('Salva'),
+              : Text(l10n.commonSave),
         ),
       ],
     );

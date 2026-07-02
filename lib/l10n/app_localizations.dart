@@ -257,6 +257,36 @@ abstract class AppLocalizations {
   /// **'Qualcuno'**
   String get commonSomeone;
 
+  /// No description provided for @commonSave.
+  ///
+  /// In it, this message translates to:
+  /// **'Salva'**
+  String get commonSave;
+
+  /// No description provided for @commonRemove.
+  ///
+  /// In it, this message translates to:
+  /// **'Rimuovi'**
+  String get commonRemove;
+
+  /// No description provided for @commonNotNow.
+  ///
+  /// In it, this message translates to:
+  /// **'Non ora'**
+  String get commonNotNow;
+
+  /// No description provided for @commonActivate.
+  ///
+  /// In it, this message translates to:
+  /// **'Attiva'**
+  String get commonActivate;
+
+  /// No description provided for @commonDone.
+  ///
+  /// In it, this message translates to:
+  /// **'Fatto'**
+  String get commonDone;
+
   /// No description provided for @mapNeedCircleFirst.
   ///
   /// In it, this message translates to:
@@ -1612,6 +1642,420 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Supporto dedicato per la tua cerchia, 7 giorni su 7.'**
   String get profileFeaturePrioritySupportDesc;
+
+  /// No description provided for @privacyTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Privacy e sicurezza'**
+  String get privacyTitle;
+
+  /// No description provided for @privacyLocationVisibilityInfo.
+  ///
+  /// In it, this message translates to:
+  /// **'La tua posizione è visibile solo a chi fa parte di una tua cerchia, e solo secondo la modalità di condivisione che scegli dal profilo (automatica, su richiesta o sospesa).'**
+  String get privacyLocationVisibilityInfo;
+
+  /// No description provided for @privacySosSmsNumberTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Numero SOS via SMS'**
+  String get privacySosSmsNumberTitle;
+
+  /// No description provided for @privacyPhoneExampleHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Es. +39 333 1234567'**
+  String get privacyPhoneExampleHint;
+
+  /// No description provided for @privacyPlusFeatureTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Funzione Kinly+'**
+  String get privacyPlusFeatureTitle;
+
+  /// No description provided for @privacyCrashDetectionPlusBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Il rilevamento incidenti (SOS automatico dopo un urto violento in auto) è un vantaggio Kinly+.'**
+  String get privacyCrashDetectionPlusBody;
+
+  /// No description provided for @privacyBackgroundTrackingPlusBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Il tracciamento in background (la posizione continua ad aggiornarsi anche con l\'app chiusa) è un vantaggio Kinly+.'**
+  String get privacyBackgroundTrackingPlusBody;
+
+  /// No description provided for @privacyEnableBackgroundTrackingTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Attivare il tracciamento in background?'**
+  String get privacyEnableBackgroundTrackingTitle;
+
+  /// No description provided for @privacyEnableBackgroundTrackingBody.
+  ///
+  /// In it, this message translates to:
+  /// **'La tua posizione continuerà ad aggiornarsi anche quando Kinly non è in primo piano. Consuma più batteria e mostra sempre una notifica fissa mentre è attivo, come richiesto da Android.'**
+  String get privacyEnableBackgroundTrackingBody;
+
+  /// No description provided for @privacyExtraStepTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Serve un passaggio in più'**
+  String get privacyExtraStepTitle;
+
+  /// No description provided for @privacyExtraStepBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Il tuo Android richiede di attivare a mano il permesso di posizione \"Consenti sempre\" dalle impostazioni di sistema, poi torna qui e riattiva l\'interruttore.'**
+  String get privacyExtraStepBody;
+
+  /// No description provided for @privacyOpenSettings.
+  ///
+  /// In it, this message translates to:
+  /// **'Apri impostazioni'**
+  String get privacyOpenSettings;
+
+  /// No description provided for @privacyGrantLocationFirst.
+  ///
+  /// In it, this message translates to:
+  /// **'Prima serve concedere il permesso di posizione a Kinly.'**
+  String get privacyGrantLocationFirst;
+
+  /// No description provided for @privacyBiometricAuthFailed.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a verificare la tua identità.'**
+  String get privacyBiometricAuthFailed;
+
+  /// No description provided for @privacyOtherDevicesSignedOut.
+  ///
+  /// In it, this message translates to:
+  /// **'Tutti gli altri dispositivi sono stati disconnessi.'**
+  String get privacyOtherDevicesSignedOut;
+
+  /// No description provided for @privacyOperationFailed.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a completare l\'operazione. Riprova.'**
+  String get privacyOperationFailed;
+
+  /// No description provided for @privacyBirthdayTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Data di nascita'**
+  String get privacyBirthdayTitle;
+
+  /// No description provided for @privacyDateHint.
+  ///
+  /// In it, this message translates to:
+  /// **'GG/MM/AAAA'**
+  String get privacyDateHint;
+
+  /// No description provided for @privacyInvalidDate.
+  ///
+  /// In it, this message translates to:
+  /// **'Data non valida'**
+  String get privacyInvalidDate;
+
+  /// No description provided for @privacyPaymentLinkTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Link di pagamento'**
+  String get privacyPaymentLinkTitle;
+
+  /// No description provided for @privacyPaymentLinkHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Es. link Satispay, PayPal.me/...'**
+  String get privacyPaymentLinkHint;
+
+  /// No description provided for @privacyPhoneNumberTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Numero di telefono'**
+  String get privacyPhoneNumberTitle;
+
+  /// No description provided for @privacyAccountHeader.
+  ///
+  /// In it, this message translates to:
+  /// **'Account'**
+  String get privacyAccountHeader;
+
+  /// No description provided for @privacyPersonalInfoHeader.
+  ///
+  /// In it, this message translates to:
+  /// **'Info personali'**
+  String get privacyPersonalInfoHeader;
+
+  /// No description provided for @privacyBiometricHeader.
+  ///
+  /// In it, this message translates to:
+  /// **'Accesso biometrico'**
+  String get privacyBiometricHeader;
+
+  /// No description provided for @privacyBackgroundTrackingHeader.
+  ///
+  /// In it, this message translates to:
+  /// **'Tracciamento in background'**
+  String get privacyBackgroundTrackingHeader;
+
+  /// No description provided for @privacyGhostScheduleHeader.
+  ///
+  /// In it, this message translates to:
+  /// **'Orario di reperibilità'**
+  String get privacyGhostScheduleHeader;
+
+  /// No description provided for @privacySosHeader.
+  ///
+  /// In it, this message translates to:
+  /// **'SOS'**
+  String get privacySosHeader;
+
+  /// No description provided for @privacySpeedAlertHeader.
+  ///
+  /// In it, this message translates to:
+  /// **'Avviso di velocità'**
+  String get privacySpeedAlertHeader;
+
+  /// No description provided for @privacyWeeklySummaryHeader.
+  ///
+  /// In it, this message translates to:
+  /// **'Riepilogo settimanale'**
+  String get privacyWeeklySummaryHeader;
+
+  /// No description provided for @privacyGuideHeader.
+  ///
+  /// In it, this message translates to:
+  /// **'Guida'**
+  String get privacyGuideHeader;
+
+  /// No description provided for @privacyChangePassword.
+  ///
+  /// In it, this message translates to:
+  /// **'Cambia password'**
+  String get privacyChangePassword;
+
+  /// No description provided for @privacySignOutOtherDevices.
+  ///
+  /// In it, this message translates to:
+  /// **'Esci dagli altri dispositivi'**
+  String get privacySignOutOtherDevices;
+
+  /// No description provided for @privacyPersonalInfoHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Facoltative: usate solo per un\'iconcina di compleanno tra i membri della cerchia, per aprire un pagamento diretto dalle spese di gruppo e per farti chiamare da chi riceve un tuo SOS o richiesta di aiuto.'**
+  String get privacyPersonalInfoHint;
+
+  /// No description provided for @privacyAddBirthday.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi data di nascita'**
+  String get privacyAddBirthday;
+
+  /// No description provided for @privacyBirthdaySet.
+  ///
+  /// In it, this message translates to:
+  /// **'Compleanno: {date}'**
+  String privacyBirthdaySet(String date);
+
+  /// No description provided for @privacyAddPaymentLink.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi link di pagamento'**
+  String get privacyAddPaymentLink;
+
+  /// No description provided for @privacyPaymentLinkSet.
+  ///
+  /// In it, this message translates to:
+  /// **'Link di pagamento impostato'**
+  String get privacyPaymentLinkSet;
+
+  /// No description provided for @privacyAddPhoneNumber.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi numero di telefono'**
+  String get privacyAddPhoneNumber;
+
+  /// No description provided for @privacyPhoneNumberSet.
+  ///
+  /// In it, this message translates to:
+  /// **'Numero: {phone}'**
+  String privacyPhoneNumberSet(String phone);
+
+  /// No description provided for @privacyBiometricHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Richiedi impronta, volto o codice del dispositivo ogni volta che apri Kinly.'**
+  String get privacyBiometricHint;
+
+  /// No description provided for @privacyBiometricUnlock.
+  ///
+  /// In it, this message translates to:
+  /// **'Sblocco biometrico'**
+  String get privacyBiometricUnlock;
+
+  /// No description provided for @privacyBackgroundTrackingHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Per impostazione predefinita Kinly aggiorna la tua posizione solo mentre è aperta. Attivalo per farla continuare anche in background: consuma più batteria e mostra sempre una notifica fissa mentre è attivo.'**
+  String get privacyBackgroundTrackingHint;
+
+  /// No description provided for @privacyEnableInBackground.
+  ///
+  /// In it, this message translates to:
+  /// **'Attiva in background'**
+  String get privacyEnableInBackground;
+
+  /// No description provided for @privacyGhostScheduleHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Utile per il lavoro: fuori da questa fascia oraria nessuno vede la tua posizione, in nessuna delle tue cerchie (\"clock-out\" automatico).'**
+  String get privacyGhostScheduleHint;
+
+  /// No description provided for @privacyLimitHours.
+  ///
+  /// In it, this message translates to:
+  /// **'Limita l\'orario'**
+  String get privacyLimitHours;
+
+  /// No description provided for @privacyFrom.
+  ///
+  /// In it, this message translates to:
+  /// **'Dalle'**
+  String get privacyFrom;
+
+  /// No description provided for @privacyTo.
+  ///
+  /// In it, this message translates to:
+  /// **'Alle'**
+  String get privacyTo;
+
+  /// No description provided for @privacySosAllCircles.
+  ///
+  /// In it, this message translates to:
+  /// **'Per ora avvisa tutte le tue cerchie. Puoi scegliere solo alcune persone.'**
+  String get privacySosAllCircles;
+
+  /// No description provided for @privacySosSelectedCount.
+  ///
+  /// In it, this message translates to:
+  /// **'Avvisa solo {count} persone scelte, non tutta la cerchia.'**
+  String privacySosSelectedCount(int count);
+
+  /// No description provided for @privacySosWhoToNotify.
+  ///
+  /// In it, this message translates to:
+  /// **'Chi avvisare in caso di SOS'**
+  String get privacySosWhoToNotify;
+
+  /// No description provided for @privacySosSmsNumberEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Numero SOS via SMS (se sei offline)'**
+  String get privacySosSmsNumberEmpty;
+
+  /// No description provided for @privacySosSmsNumberSet.
+  ///
+  /// In it, this message translates to:
+  /// **'SOS via SMS: {number}'**
+  String privacySosSmsNumberSet(String number);
+
+  /// No description provided for @privacyCrashDetectionTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Rilevamento incidenti'**
+  String get privacyCrashDetectionTitle;
+
+  /// No description provided for @privacyCrashDetectionDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Dopo un urto violento mentre sei in auto, parte un conto alla rovescia: se non lo annulli, SOS automatico.'**
+  String get privacyCrashDetectionDesc;
+
+  /// No description provided for @privacySpeedAlertHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Imposta una tua soglia: chi ha Kinly+ nella tua cerchia riceve un avviso se la superi guidando.'**
+  String get privacySpeedAlertHint;
+
+  /// No description provided for @privacyEnableAlert.
+  ///
+  /// In it, this message translates to:
+  /// **'Attiva avviso'**
+  String get privacyEnableAlert;
+
+  /// No description provided for @privacyThreshold.
+  ///
+  /// In it, this message translates to:
+  /// **'Soglia'**
+  String get privacyThreshold;
+
+  /// No description provided for @privacySpeedKmh.
+  ///
+  /// In it, this message translates to:
+  /// **'{speed} km/h'**
+  String privacySpeedKmh(int speed);
+
+  /// No description provided for @privacyWeeklySummaryHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Una notifica alla settimana con l\'attività della cerchia: SOS, richieste di aiuto, ingressi in aree sicure, avvisi di velocità.'**
+  String get privacyWeeklySummaryHint;
+
+  /// No description provided for @privacyReceiveSummary.
+  ///
+  /// In it, this message translates to:
+  /// **'Ricevi il riepilogo'**
+  String get privacyReceiveSummary;
+
+  /// No description provided for @privacyReviewCirclesGuide.
+  ///
+  /// In it, this message translates to:
+  /// **'Rivedi la guida delle cerchie'**
+  String get privacyReviewCirclesGuide;
+
+  /// No description provided for @changePasswordMismatch.
+  ///
+  /// In it, this message translates to:
+  /// **'Le due password non coincidono.'**
+  String get changePasswordMismatch;
+
+  /// No description provided for @changePasswordGenericError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a cambiare la password. Riprova.'**
+  String get changePasswordGenericError;
+
+  /// No description provided for @changePasswordDoneTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Password aggiornata'**
+  String get changePasswordDoneTitle;
+
+  /// No description provided for @changePasswordDoneBody.
+  ///
+  /// In it, this message translates to:
+  /// **'D\'ora in poi usa la nuova password per accedere.'**
+  String get changePasswordDoneBody;
+
+  /// No description provided for @changePasswordNew.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuova password'**
+  String get changePasswordNew;
+
+  /// No description provided for @changePasswordMinChars.
+  ///
+  /// In it, this message translates to:
+  /// **'Almeno 6 caratteri.'**
+  String get changePasswordMinChars;
+
+  /// No description provided for @changePasswordConfirmHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Conferma password'**
+  String get changePasswordConfirmHint;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
