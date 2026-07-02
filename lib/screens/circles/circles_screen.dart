@@ -575,11 +575,8 @@ class _CoachMarkOverlayState extends State<_CoachMarkOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    final rect = _targetRect;
-    if (rect == null) return const SizedBox.shrink();
-    final screen = MediaQuery.of(context).size;
     final (title, body) = _steps[widget.step]!;
-    final showBubbleBelow = rect.bottom < screen.height * 0.6;
+    final rect = _targetRect;
 
     return Stack(
       children: [
@@ -590,25 +587,33 @@ class _CoachMarkOverlayState extends State<_CoachMarkOverlay> {
             child: Container(color: Colors.black.withOpacity(0.55)),
           ),
         ),
-        Positioned(
-          left: rect.left - 6,
-          top: rect.top - 6,
-          width: rect.width + 12,
-          height: rect.height + 12,
-          child: IgnorePointer(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white, width: 2.5),
+        // Riquadro sul punto evidenziato: solo un contorno, quando la misura
+        // riesce (schermo abbastanza alto da mostrare la prima cerchia). Se
+        // fallisce si salta direttamente in _measure(), quindi qui arriva
+        // sempre un rect valido o non arriva proprio.
+        if (rect != null)
+          Positioned(
+            left: rect.left - 6,
+            top: rect.top - 6,
+            width: rect.width + 12,
+            height: rect.height + 12,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white, width: 2.5),
+                ),
               ),
             ),
           ),
-        ),
+        // La nuvoletta resta sempre in alto, indipendentemente da dove si
+        // trova il riquadro evidenziato: provare a metterla "vicino" al
+        // riquadro la faceva finire fuori schermo o sotto ad altri elementi
+        // su alcuni layout (es. schermi corti, versione web).
         Positioned(
           left: 20,
           right: 20,
-          top: showBubbleBelow ? rect.bottom + 18 : null,
-          bottom: showBubbleBelow ? null : screen.height - rect.top + 18,
+          top: MediaQuery.of(context).padding.top + 16,
           child: Material(
             color: Colors.transparent,
             child: Container(

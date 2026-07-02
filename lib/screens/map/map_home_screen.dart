@@ -16,6 +16,7 @@ import '../../models/shopping_stop.dart';
 import '../../services/crash_detection_service.dart';
 import '../../services/emergency_sms_settings.dart';
 import '../../services/kinly_repository.dart';
+import '../../services/place_search_service.dart';
 import '../../services/walk_me_home_service.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
@@ -56,6 +57,14 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   /// diventa rilevante solo se kIsWeb e non e' gia' stato chiuso una volta.
   bool _webNoticeDismissed = !kIsWeb;
 
+  // Ricerca indirizzo/luogo sulla mappa (es. "Esselunga via Roma 5"): stesso
+  // servizio Nominatim gia' usato per i punti d'incontro (place_search_service.dart).
+  final _searchController = TextEditingController();
+  List<PlaceResult> _searchResults = [];
+  PlaceResult? _selectedPlace;
+  bool _searching = false;
+  Timer? _searchDebounce;
+
   @override
   void initState() {
     super.initState();
@@ -64,6 +73,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     // incidenti, che deve poter apparire in qualsiasi momento.
     CrashDetectionService.instance.onPossibleCrash = _showCrashCountdown;
     if (kIsWeb) unawaited(_loadWebNoticeState());
+    _searchController.addListener(_onSearchChanged);
   }
 
   Future<void> _loadWebNoticeState() async {
@@ -84,7 +94,196 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       CrashDetectionService.instance.onPossibleCrash = null;
     }
     _sheetController.dispose();
+    _searchDebounce?.cancel();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged() {
+    _searchDebounce?.cancel();
+    final query = _searchController.text.trim();
+    if (query.length < 3) {
+      setState(() => _searchResults = []);
+      return;
+    }
+    _searchDebounce = Timer(const Duration(milliseconds: 500), _searchPlaces);
+  }
+
+  Future<void> _searchPlaces() async {
+    final query = _searchController.text.trim();
+    if (query.isEmpty) return;
+    setState(() => _searching = true);
+    try {
+      final results = await PlaceSearchService.instance.search(query);
+      if (mounted) setState(() => _searchResults = results);
+    } catch (_) {
+      // Va bene restare senza risultati: si può sempre riprovare o
+      // scegliere il punto a mano dal punto d'incontro.
+    } finally {
+      if (mounted) setState(() => _searching = false);
+    }
+  }
+
+  void _selectSearchResult(PlaceResult result) {
+    setState(() {
+      _selectedPlace = result;
+      _searchResults = [];
+    });
+    FocusScope.of(context).unfocus();
+  }
+
+  void _clearSearch() {
+    setState(() {
+      _selectedPlace = null;
+      _searchResults = [];
+      _searchController.clear();
+    });
+  }
+
+  /// Chiede in quale cerchia salvarlo solo se ce ne sono più di una: stessa
+  /// logica di _openMeetingPointEntry, ma qui si crea subito il punto
+  /// d'incontro invece di aprire l'intera schermata di gestione.
+  Future<void> _makeSearchResultMeetingPoint(PlaceResult place) async {
+    final state = AppState.instance;
+    if (state.circles.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Crea o entra in una cerchia prima.')));
+      return;
+    }
+    var circleId = state.activeCircleId ?? (state.circles.length == 1 ? state.circles.first.id : null);
+    if (circleId == null) {
+      circleId = await showModalBottomSheet<String>(
+        context: context,
+        backgroundColor: AppTheme.surface,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        builder: (sheetContext) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(20, 16, 20, 4),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('In quale cerchia?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                ),
+              ),
+              for (final c in state.circles)
+                ListTile(
+                  leading: Icon(c.icon, color: c.color),
+                  title: Text(c.name),
+                  onTap: () => Navigator.of(sheetContext).pop(c.id),
+                ),
+            ],
+          ),
+        ),
+      );
+      if (circleId == null) return;
+    }
+    final name = place.label.split(',').first;
+    await AppState.instance.createMeetingPoint(circleId: circleId, name: name, lat: place.lat, lng: place.lng);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('"$name" aggiunto come punto d\'incontro.')));
+      _clearSearch();
+    }
+  }
+
+  Widget _buildSearchBar() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Material(
+          elevation: 3,
+          borderRadius: BorderRadius.circular(14),
+          color: AppTheme.surface,
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Cerca un indirizzo o un negozio…',
+              hintStyle: TextStyle(fontSize: 13.5, color: AppTheme.textSecondary),
+              prefixIcon: Icon(Icons.search_rounded, color: AppTheme.textSecondary, size: 20),
+              suffixIcon: _searching
+                  ? const Padding(
+                      padding: EdgeInsets.all(14),
+                      child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                    )
+                  : (_searchController.text.isNotEmpty
+                      ? IconButton(icon: const Icon(Icons.close_rounded, size: 18), onPressed: _clearSearch)
+                      : null),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+              filled: true,
+              fillColor: AppTheme.surface,
+              contentPadding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+          ),
+        ),
+        if (_searchResults.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 6),
+            constraints: const BoxConstraints(maxHeight: 260),
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 14, offset: const Offset(0, 6))],
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              itemCount: _searchResults.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (context, i) {
+                final r = _searchResults[i];
+                return ListTile(
+                  dense: true,
+                  leading: Icon(Icons.place_outlined, color: AppTheme.textSecondary, size: 20),
+                  title: Text(r.label, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
+                  onTap: () => _selectSearchResult(r),
+                );
+              },
+            ),
+          ),
+        if (_selectedPlace != null)
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, 3))],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.place_rounded, color: AppTheme.accentCoral, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _selectedPlace!.label,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 18),
+                      visualDensity: VisualDensity.compact,
+                      onPressed: _clearSearch,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                FilledButton.icon(
+                  onPressed: () => _makeSearchResultMeetingPoint(_selectedPlace!),
+                  icon: const Icon(Icons.share_location_rounded, size: 18),
+                  label: const Text('Rendi punto d\'incontro'),
+                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(40)),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
   }
 
   Future<void> _centerOnMyLocation() async {
@@ -704,6 +903,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       onMapReady: (controller) => _mapController = controller,
       onMeetingPointTap: (id) => _openMeetingPointInfo(id),
       onSafeZoneTap: (id) => _openSafeZoneInfo(id),
+      searchPreviewPoint: _selectedPlace != null ? LatLng(_selectedPlace!.lat, _selectedPlace!.lng) : null,
     );
   }
 
@@ -737,11 +937,26 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             ),
             if (!_webNoticeDismissed)
               SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: _WebCompanionNotice(onDismiss: _dismissWebNotice),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: _WebCompanionNotice(onDismiss: _dismissWebNotice),
+                  ),
                 ),
               ),
+            SafeArea(
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 92, 0),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: _buildSearchBar(),
+                  ),
+                ),
+              ),
+            ),
             SafeArea(
               child: Align(
                 alignment: Alignment.topRight,
@@ -821,11 +1036,26 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               _buildMap(state, people),
               if (!_webNoticeDismissed)
                 SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: _WebCompanionNotice(onDismiss: _dismissWebNotice),
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                      child: _WebCompanionNotice(onDismiss: _dismissWebNotice),
+                    ),
                   ),
                 ),
+              SafeArea(
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 0, 0),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      child: _buildSearchBar(),
+                    ),
+                  ),
+                ),
+              ),
               SafeArea(
                 child: Align(
                   alignment: Alignment.topRight,
@@ -837,15 +1067,27 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               ),
               if (_hasAnyBanner(state))
                 SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 130, 16, 0),
-                    child: SizedBox(width: 360, child: _buildBanners(state)),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 130, 16, 0),
+                      child: SizedBox(width: 360, child: _buildBanners(state)),
+                    ),
                   ),
                 ),
+              // In basso, come una barra dei filtri sopra la mappa: in alto
+              // sarebbe stata la prima cosa vista e, per un bug di layout,
+              // finiva per coprire l'intera mappa invece di stare al suo
+              // posto (Align qui e' anche la parte che lo risolve: senza,
+              // dentro uno Stack a schermo intero questi widget si espandono
+              // a riempire tutto lo spazio disponibile).
               SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 220, 0),
-                  child: _buildCircleChipsRow(state),
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: _buildCircleChipsRow(state),
+                  ),
                 ),
               ),
             ],

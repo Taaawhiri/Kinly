@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_logo.dart';
@@ -165,6 +167,17 @@ class _SignInScreenState extends State<SignInScreen> {
                   ),
                 ],
               ),
+              // Su web questa e' l'unica pagina "isolata" dal sito: senza
+              // account non c'e' altro modo di tornare alla landing page,
+              // che vive su un altro percorso (../) rispetto a questa app.
+              if (kIsWeb) ...[
+                const SizedBox(height: 14),
+                TextButton.icon(
+                  onPressed: () => launchUrl(Uri.parse('..'), webOnlyWindowName: '_self'),
+                  icon: const Icon(Icons.arrow_back_rounded, size: 16),
+                  label: const Text('Torna al sito Kinly'),
+                ),
+              ],
             ],
           ),
         ),

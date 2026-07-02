@@ -27,6 +27,7 @@ class KinlyMap extends StatefulWidget {
     this.meetingPoints = const [],
     this.onMeetingPointTap,
     this.onSafeZoneTap,
+    this.searchPreviewPoint,
   });
 
   /// Le persone da mostrare come marcatori: solo quelle con una posizione
@@ -49,6 +50,13 @@ class KinlyMap extends StatefulWidget {
   /// Chiamato quando la mappa è pronta: utile a chi la usa per aggiungere
   /// controlli propri (es. un pulsante "centra sulla mia posizione").
   final ValueChanged<MapLibreMapController>? onMapReady;
+
+  /// Risultato di una ricerca indirizzo/luogo da mostrare come marcatore
+  /// temporaneo (es. "vuoi renderlo un punto d'incontro?"), non ancora
+  /// salvato in nessuna cerchia. Passato come prop, invece di aggiungerlo
+  /// direttamente al controller da fuori, così sopravvive ai normali cicli
+  /// di sincronizzazione dei marcatori (che altrimenti lo cancellerebbero).
+  final LatLng? searchPreviewPoint;
 
   /// Se false disabilita pan/zoom/rotazione (utile per un'anteprima piccola
   /// e non interattiva, come nel dettaglio di una persona).
@@ -89,6 +97,14 @@ class _KinlyMapState extends State<KinlyMap> {
     }
     if (!_sameSafeZones(oldWidget.safeZones, widget.safeZones)) {
       unawaited(_syncSafeZoneFills());
+    }
+    if (oldWidget.searchPreviewPoint != widget.searchPreviewPoint) {
+      unawaited(_syncSymbols(fitCamera: false));
+      final point = widget.searchPreviewPoint;
+      final controller = _controller;
+      if (point != null && controller != null) {
+        unawaited(controller.animateCamera(CameraUpdate.newLatLngZoom(point, 16)));
+      }
     }
     if (!_autoCenteredOnFreshFix) {
       final oldMe = _meIn(oldWidget.people);
@@ -198,6 +214,20 @@ class _KinlyMapState extends State<KinlyMap> {
           circleStrokeWidth: 1.4,
           circleStrokeColor: person.color.toHex(),
           circleStrokeOpacity: 0.5,
+        ),
+      );
+    }
+
+    final preview = widget.searchPreviewPoint;
+    if (preview != null) {
+      await controller.addCircle(
+        CircleOptions(
+          geometry: preview,
+          circleRadius: 10,
+          circleColor: AppTheme.accentCoral.toHex(),
+          circleOpacity: 1,
+          circleStrokeWidth: 3,
+          circleStrokeColor: '#FFFFFF',
         ),
       );
     }
