@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:battery_plus/battery_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -111,7 +112,9 @@ class LocationTracker {
   /// chiusa a forza (dipende anche dal produttore del telefono).
   Future<LocationSettings> _buildLocationSettings() async {
     const base = LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 30);
-    if (!Platform.isAndroid) return base;
+    // kIsWeb prima di Platform.isAndroid: dart:io.Platform non e' disponibile
+    // sul web e solleverebbe un'eccezione appena chiamato.
+    if (kIsWeb || !Platform.isAndroid) return base;
     if (!await BackgroundTrackingSettings.instance.isEnabled()) return base;
     if (await Geolocator.checkPermission() != LocationPermission.always) return base;
 
@@ -132,7 +135,7 @@ class LocationTracker {
   /// Riavvia il tracciamento con le nuove impostazioni se il permesso viene
   /// concesso subito.
   Future<BackgroundTrackingResult> enableBackgroundTracking() async {
-    if (!Platform.isAndroid) return BackgroundTrackingResult.locationPermissionDenied;
+    if (kIsWeb || !Platform.isAndroid) return BackgroundTrackingResult.locationPermissionDenied;
 
     var permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {

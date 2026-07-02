@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/help_request.dart';
 import '../../models/ping.dart';
@@ -38,9 +40,15 @@ const double _sheetMinSize = 0.14;
 const double _sheetMaxSize = 0.9;
 
 class _MapHomeScreenState extends State<MapHomeScreen> {
+  static const _webNoticePrefKey = 'web_companion_notice_dismissed';
+
   final _sheetController = DraggableScrollableController();
   MapLibreMapController? _mapController;
   bool _centering = false;
+
+  /// Vero anche su mobile/desktop nativo, dove il banner non serve mai:
+  /// diventa rilevante solo se kIsWeb e non e' gia' stato chiuso una volta.
+  bool _webNoticeDismissed = !kIsWeb;
 
   @override
   void initState() {
@@ -49,6 +57,19 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     // posto giusto dove agganciare il conto alla rovescia del rilevamento
     // incidenti, che deve poter apparire in qualsiasi momento.
     CrashDetectionService.instance.onPossibleCrash = _showCrashCountdown;
+    if (kIsWeb) unawaited(_loadWebNoticeState());
+  }
+
+  Future<void> _loadWebNoticeState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final dismissed = prefs.getBool(_webNoticePrefKey) ?? false;
+    if (mounted) setState(() => _webNoticeDismissed = dismissed);
+  }
+
+  Future<void> _dismissWebNotice() async {
+    setState(() => _webNoticeDismissed = true);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_webNoticePrefKey, true);
   }
 
   @override
@@ -508,6 +529,13 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                       );
                     },
                   ),
+                  if (!_webNoticeDismissed)
+                    SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                        child: _WebCompanionNotice(onDismiss: _dismissWebNotice),
+                      ),
+                    ),
                   SafeArea(
                     child: Align(
                       alignment: Alignment.topRight,
@@ -763,6 +791,47 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
 /// SOS e Aiuto raggruppati in un'unica "pillola" verticale sul bordo destro
 /// della mappa: più discreta di due cerchi colorati separati, ma con SOS
 /// comunque riconoscibile in cima e in rosso pieno quando attivo.
+/// Avviso mostrato solo sulla versione web (kIsWeb): spiega che qui Kinly e'
+/// una "versione compagna" e non puo' replicare il tracciamento in
+/// background, che su un sito web nessun browser puo' garantire ad app
+/// chiusa. Si chiude una volta sola e resta chiuso (SharedPreferences).
+class _WebCompanionNotice extends StatelessWidget {
+  const _WebCompanionNotice({required this.onDismiss});
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, 3))],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.language_rounded, size: 18, color: AppTheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Stai usando la versione web di Kinly: qui la posizione si aggiorna solo mentre questa scheda e\' aperta. Per il tracciamento continuo, notifiche push e sblocco biometrico serve l\'app.',
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.4),
+            ),
+          ),
+          IconButton(
+            onPressed: onDismiss,
+            icon: Icon(Icons.close_rounded, size: 16, color: AppTheme.textSecondary),
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _EmergencyActionsGroup extends StatelessWidget {
   const _EmergencyActionsGroup({
     required this.sosActive,

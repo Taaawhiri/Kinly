@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
@@ -45,9 +46,17 @@ class _RadarScreenState extends State<RadarScreen> {
     ).listen((position) {
       if (mounted) setState(() => _myPosition = position);
     });
-    _compassSub = FlutterCompass.events?.listen((event) {
-      if (mounted) setState(() => _heading = event.heading);
-    });
+    // flutter_compass non ha un'implementazione web: niente bussola li',
+    // la UI ripiega gia' da sola su un messaggio quando _heading resta null.
+    if (!kIsWeb) {
+      try {
+        _compassSub = FlutterCompass.events?.listen((event) {
+          if (mounted) setState(() => _heading = event.heading);
+        });
+      } catch (_) {
+        // Bussola non disponibile su questo dispositivo: va bene, la UI lo gestisce.
+      }
+    }
     try {
       final current = await Geolocator.getCurrentPosition();
       if (mounted) setState(() => _myPosition = current);
