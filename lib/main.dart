@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -29,13 +30,26 @@ Future<void> main() async {
   // si chiude subito all'apertura).
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+    var firebaseReady = false;
     try {
       // Configurato via android/app/google-services.json: su piattaforme
       // senza quel file (es. web/desktop in sviluppo) fallisce in modo
       // innocuo e l'app parte comunque, solo senza notifiche push.
       await Firebase.initializeApp();
+      firebaseReady = true;
     } catch (_) {
       // Vedi PushNotificationService.initialize per lo stesso principio.
+    }
+
+    if (firebaseReady && !kDebugMode) {
+      // Crash reporting: gli errori non gestiti finiscono su Firebase
+      // Crashlytics invece di perdersi sul telefono di chi li incontra.
+      try {
+        FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+      } catch (_) {
+        // Se Crashlytics non è disponibile su questo build, l'app parte
+        // comunque senza crash reporting invece di bloccarsi qui.
+      }
     }
 
     try {
@@ -48,7 +62,11 @@ Future<void> main() async {
     runApp(const KinlyApp());
   }, (error, stack) {
     if (!kDebugMode) {
-      debugPrint('Errore non gestito: $error\n$stack');
+      try {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      } catch (_) {
+        debugPrint('Errore non gestito: $error\n$stack');
+      }
     }
   });
 }
