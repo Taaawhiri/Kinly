@@ -723,21 +723,39 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                               ),
                             ),
                             Expanded(
-                              child: ListView.separated(
-                                controller: scrollController,
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                                itemCount: people.length,
-                                separatorBuilder: (_, __) => const Divider(height: 1),
-                                itemBuilder: (context, i) {
-                                  final p = people[i];
-                                  return PersonListTile(
-                                    person: p,
-                                    onTap: () => Navigator.of(context).push(
-                                      MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: p.id)),
+                              child: people.isEmpty
+                                  ? Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.person_add_alt_1_rounded, size: 32, color: AppTheme.textSecondary),
+                                            const SizedBox(height: 10),
+                                            Text(
+                                              'Nessuno da vedere qui ancora.\nInvita una persona nella cerchia per vederla sulla mappa.',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5, height: 1.4),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  : ListView.separated(
+                                      controller: scrollController,
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                      itemCount: people.length,
+                                      separatorBuilder: (_, __) => const Divider(height: 1),
+                                      itemBuilder: (context, i) {
+                                        final p = people[i];
+                                        return PersonListTile(
+                                          person: p,
+                                          onTap: () => Navigator.of(context).push(
+                                            MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: p.id)),
+                                          ),
+                                        );
+                                      },
                                     ),
-                                  );
-                                },
-                              ),
                             ),
                           ],
                         ),
@@ -1219,7 +1237,7 @@ class _CenterOnMeButton extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: loading
               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.2))
-              : Icon(Icons.my_location_rounded, color: AppTheme.primary, size: 20),
+              : Icon(Icons.gps_fixed_rounded, color: AppTheme.primary, size: 20),
         ),
       ),
     );
