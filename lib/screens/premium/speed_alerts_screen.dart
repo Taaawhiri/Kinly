@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/person.dart';
 import '../../models/speed_event.dart';
 import '../../state/app_state.dart';
@@ -19,10 +20,11 @@ class SpeedAlertsScreen extends StatelessWidget {
       listenable: AppState.instance,
       builder: (context, _) {
         final state = AppState.instance;
+        final l10n = AppLocalizations.of(context)!;
         return Scaffold(
-          appBar: AppBar(title: Text('Avvisi di guida · ${person.name}')),
+          appBar: AppBar(title: Text(l10n.speedAlertsTitle(person.name))),
           body: SafeArea(
-            child: state.isPremium ? _buildList(state.speedEventsFor(person.id)) : _buildUpsell(context),
+            child: state.isPremium ? _buildList(context, state.speedEventsFor(person.id)) : _buildUpsell(context),
           ),
         );
       },
@@ -30,24 +32,25 @@ class SpeedAlertsScreen extends StatelessWidget {
   }
 
   Widget _buildUpsell(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return EmptyStateView(
       icon: Icons.speed_rounded,
-      title: 'Funzione Kinly+',
-      message: 'Passa a Kinly+ per sapere quando chi guida supera il limite di velocità che si è impostato.',
+      title: l10n.privacyPlusFeatureTitle,
+      message: l10n.speedAlertsUpsellMessage,
       action: FilledButton(
         onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen())),
-        child: const Text('Scopri Kinly+'),
+        child: Text(l10n.circleMessagesDiscoverPlus),
       ),
     );
   }
 
-  Widget _buildList(List<SpeedEvent> events) {
+  Widget _buildList(BuildContext context, List<SpeedEvent> events) {
     if (events.isEmpty) {
       return Center(
         child: Padding(
           padding: EdgeInsets.all(24),
           child: Text(
-            'Nessun avviso registrato: questa persona non ha ancora superato la soglia di velocità impostata (o non l\'ha impostata).',
+            AppLocalizations.of(context)!.speedAlertsEmpty,
             textAlign: TextAlign.center,
             style: TextStyle(color: AppTheme.textSecondary),
           ),
@@ -87,10 +90,10 @@ class _SpeedEventTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${event.speedKmh.round()} km/h (limite ${event.thresholdKmh.round()} km/h)',
+                  AppLocalizations.of(context)!.speedAlertsKmhLimit(event.speedKmh.round(), event.thresholdKmh.round()),
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary),
                 ),
-                Text(_formatTimestamp(event.occurredAt), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                Text(_formatTimestamp(context, event.occurredAt), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
               ],
             ),
           ),
@@ -99,11 +102,11 @@ class _SpeedEventTile extends StatelessWidget {
     );
   }
 
-  String _formatTimestamp(DateTime dt) {
+  String _formatTimestamp(BuildContext context, DateTime dt) {
     final now = DateTime.now();
     final sameDay = dt.year == now.year && dt.month == now.month && dt.day == now.day;
     final time = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-    if (sameDay) return 'Oggi, $time';
+    if (sameDay) return AppLocalizations.of(context)!.historyToday(time);
     return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')} · $time';
   }
 }

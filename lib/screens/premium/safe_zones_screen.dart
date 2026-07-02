@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/circle_group.dart';
 import '../../models/safe_zone.dart';
 import '../../services/kinly_repository.dart';
@@ -27,7 +28,7 @@ class SafeZonesScreen extends StatelessWidget {
         final zones = state.safeZonesForCircle(circle.id);
         return Scaffold(
           appBar: AppBar(
-            title: Text('Aree sicure · ${circle.name}'),
+            title: Text(AppLocalizations.of(context)!.safeZonesTitle(circle.name)),
             actions: [
               if (state.isPremium)
                 IconButton(
@@ -45,17 +46,16 @@ class SafeZonesScreen extends StatelessWidget {
   }
 
   Widget _buildEmpty(BuildContext context, bool isPremium) {
+    final l10n = AppLocalizations.of(context)!;
     return EmptyStateView(
       icon: Icons.fence_rounded,
-      title: isPremium ? 'Nessuna area sicura' : 'Funzione Kinly+',
-      message: isPremium
-          ? 'Crea un\'area (ad esempio casa o scuola) per ricevere una notifica quando qualcuno entra o esce.'
-          : 'Passa a Kinly+ per creare aree sicure e ricevere una notifica quando qualcuno arriva o esce da un luogo.',
+      title: isPremium ? l10n.safeZonesEmptyTitleFree : l10n.privacyPlusFeatureTitle,
+      message: isPremium ? l10n.safeZonesEmptyMessagePremium : l10n.safeZonesEmptyMessageFree,
       action: FilledButton(
         onPressed: () => isPremium
             ? _openCreateSheet(context)
             : Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen())),
-        child: Text(isPremium ? 'Crea la prima area' : 'Scopri Kinly+'),
+        child: Text(isPremium ? l10n.safeZonesCreateFirst : l10n.circleMessagesDiscoverPlus),
       ),
     );
   }
@@ -128,10 +128,11 @@ class _ZoneSuggestionsSectionState extends State<_ZoneSuggestionsSection> {
       builder: (context, snapshot) {
         final suggestions = snapshot.data ?? const [];
         if (suggestions.isEmpty) return const SizedBox.shrink();
+        final l10n = AppLocalizations.of(context)!;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Suggerite per te', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: AppTheme.textPrimary)),
+            Text(l10n.safeZonesSuggestedForYou, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: AppTheme.textPrimary)),
             const SizedBox(height: 8),
             for (final s in suggestions)
               InkWell(
@@ -172,7 +173,7 @@ class _ZoneSuggestionsSectionState extends State<_ZoneSuggestionsSection> {
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AppTheme.textPrimary),
                             ),
-                            Text('Ci vai spesso (${s.dayCount} giorni diversi) · tocca per creare un\'area',
+                            Text(l10n.safeZonesFrequentVisit(s.dayCount),
                                 style: TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
                           ],
                         ),
@@ -196,6 +197,7 @@ class _SafeZoneCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final events = AppState.instance.eventsForZone(zone.id);
     final lastEvent = events.isEmpty ? null : events.first;
     return Container(
@@ -221,19 +223,19 @@ class _SafeZoneCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(zone.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
-                    Text('${zone.kind.label} · Raggio ${zone.radiusMeters} m', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                    Text(l10n.safeZonesKindRadius(zone.kind.label, zone.radiusMeters), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
                   ],
                 ),
               ),
               IconButton(
                 icon: Icon(Icons.edit_outlined, color: AppTheme.textSecondary, size: 20),
                 onPressed: () => SafeZonesScreen.openEditSheet(context, zone),
-                tooltip: 'Modifica area',
+                tooltip: l10n.safeZonesEditTooltip,
               ),
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded, color: AppTheme.accentCoral, size: 20),
                 onPressed: () => AppState.instance.deleteSafeZone(zone.id),
-                tooltip: 'Elimina area',
+                tooltip: l10n.safeZonesDeleteTooltip,
               ),
             ],
           ),
@@ -250,7 +252,7 @@ class _SafeZoneCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  lastEvent.type == SafeZoneEventType.enter ? 'Ultimo ingresso registrato' : 'Ultima uscita registrata',
+                  lastEvent.type == SafeZoneEventType.enter ? l10n.safeZonesLastEntry : l10n.safeZonesLastExit,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
               ],
@@ -311,7 +313,7 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
     try {
       final locations = await locationFromAddress(query);
       if (locations.isEmpty) {
-        if (mounted) setState(() => _error = 'Indirizzo non trovato. Prova a essere più preciso.');
+        if (mounted) setState(() => _error = AppLocalizations.of(context)!.safeZonesAddressNotFound);
         return;
       }
       final loc = locations.first;
@@ -335,7 +337,7 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
         _addressLabel = (confirmedAddress == null || confirmedAddress.isEmpty) ? null : confirmedAddress;
       });
     } catch (_) {
-      if (mounted) setState(() => _error = 'Non siamo riusciti a cercare questo indirizzo. Riprova.');
+      if (mounted) setState(() => _error = AppLocalizations.of(context)!.safeZonesAddressSearchError);
     } finally {
       if (mounted) setState(() => _searching = false);
     }
@@ -364,7 +366,7 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
         _addressLabel = (address == null || address.isEmpty) ? null : address;
       });
     } catch (_) {
-      if (mounted) setState(() => _error = 'Non siamo riusciti a rilevare la tua posizione.');
+      if (mounted) setState(() => _error = AppLocalizations.of(context)!.meetingPointLocationUnavailable);
     } finally {
       if (mounted) setState(() => _locating = false);
     }
@@ -373,7 +375,7 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
   Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.isEmpty || _lat == null || _lng == null) {
-      setState(() => _error = 'Scegli un nome e una posizione.');
+      setState(() => _error = AppLocalizations.of(context)!.meetingPointChooseNameAndLocation);
       return;
     }
     setState(() {
@@ -402,9 +404,12 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
       }
       if (mounted) Navigator.of(context).pop();
     } on FreeLimitException {
-      if (mounted) setState(() => _error = 'Le aree sicure sono una funzione Kinly+.');
+      if (mounted) setState(() => _error = AppLocalizations.of(context)!.safeZonesPlusOnly);
     } catch (_) {
-      if (mounted) setState(() => _error = _isEditing ? 'Non siamo riusciti a salvare le modifiche. Riprova.' : 'Non siamo riusciti a creare l\'area. Riprova.');
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        setState(() => _error = _isEditing ? l10n.safeZonesSaveChangesError : l10n.safeZonesCreateError);
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -412,6 +417,7 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
       child: SingleChildScrollView(
@@ -419,13 +425,13 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(_isEditing ? 'Modifica area sicura' : 'Nuova area sicura', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+            Text(_isEditing ? l10n.safeZonesEditTitle : l10n.safeZonesNewTitle, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
             const SizedBox(height: 16),
             TextField(
               controller: _nameController,
               autofocus: true,
               decoration: InputDecoration(
-                hintText: 'Nome (es. Casa, Scuola)',
+                hintText: l10n.safeZonesNameHint,
                 filled: true,
                 fillColor: AppTheme.surfaceAlt,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -433,7 +439,7 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            Text('Tipo di luogo', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+            Text(l10n.safeZonesPlaceType, style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -449,13 +455,13 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
               ],
             ),
             const SizedBox(height: 16),
-            Text('Raggio: ${_radius.round()} m', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+            Text(l10n.safeZonesRadiusMeters(_radius.round()), style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
             Slider(
               value: _radius,
               min: 30,
               max: 1000,
               divisions: 97,
-              label: '${_radius.round()} m',
+              label: l10n.safeZonesRadiusValue(_radius.round()),
               onChanged: (v) => setState(() => _radius = v),
             ),
             const SizedBox(height: 8),
@@ -464,7 +470,7 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
               icon: _locating
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.my_location_rounded, size: 18),
-              label: Text(_lat == null ? 'Usa la mia posizione attuale' : 'Posizione impostata'),
+              label: Text(_lat == null ? l10n.meetingPointUseMyLocation : l10n.meetingPointPositionSet),
               style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
             ),
             const SizedBox(height: 10),
@@ -475,7 +481,7 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
                   child: TextField(
                     controller: _addressController,
                     decoration: InputDecoration(
-                      hintText: 'Oppure inserisci un indirizzo',
+                      hintText: l10n.safeZonesOrEnterAddress,
                       filled: true,
                       fillColor: AppTheme.surfaceAlt,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -510,7 +516,7 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
               child: _saving
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
-                  : Text(_isEditing ? 'Salva modifiche' : 'Crea area'),
+                  : Text(_isEditing ? l10n.safeZonesSaveChanges : l10n.safeZonesCreateButton),
             ),
           ],
         ),

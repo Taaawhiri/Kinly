@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/person.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
@@ -32,7 +33,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Statistiche · ${widget.person.name}')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.statsTitle(widget.person.name))),
       body: SafeArea(
         child: AppState.instance.isPremium ? _buildStats() : _buildUpsell(),
       ),
@@ -40,13 +41,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Widget _buildUpsell() {
+    final l10n = AppLocalizations.of(context)!;
     return EmptyStateView(
       icon: Icons.route_rounded,
-      title: 'Funzione Kinly+',
-      message: 'Passa a Kinly+ per vedere quanta strada avete fatto e rivedere gli itinerari percorsi.',
+      title: l10n.privacyPlusFeatureTitle,
+      message: l10n.statsUpsellMessage,
       action: FilledButton(
         onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen())),
-        child: const Text('Scopri Kinly+'),
+        child: Text(l10n.circleMessagesDiscoverPlus),
       ),
     );
   }
@@ -58,13 +60,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
         }
+        final l10n = AppLocalizations.of(context)!;
         final trips = snapshot.data ?? const [];
         if (trips.isEmpty) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Text(
-                'Ancora nessun itinerario disponibile: torna qui dopo qualche spostamento.',
+                l10n.statsNoTripsYet,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppTheme.textSecondary),
               ),
@@ -82,9 +85,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           children: [
             Row(
               children: [
-                Expanded(child: _StatCard(label: 'Ultimi 7 giorni', value: _formatDistance(weekMeters))),
+                Expanded(child: _StatCard(label: l10n.statsLast7Days, value: _formatDistance(weekMeters))),
                 const SizedBox(width: 12),
-                Expanded(child: _StatCard(label: 'Ultimi 30 giorni', value: _formatDistance(monthMeters))),
+                Expanded(child: _StatCard(label: l10n.statsLast30Days, value: _formatDistance(monthMeters))),
               ],
             ),
             const SizedBox(height: 16),
@@ -96,10 +99,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 children: [
                   Row(
                     children: [
-                      Text('Riepilogo settimanale', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
+                      Text(l10n.statsWeeklySummary, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
                       const Spacer(),
                       Text(
-                        '${weekTrips.length} ${weekTrips.length == 1 ? "tragitto" : "tragitti"}',
+                        l10n.statsTripCount(weekTrips.length),
                         style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
                       ),
                     ],
@@ -110,7 +113,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            Text('Itinerari recenti', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+            Text(l10n.statsRecentTrips, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
             const SizedBox(height: 10),
             for (final trip in trips)
               _TripTile(
@@ -158,10 +161,20 @@ class _WeeklyDistanceChart extends StatelessWidget {
   const _WeeklyDistanceChart({required this.trips});
   final List<Trip> trips;
 
-  static const _dayLabels = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
+  List<String> _dayLabels(AppLocalizations l10n) => [
+        l10n.statsDayMon,
+        l10n.statsDayTue,
+        l10n.statsDayWed,
+        l10n.statsDayThu,
+        l10n.statsDayFri,
+        l10n.statsDaySat,
+        l10n.statsDaySun,
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final dayLabels = _dayLabels(l10n);
     final today = DateTime.now();
     final days = List.generate(7, (i) => DateTime(today.year, today.month, today.day).subtract(Duration(days: 6 - i)));
     final metersByDay = <DateTime, double>{for (final d in days) d: 0};
@@ -180,7 +193,7 @@ class _WeeklyDistanceChart extends StatelessWidget {
             Expanded(
               child: _DayBar(
                 fraction: maxMeters <= 0 ? 0 : metersByDay[day]! / maxMeters,
-                label: _dayLabels[day.weekday - 1],
+                label: dayLabels[day.weekday - 1],
                 isToday: day.day == today.day && day.month == today.month && day.year == today.year,
               ),
             ),
@@ -273,7 +286,7 @@ class _TripTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary),
                   ),
-                  Text('$_dateLabel · $minutes min', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                  Text(AppLocalizations.of(context)!.statsDateAndMinutes(_dateLabel, minutes), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
                 ],
               ),
             ),
@@ -296,9 +309,10 @@ class _TripDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final km = trip.distanceMeters >= 1000 ? '${(trip.distanceMeters / 1000).toStringAsFixed(1)} km' : '${trip.distanceMeters.round()} m';
     return Scaffold(
-      appBar: AppBar(title: const Text('Itinerario')),
+      appBar: AppBar(title: Text(l10n.statsTripLabel)),
       body: SafeArea(
         child: Column(
           children: [
@@ -307,13 +321,13 @@ class _TripDetailScreen extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
-                  _DetailRow(icon: Icons.trip_origin_rounded, label: 'Partenza', value: trip.startLabel),
+                  _DetailRow(icon: Icons.trip_origin_rounded, label: l10n.statsDeparture, value: trip.startLabel),
                   const SizedBox(height: 12),
-                  _DetailRow(icon: Icons.flag_rounded, label: 'Arrivo', value: trip.endLabel),
+                  _DetailRow(icon: Icons.flag_rounded, label: l10n.statsArrival, value: trip.endLabel),
                   const SizedBox(height: 12),
-                  _DetailRow(icon: Icons.straighten_rounded, label: 'Distanza', value: km),
+                  _DetailRow(icon: Icons.straighten_rounded, label: l10n.statsDistance, value: km),
                   const SizedBox(height: 12),
-                  _DetailRow(icon: Icons.schedule_rounded, label: 'Durata', value: '${trip.duration.inMinutes} min'),
+                  _DetailRow(icon: Icons.schedule_rounded, label: l10n.statsDuration, value: l10n.statsMinutes(trip.duration.inMinutes)),
                 ],
               ),
             ),

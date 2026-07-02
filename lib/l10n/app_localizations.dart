@@ -2533,6 +2533,786 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Segui la freccia per raggiungere {name}'**
   String radarFollowArrow(String name);
+
+  /// No description provided for @paywallFeatureLocationHistoryTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Cronologia posizioni'**
+  String get paywallFeatureLocationHistoryTitle;
+
+  /// No description provided for @paywallFeatureLocationHistoryDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Rivedi dove sono stati i membri della cerchia nei giorni passati.'**
+  String get paywallFeatureLocationHistoryDesc;
+
+  /// No description provided for @paywallFeatureStatsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Statistiche e itinerari'**
+  String get paywallFeatureStatsTitle;
+
+  /// No description provided for @paywallFeatureStatsDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Distanza percorsa e mappa dei tragitti fatti, ricostruiti dallo storico.'**
+  String get paywallFeatureStatsDesc;
+
+  /// No description provided for @paywallFeatureSafeZonesTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Aree sicure'**
+  String get paywallFeatureSafeZonesTitle;
+
+  /// No description provided for @paywallFeatureSafeZonesDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Casa, lavoro, scuola: ricevi una notifica personalizzata quando qualcuno arriva o esce.'**
+  String get paywallFeatureSafeZonesDesc;
+
+  /// No description provided for @paywallFeatureUnlimitedCirclesTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Cerchie senza limiti'**
+  String get paywallFeatureUnlimitedCirclesTitle;
+
+  /// No description provided for @paywallFeatureUnlimitedCirclesDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun limite al numero di cerchie o di persone per cerchia.'**
+  String get paywallFeatureUnlimitedCirclesDesc;
+
+  /// No description provided for @paywallFeatureDrivingTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Avvisi di guida'**
+  String get paywallFeatureDrivingTitle;
+
+  /// No description provided for @paywallFeatureDrivingDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Sappi quando chi guida supera un limite di velocità impostato.'**
+  String get paywallFeatureDrivingDesc;
+
+  /// No description provided for @paywallFeatureBackgroundTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Tracciamento in background'**
+  String get paywallFeatureBackgroundTitle;
+
+  /// No description provided for @paywallFeatureBackgroundDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'La posizione continua ad aggiornarsi anche con l\'app chiusa.'**
+  String get paywallFeatureBackgroundDesc;
+
+  /// No description provided for @paywallFeatureUnlimitedMsgTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Messaggi, ping e spese illimitati'**
+  String get paywallFeatureUnlimitedMsgTitle;
+
+  /// No description provided for @paywallFeatureUnlimitedMsgDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Manda quanti messaggi, ping e spese vuoi, senza il limite giornaliero.'**
+  String get paywallFeatureUnlimitedMsgDesc;
+
+  /// No description provided for @paywallFeatureShoppingTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Portami qualcosa'**
+  String get paywallFeatureShoppingTitle;
+
+  /// No description provided for @paywallFeatureShoppingDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Segnala alla cerchia quando sei al supermercato o al bar, per farti chiedere qualcosa al volo.'**
+  String get paywallFeatureShoppingDesc;
+
+  /// No description provided for @paywallFeaturePriorityTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Assistenza prioritaria'**
+  String get paywallFeaturePriorityTitle;
+
+  /// No description provided for @paywallFeaturePriorityDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Supporto dedicato per la tua cerchia, 7 giorni su 7.'**
+  String get paywallFeaturePriorityDesc;
+
+  /// No description provided for @paywallRequestError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a inviare la richiesta. Riprova.'**
+  String get paywallRequestError;
+
+  /// No description provided for @paywallCancelMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Vorrei annullare il mio abbonamento Kinly+.'**
+  String get paywallCancelMessage;
+
+  /// No description provided for @paywallUpgradeMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Vorrei attivare il piano Kinly+ {plan}.'**
+  String paywallUpgradeMessage(String plan);
+
+  /// No description provided for @paywallComingSoonTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'In arrivo'**
+  String get paywallComingSoonTitle;
+
+  /// No description provided for @paywallComingSoonBody.
+  ///
+  /// In it, this message translates to:
+  /// **'I pagamenti Kinly+ non sono ancora attivi: abbiamo registrato la tua richiesta, ti attiveremo il piano a mano.'**
+  String get paywallComingSoonBody;
+
+  /// No description provided for @paywallFamilyActive.
+  ///
+  /// In it, this message translates to:
+  /// **'Kinly+ Family attivo'**
+  String get paywallFamilyActive;
+
+  /// No description provided for @paywallIndividualActive.
+  ///
+  /// In it, this message translates to:
+  /// **'Kinly+ Individual attivo'**
+  String get paywallIndividualActive;
+
+  /// No description provided for @paywallIncluded.
+  ///
+  /// In it, this message translates to:
+  /// **'Kinly+ incluso'**
+  String get paywallIncluded;
+
+  /// No description provided for @paywallIncludedInFamilyOf.
+  ///
+  /// In it, this message translates to:
+  /// **'Incluso nel piano Family di {name}'**
+  String paywallIncludedInFamilyOf(String name);
+
+  /// No description provided for @paywallYourSubscriptionActive.
+  ///
+  /// In it, this message translates to:
+  /// **'Il tuo abbonamento è attivo'**
+  String get paywallYourSubscriptionActive;
+
+  /// No description provided for @paywallMorePeaceOfMind.
+  ///
+  /// In it, this message translates to:
+  /// **'Più tranquillità per tutta la cerchia'**
+  String get paywallMorePeaceOfMind;
+
+  /// No description provided for @paywallFamilyIncludedHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Finché fai parte della sua cerchia, hai tutti i vantaggi Kinly+ senza pagare nulla.'**
+  String get paywallFamilyIncludedHint;
+
+  /// No description provided for @paywallAllUnlockedHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Tutti i vantaggi qui sotto sono sbloccati per te e per le tue cerchie.'**
+  String get paywallAllUnlockedHint;
+
+  /// No description provided for @paywallChooseTierHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Un piano Individual sblocca i vantaggi solo per te; un piano Family li estende a chi inviti.'**
+  String get paywallChooseTierHint;
+
+  /// No description provided for @paywallWhatIncludes.
+  ///
+  /// In it, this message translates to:
+  /// **'Cosa include'**
+  String get paywallWhatIncludes;
+
+  /// No description provided for @paywallComparePlans.
+  ///
+  /// In it, this message translates to:
+  /// **'Confronta i piani'**
+  String get paywallComparePlans;
+
+  /// No description provided for @paywallFamilyMemberHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Non paghi nulla: chi ha creato quella cerchia con il piano Family ha esteso Kinly+ a te e agli altri primi membri (fino a 6).'**
+  String get paywallFamilyMemberHint;
+
+  /// No description provided for @paywallYourFamilyPlan.
+  ///
+  /// In it, this message translates to:
+  /// **'Il tuo piano Family'**
+  String get paywallYourFamilyPlan;
+
+  /// No description provided for @paywallFamilyOwnerHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Chi entra in una cerchia che hai creato (fino a 6 persone, in base a quando sono entrate) ha Kinly+ incluso, senza pagare nulla.'**
+  String get paywallFamilyOwnerHint;
+
+  /// No description provided for @paywallRequestSent.
+  ///
+  /// In it, this message translates to:
+  /// **'Richiesta inviata.'**
+  String get paywallRequestSent;
+
+  /// No description provided for @paywallRequestCancellation.
+  ///
+  /// In it, this message translates to:
+  /// **'Richiedi annullamento'**
+  String get paywallRequestCancellation;
+
+  /// No description provided for @paywallManageSubscription.
+  ///
+  /// In it, this message translates to:
+  /// **'Gestisci abbonamento'**
+  String get paywallManageSubscription;
+
+  /// No description provided for @paywallIndividualCancelHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Il tuo Kinly+ non è ancora collegato a un pagamento reale. Per disattivarlo, invia una richiesta: te lo disattiviamo a mano.'**
+  String get paywallIndividualCancelHint;
+
+  /// No description provided for @paywallSwitchToFamily.
+  ///
+  /// In it, this message translates to:
+  /// **'Passa a Family'**
+  String get paywallSwitchToFamily;
+
+  /// No description provided for @paywallFamilyPrice.
+  ///
+  /// In it, this message translates to:
+  /// **'9,90 €'**
+  String get paywallFamilyPrice;
+
+  /// No description provided for @paywallIndividualPrice.
+  ///
+  /// In it, this message translates to:
+  /// **'3,90 €'**
+  String get paywallIndividualPrice;
+
+  /// No description provided for @paywallFamilyUpgradeDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Estendi Kinly+ anche a chi inviti nelle cerchie che crei (fino a 6 persone), non solo a te.'**
+  String get paywallFamilyUpgradeDesc;
+
+  /// No description provided for @paywallIndividualTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Individual'**
+  String get paywallIndividualTitle;
+
+  /// No description provided for @paywallIndividualDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Sblocca tutti i vantaggi Kinly+ per te, in tutte le tue cerchie.'**
+  String get paywallIndividualDesc;
+
+  /// No description provided for @paywallSwitchToIndividual.
+  ///
+  /// In it, this message translates to:
+  /// **'Passa a Individual'**
+  String get paywallSwitchToIndividual;
+
+  /// No description provided for @paywallFamilyTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Family'**
+  String get paywallFamilyTitle;
+
+  /// No description provided for @paywallFamilyDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Un solo abbonamento: chi entra in una cerchia che crei (fino a 6 persone) ha Kinly+ incluso.'**
+  String get paywallFamilyDesc;
+
+  /// No description provided for @paywallDesignPreviewHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Anteprima del design: i pagamenti non sono ancora attivi.'**
+  String get paywallDesignPreviewHint;
+
+  /// No description provided for @paywallPerMonth.
+  ///
+  /// In it, this message translates to:
+  /// **' / mese'**
+  String get paywallPerMonth;
+
+  /// No description provided for @paywallCompareCirclesMembers.
+  ///
+  /// In it, this message translates to:
+  /// **'Cerchie e membri'**
+  String get paywallCompareCirclesMembers;
+
+  /// No description provided for @paywallCompareFreeCircleLimit.
+  ///
+  /// In it, this message translates to:
+  /// **'Fino a 2 / 6'**
+  String get paywallCompareFreeCircleLimit;
+
+  /// No description provided for @paywallCompareUnlimited.
+  ///
+  /// In it, this message translates to:
+  /// **'Illimitati'**
+  String get paywallCompareUnlimited;
+
+  /// No description provided for @paywallCompareMessagesPingExpenses.
+  ///
+  /// In it, this message translates to:
+  /// **'Messaggi, ping, spese'**
+  String get paywallCompareMessagesPingExpenses;
+
+  /// No description provided for @paywallCompare5PerDay.
+  ///
+  /// In it, this message translates to:
+  /// **'5 al giorno'**
+  String get paywallCompare5PerDay;
+
+  /// No description provided for @paywallCompareSafeZonesCreate.
+  ///
+  /// In it, this message translates to:
+  /// **'Aree sicure (creare)'**
+  String get paywallCompareSafeZonesCreate;
+
+  /// No description provided for @paywallCompareWhoBenefits.
+  ///
+  /// In it, this message translates to:
+  /// **'Chi beneficia'**
+  String get paywallCompareWhoBenefits;
+
+  /// No description provided for @paywallCompareOnlyYou.
+  ///
+  /// In it, this message translates to:
+  /// **'Solo tu'**
+  String get paywallCompareOnlyYou;
+
+  /// No description provided for @paywallCompareUpTo6People.
+  ///
+  /// In it, this message translates to:
+  /// **'Fino a 6 persone'**
+  String get paywallCompareUpTo6People;
+
+  /// No description provided for @paywallComparePrice.
+  ///
+  /// In it, this message translates to:
+  /// **'Prezzo'**
+  String get paywallComparePrice;
+
+  /// No description provided for @paywallCompareFree.
+  ///
+  /// In it, this message translates to:
+  /// **'Gratis'**
+  String get paywallCompareFree;
+
+  /// No description provided for @paywallCompareIndividualPricePerMonth.
+  ///
+  /// In it, this message translates to:
+  /// **'3,90 €/mese'**
+  String get paywallCompareIndividualPricePerMonth;
+
+  /// No description provided for @paywallCompareFamilyPricePerMonth.
+  ///
+  /// In it, this message translates to:
+  /// **'9,90 €/mese'**
+  String get paywallCompareFamilyPricePerMonth;
+
+  /// No description provided for @paywallTierFree.
+  ///
+  /// In it, this message translates to:
+  /// **'Free'**
+  String get paywallTierFree;
+
+  /// No description provided for @paywallPlanLabelIndividual.
+  ///
+  /// In it, this message translates to:
+  /// **'Individual (3,90€/mese)'**
+  String get paywallPlanLabelIndividual;
+
+  /// No description provided for @paywallPlanLabelFamily.
+  ///
+  /// In it, this message translates to:
+  /// **'Family (9,90€/mese)'**
+  String get paywallPlanLabelFamily;
+
+  /// No description provided for @safeZonesTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Aree sicure · {circle}'**
+  String safeZonesTitle(String circle);
+
+  /// No description provided for @safeZonesEmptyTitleFree.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna area sicura'**
+  String get safeZonesEmptyTitleFree;
+
+  /// No description provided for @safeZonesEmptyMessagePremium.
+  ///
+  /// In it, this message translates to:
+  /// **'Crea un\'area (ad esempio casa o scuola) per ricevere una notifica quando qualcuno entra o esce.'**
+  String get safeZonesEmptyMessagePremium;
+
+  /// No description provided for @safeZonesEmptyMessageFree.
+  ///
+  /// In it, this message translates to:
+  /// **'Passa a Kinly+ per creare aree sicure e ricevere una notifica quando qualcuno arriva o esce da un luogo.'**
+  String get safeZonesEmptyMessageFree;
+
+  /// No description provided for @safeZonesCreateFirst.
+  ///
+  /// In it, this message translates to:
+  /// **'Crea la prima area'**
+  String get safeZonesCreateFirst;
+
+  /// No description provided for @safeZonesSuggestedForYou.
+  ///
+  /// In it, this message translates to:
+  /// **'Suggerite per te'**
+  String get safeZonesSuggestedForYou;
+
+  /// No description provided for @safeZonesFrequentVisit.
+  ///
+  /// In it, this message translates to:
+  /// **'Ci vai spesso ({days} giorni diversi) · tocca per creare un\'area'**
+  String safeZonesFrequentVisit(int days);
+
+  /// No description provided for @safeZonesKindRadius.
+  ///
+  /// In it, this message translates to:
+  /// **'{kindLabel} · Raggio {radius} m'**
+  String safeZonesKindRadius(String kindLabel, int radius);
+
+  /// No description provided for @safeZonesEditTooltip.
+  ///
+  /// In it, this message translates to:
+  /// **'Modifica area'**
+  String get safeZonesEditTooltip;
+
+  /// No description provided for @safeZonesDeleteTooltip.
+  ///
+  /// In it, this message translates to:
+  /// **'Elimina area'**
+  String get safeZonesDeleteTooltip;
+
+  /// No description provided for @safeZonesLastEntry.
+  ///
+  /// In it, this message translates to:
+  /// **'Ultimo ingresso registrato'**
+  String get safeZonesLastEntry;
+
+  /// No description provided for @safeZonesLastExit.
+  ///
+  /// In it, this message translates to:
+  /// **'Ultima uscita registrata'**
+  String get safeZonesLastExit;
+
+  /// No description provided for @safeZonesEditTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Modifica area sicura'**
+  String get safeZonesEditTitle;
+
+  /// No description provided for @safeZonesNewTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuova area sicura'**
+  String get safeZonesNewTitle;
+
+  /// No description provided for @safeZonesNameHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Nome (es. Casa, Scuola)'**
+  String get safeZonesNameHint;
+
+  /// No description provided for @safeZonesPlaceType.
+  ///
+  /// In it, this message translates to:
+  /// **'Tipo di luogo'**
+  String get safeZonesPlaceType;
+
+  /// No description provided for @safeZonesRadiusMeters.
+  ///
+  /// In it, this message translates to:
+  /// **'Raggio: {radius} m'**
+  String safeZonesRadiusMeters(int radius);
+
+  /// No description provided for @safeZonesRadiusValue.
+  ///
+  /// In it, this message translates to:
+  /// **'{radius} m'**
+  String safeZonesRadiusValue(int radius);
+
+  /// No description provided for @safeZonesOrEnterAddress.
+  ///
+  /// In it, this message translates to:
+  /// **'Oppure inserisci un indirizzo'**
+  String get safeZonesOrEnterAddress;
+
+  /// No description provided for @safeZonesAddressNotFound.
+  ///
+  /// In it, this message translates to:
+  /// **'Indirizzo non trovato. Prova a essere più preciso.'**
+  String get safeZonesAddressNotFound;
+
+  /// No description provided for @safeZonesAddressSearchError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a cercare questo indirizzo. Riprova.'**
+  String get safeZonesAddressSearchError;
+
+  /// No description provided for @safeZonesPlusOnly.
+  ///
+  /// In it, this message translates to:
+  /// **'Le aree sicure sono una funzione Kinly+.'**
+  String get safeZonesPlusOnly;
+
+  /// No description provided for @safeZonesSaveChangesError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a salvare le modifiche. Riprova.'**
+  String get safeZonesSaveChangesError;
+
+  /// No description provided for @safeZonesCreateError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a creare l\'area. Riprova.'**
+  String get safeZonesCreateError;
+
+  /// No description provided for @safeZonesSaveChanges.
+  ///
+  /// In it, this message translates to:
+  /// **'Salva modifiche'**
+  String get safeZonesSaveChanges;
+
+  /// No description provided for @safeZonesCreateButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Crea area'**
+  String get safeZonesCreateButton;
+
+  /// No description provided for @historyDeleteConfirmTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Cancellare la cronologia?'**
+  String get historyDeleteConfirmTitle;
+
+  /// No description provided for @historyDeleteConfirmBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Elimina tutti i punti registrati finora, incluse le statistiche di itinerari già calcolate da questi dati. Non si può annullare.'**
+  String get historyDeleteConfirmBody;
+
+  /// No description provided for @historyDeleteButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Cancella'**
+  String get historyDeleteButton;
+
+  /// No description provided for @historyDeletedSnackbar.
+  ///
+  /// In it, this message translates to:
+  /// **'Cronologia cancellata.'**
+  String get historyDeletedSnackbar;
+
+  /// No description provided for @historyDeleteError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a cancellare la cronologia. Riprova.'**
+  String get historyDeleteError;
+
+  /// No description provided for @historyTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Cronologia · {name}'**
+  String historyTitle(String name);
+
+  /// No description provided for @historyDeleteTooltip.
+  ///
+  /// In it, this message translates to:
+  /// **'Cancella cronologia'**
+  String get historyDeleteTooltip;
+
+  /// No description provided for @historyUpsellMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Passa a Kinly+ per rivedere dove sono stati i membri della cerchia nei giorni passati.'**
+  String get historyUpsellMessage;
+
+  /// No description provided for @historyEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Ancora nessuno storico disponibile.'**
+  String get historyEmpty;
+
+  /// No description provided for @historyToday.
+  ///
+  /// In it, this message translates to:
+  /// **'Oggi, {time}'**
+  String historyToday(String time);
+
+  /// No description provided for @statsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Statistiche · {name}'**
+  String statsTitle(String name);
+
+  /// No description provided for @statsUpsellMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Passa a Kinly+ per vedere quanta strada avete fatto e rivedere gli itinerari percorsi.'**
+  String get statsUpsellMessage;
+
+  /// No description provided for @statsNoTripsYet.
+  ///
+  /// In it, this message translates to:
+  /// **'Ancora nessun itinerario disponibile: torna qui dopo qualche spostamento.'**
+  String get statsNoTripsYet;
+
+  /// No description provided for @statsLast7Days.
+  ///
+  /// In it, this message translates to:
+  /// **'Ultimi 7 giorni'**
+  String get statsLast7Days;
+
+  /// No description provided for @statsLast30Days.
+  ///
+  /// In it, this message translates to:
+  /// **'Ultimi 30 giorni'**
+  String get statsLast30Days;
+
+  /// No description provided for @statsWeeklySummary.
+  ///
+  /// In it, this message translates to:
+  /// **'Riepilogo settimanale'**
+  String get statsWeeklySummary;
+
+  /// No description provided for @statsTripCount.
+  ///
+  /// In it, this message translates to:
+  /// **'{count, plural, one{{count} tragitto} other{{count} tragitti}}'**
+  String statsTripCount(int count);
+
+  /// No description provided for @statsRecentTrips.
+  ///
+  /// In it, this message translates to:
+  /// **'Itinerari recenti'**
+  String get statsRecentTrips;
+
+  /// No description provided for @statsTripLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Itinerario'**
+  String get statsTripLabel;
+
+  /// No description provided for @statsDeparture.
+  ///
+  /// In it, this message translates to:
+  /// **'Partenza'**
+  String get statsDeparture;
+
+  /// No description provided for @statsArrival.
+  ///
+  /// In it, this message translates to:
+  /// **'Arrivo'**
+  String get statsArrival;
+
+  /// No description provided for @statsDistance.
+  ///
+  /// In it, this message translates to:
+  /// **'Distanza'**
+  String get statsDistance;
+
+  /// No description provided for @statsDuration.
+  ///
+  /// In it, this message translates to:
+  /// **'Durata'**
+  String get statsDuration;
+
+  /// No description provided for @statsMinutes.
+  ///
+  /// In it, this message translates to:
+  /// **'{minutes} min'**
+  String statsMinutes(int minutes);
+
+  /// No description provided for @statsDateAndMinutes.
+  ///
+  /// In it, this message translates to:
+  /// **'{date} · {minutes} min'**
+  String statsDateAndMinutes(String date, int minutes);
+
+  /// No description provided for @statsDayMon.
+  ///
+  /// In it, this message translates to:
+  /// **'L'**
+  String get statsDayMon;
+
+  /// No description provided for @statsDayTue.
+  ///
+  /// In it, this message translates to:
+  /// **'M'**
+  String get statsDayTue;
+
+  /// No description provided for @statsDayWed.
+  ///
+  /// In it, this message translates to:
+  /// **'M'**
+  String get statsDayWed;
+
+  /// No description provided for @statsDayThu.
+  ///
+  /// In it, this message translates to:
+  /// **'G'**
+  String get statsDayThu;
+
+  /// No description provided for @statsDayFri.
+  ///
+  /// In it, this message translates to:
+  /// **'V'**
+  String get statsDayFri;
+
+  /// No description provided for @statsDaySat.
+  ///
+  /// In it, this message translates to:
+  /// **'S'**
+  String get statsDaySat;
+
+  /// No description provided for @statsDaySun.
+  ///
+  /// In it, this message translates to:
+  /// **'D'**
+  String get statsDaySun;
+
+  /// No description provided for @speedAlertsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Avvisi di guida · {name}'**
+  String speedAlertsTitle(String name);
+
+  /// No description provided for @speedAlertsUpsellMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Passa a Kinly+ per sapere quando chi guida supera il limite di velocità che si è impostato.'**
+  String get speedAlertsUpsellMessage;
+
+  /// No description provided for @speedAlertsEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun avviso registrato: questa persona non ha ancora superato la soglia di velocità impostata (o non l\'ha impostata).'**
+  String get speedAlertsEmpty;
+
+  /// No description provided for @speedAlertsKmhLimit.
+  ///
+  /// In it, this message translates to:
+  /// **'{speed} km/h (limite {threshold} km/h)'**
+  String speedAlertsKmhLimit(int speed, int threshold);
 }
 
 class _AppLocalizationsDelegate

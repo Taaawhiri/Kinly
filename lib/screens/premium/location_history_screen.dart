@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/location_history_point.dart';
 import '../../models/person.dart';
 import '../../state/app_state.dart';
@@ -29,20 +30,19 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
   }
 
   Future<void> _confirmAndDeleteHistory() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Cancellare la cronologia?'),
-        content: const Text(
-          'Elimina tutti i punti registrati finora, incluse le statistiche di itinerari già calcolate da questi dati. Non si può annullare.',
-        ),
+        title: Text(l10n.historyDeleteConfirmTitle),
+        content: Text(l10n.historyDeleteConfirmBody),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Annulla')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonCancel)),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(backgroundColor: AppTheme.accentCoral),
-            child: const Text('Cancella'),
+            child: Text(l10n.historyDeleteButton),
           ),
         ],
       ),
@@ -52,11 +52,11 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
       await AppState.instance.deleteMyLocationHistory();
       if (mounted) {
         setState(() => _future = Future.value(const []));
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cronologia cancellata.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.historyDeletedSnackbar)));
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a cancellare la cronologia. Riprova.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.historyDeleteError)));
       }
     }
   }
@@ -66,14 +66,15 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
     // Ha senso solo sulla propria: la RLS non permetterebbe comunque di
     // cancellare lo storico di qualcun altro.
     final canDelete = widget.person.isMe && AppState.instance.isPremium;
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Cronologia · ${widget.person.name}'),
+        title: Text(l10n.historyTitle(widget.person.name)),
         actions: [
           if (canDelete)
             IconButton(
               icon: const Icon(Icons.delete_outline_rounded),
-              tooltip: 'Cancella cronologia',
+              tooltip: l10n.historyDeleteTooltip,
               onPressed: _confirmAndDeleteHistory,
             ),
         ],
@@ -85,13 +86,14 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
   }
 
   Widget _buildUpsell() {
+    final l10n = AppLocalizations.of(context)!;
     return EmptyStateView(
       icon: Icons.history_rounded,
-      title: 'Funzione Kinly+',
-      message: 'Passa a Kinly+ per rivedere dove sono stati i membri della cerchia nei giorni passati.',
+      title: l10n.privacyPlusFeatureTitle,
+      message: l10n.historyUpsellMessage,
       action: FilledButton(
         onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen())),
-        child: const Text('Scopri Kinly+'),
+        child: Text(l10n.circleMessagesDiscoverPlus),
       ),
     );
   }
@@ -106,7 +108,7 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
         final points = snapshot.data ?? const [];
         if (points.isEmpty) {
           return Center(
-            child: Text('Ancora nessuno storico disponibile.', style: TextStyle(color: AppTheme.textSecondary)),
+            child: Text(AppLocalizations.of(context)!.historyEmpty, style: TextStyle(color: AppTheme.textSecondary)),
           );
         }
         return ListView.separated(
@@ -147,7 +149,7 @@ class _HistoryTile extends StatelessWidget {
                   point.address ?? '${point.lat.toStringAsFixed(4)}, ${point.lng.toStringAsFixed(4)}',
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary),
                 ),
-                Text(_formatTimestamp(point.recordedAt), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                Text(_formatTimestamp(context, point.recordedAt), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
               ],
             ),
           ),
@@ -156,11 +158,11 @@ class _HistoryTile extends StatelessWidget {
     );
   }
 
-  String _formatTimestamp(DateTime dt) {
+  String _formatTimestamp(BuildContext context, DateTime dt) {
     final now = DateTime.now();
     final sameDay = dt.year == now.year && dt.month == now.month && dt.day == now.day;
     final time = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-    if (sameDay) return 'Oggi, $time';
+    if (sameDay) return AppLocalizations.of(context)!.historyToday(time);
     return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')} · $time';
   }
 }

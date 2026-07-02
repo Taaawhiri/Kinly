@@ -1449,4 +1449,466 @@ class AppLocalizationsIt extends AppLocalizations {
   String radarFollowArrow(String name) {
     return 'Segui la freccia per raggiungere $name';
   }
+
+  @override
+  String get paywallFeatureLocationHistoryTitle => 'Cronologia posizioni';
+
+  @override
+  String get paywallFeatureLocationHistoryDesc =>
+      'Rivedi dove sono stati i membri della cerchia nei giorni passati.';
+
+  @override
+  String get paywallFeatureStatsTitle => 'Statistiche e itinerari';
+
+  @override
+  String get paywallFeatureStatsDesc =>
+      'Distanza percorsa e mappa dei tragitti fatti, ricostruiti dallo storico.';
+
+  @override
+  String get paywallFeatureSafeZonesTitle => 'Aree sicure';
+
+  @override
+  String get paywallFeatureSafeZonesDesc =>
+      'Casa, lavoro, scuola: ricevi una notifica personalizzata quando qualcuno arriva o esce.';
+
+  @override
+  String get paywallFeatureUnlimitedCirclesTitle => 'Cerchie senza limiti';
+
+  @override
+  String get paywallFeatureUnlimitedCirclesDesc =>
+      'Nessun limite al numero di cerchie o di persone per cerchia.';
+
+  @override
+  String get paywallFeatureDrivingTitle => 'Avvisi di guida';
+
+  @override
+  String get paywallFeatureDrivingDesc =>
+      'Sappi quando chi guida supera un limite di velocità impostato.';
+
+  @override
+  String get paywallFeatureBackgroundTitle => 'Tracciamento in background';
+
+  @override
+  String get paywallFeatureBackgroundDesc =>
+      'La posizione continua ad aggiornarsi anche con l\'app chiusa.';
+
+  @override
+  String get paywallFeatureUnlimitedMsgTitle =>
+      'Messaggi, ping e spese illimitati';
+
+  @override
+  String get paywallFeatureUnlimitedMsgDesc =>
+      'Manda quanti messaggi, ping e spese vuoi, senza il limite giornaliero.';
+
+  @override
+  String get paywallFeatureShoppingTitle => 'Portami qualcosa';
+
+  @override
+  String get paywallFeatureShoppingDesc =>
+      'Segnala alla cerchia quando sei al supermercato o al bar, per farti chiedere qualcosa al volo.';
+
+  @override
+  String get paywallFeaturePriorityTitle => 'Assistenza prioritaria';
+
+  @override
+  String get paywallFeaturePriorityDesc =>
+      'Supporto dedicato per la tua cerchia, 7 giorni su 7.';
+
+  @override
+  String get paywallRequestError =>
+      'Non siamo riusciti a inviare la richiesta. Riprova.';
+
+  @override
+  String get paywallCancelMessage =>
+      'Vorrei annullare il mio abbonamento Kinly+.';
+
+  @override
+  String paywallUpgradeMessage(String plan) {
+    return 'Vorrei attivare il piano Kinly+ $plan.';
+  }
+
+  @override
+  String get paywallComingSoonTitle => 'In arrivo';
+
+  @override
+  String get paywallComingSoonBody =>
+      'I pagamenti Kinly+ non sono ancora attivi: abbiamo registrato la tua richiesta, ti attiveremo il piano a mano.';
+
+  @override
+  String get paywallFamilyActive => 'Kinly+ Family attivo';
+
+  @override
+  String get paywallIndividualActive => 'Kinly+ Individual attivo';
+
+  @override
+  String get paywallIncluded => 'Kinly+ incluso';
+
+  @override
+  String paywallIncludedInFamilyOf(String name) {
+    return 'Incluso nel piano Family di $name';
+  }
+
+  @override
+  String get paywallYourSubscriptionActive => 'Il tuo abbonamento è attivo';
+
+  @override
+  String get paywallMorePeaceOfMind => 'Più tranquillità per tutta la cerchia';
+
+  @override
+  String get paywallFamilyIncludedHint =>
+      'Finché fai parte della sua cerchia, hai tutti i vantaggi Kinly+ senza pagare nulla.';
+
+  @override
+  String get paywallAllUnlockedHint =>
+      'Tutti i vantaggi qui sotto sono sbloccati per te e per le tue cerchie.';
+
+  @override
+  String get paywallChooseTierHint =>
+      'Un piano Individual sblocca i vantaggi solo per te; un piano Family li estende a chi inviti.';
+
+  @override
+  String get paywallWhatIncludes => 'Cosa include';
+
+  @override
+  String get paywallComparePlans => 'Confronta i piani';
+
+  @override
+  String get paywallFamilyMemberHint =>
+      'Non paghi nulla: chi ha creato quella cerchia con il piano Family ha esteso Kinly+ a te e agli altri primi membri (fino a 6).';
+
+  @override
+  String get paywallYourFamilyPlan => 'Il tuo piano Family';
+
+  @override
+  String get paywallFamilyOwnerHint =>
+      'Chi entra in una cerchia che hai creato (fino a 6 persone, in base a quando sono entrate) ha Kinly+ incluso, senza pagare nulla.';
+
+  @override
+  String get paywallRequestSent => 'Richiesta inviata.';
+
+  @override
+  String get paywallRequestCancellation => 'Richiedi annullamento';
+
+  @override
+  String get paywallManageSubscription => 'Gestisci abbonamento';
+
+  @override
+  String get paywallIndividualCancelHint =>
+      'Il tuo Kinly+ non è ancora collegato a un pagamento reale. Per disattivarlo, invia una richiesta: te lo disattiviamo a mano.';
+
+  @override
+  String get paywallSwitchToFamily => 'Passa a Family';
+
+  @override
+  String get paywallFamilyPrice => '9,90 €';
+
+  @override
+  String get paywallIndividualPrice => '3,90 €';
+
+  @override
+  String get paywallFamilyUpgradeDesc =>
+      'Estendi Kinly+ anche a chi inviti nelle cerchie che crei (fino a 6 persone), non solo a te.';
+
+  @override
+  String get paywallIndividualTitle => 'Individual';
+
+  @override
+  String get paywallIndividualDesc =>
+      'Sblocca tutti i vantaggi Kinly+ per te, in tutte le tue cerchie.';
+
+  @override
+  String get paywallSwitchToIndividual => 'Passa a Individual';
+
+  @override
+  String get paywallFamilyTitle => 'Family';
+
+  @override
+  String get paywallFamilyDesc =>
+      'Un solo abbonamento: chi entra in una cerchia che crei (fino a 6 persone) ha Kinly+ incluso.';
+
+  @override
+  String get paywallDesignPreviewHint =>
+      'Anteprima del design: i pagamenti non sono ancora attivi.';
+
+  @override
+  String get paywallPerMonth => ' / mese';
+
+  @override
+  String get paywallCompareCirclesMembers => 'Cerchie e membri';
+
+  @override
+  String get paywallCompareFreeCircleLimit => 'Fino a 2 / 6';
+
+  @override
+  String get paywallCompareUnlimited => 'Illimitati';
+
+  @override
+  String get paywallCompareMessagesPingExpenses => 'Messaggi, ping, spese';
+
+  @override
+  String get paywallCompare5PerDay => '5 al giorno';
+
+  @override
+  String get paywallCompareSafeZonesCreate => 'Aree sicure (creare)';
+
+  @override
+  String get paywallCompareWhoBenefits => 'Chi beneficia';
+
+  @override
+  String get paywallCompareOnlyYou => 'Solo tu';
+
+  @override
+  String get paywallCompareUpTo6People => 'Fino a 6 persone';
+
+  @override
+  String get paywallComparePrice => 'Prezzo';
+
+  @override
+  String get paywallCompareFree => 'Gratis';
+
+  @override
+  String get paywallCompareIndividualPricePerMonth => '3,90 €/mese';
+
+  @override
+  String get paywallCompareFamilyPricePerMonth => '9,90 €/mese';
+
+  @override
+  String get paywallTierFree => 'Free';
+
+  @override
+  String get paywallPlanLabelIndividual => 'Individual (3,90€/mese)';
+
+  @override
+  String get paywallPlanLabelFamily => 'Family (9,90€/mese)';
+
+  @override
+  String safeZonesTitle(String circle) {
+    return 'Aree sicure · $circle';
+  }
+
+  @override
+  String get safeZonesEmptyTitleFree => 'Nessuna area sicura';
+
+  @override
+  String get safeZonesEmptyMessagePremium =>
+      'Crea un\'area (ad esempio casa o scuola) per ricevere una notifica quando qualcuno entra o esce.';
+
+  @override
+  String get safeZonesEmptyMessageFree =>
+      'Passa a Kinly+ per creare aree sicure e ricevere una notifica quando qualcuno arriva o esce da un luogo.';
+
+  @override
+  String get safeZonesCreateFirst => 'Crea la prima area';
+
+  @override
+  String get safeZonesSuggestedForYou => 'Suggerite per te';
+
+  @override
+  String safeZonesFrequentVisit(int days) {
+    return 'Ci vai spesso ($days giorni diversi) · tocca per creare un\'area';
+  }
+
+  @override
+  String safeZonesKindRadius(String kindLabel, int radius) {
+    return '$kindLabel · Raggio $radius m';
+  }
+
+  @override
+  String get safeZonesEditTooltip => 'Modifica area';
+
+  @override
+  String get safeZonesDeleteTooltip => 'Elimina area';
+
+  @override
+  String get safeZonesLastEntry => 'Ultimo ingresso registrato';
+
+  @override
+  String get safeZonesLastExit => 'Ultima uscita registrata';
+
+  @override
+  String get safeZonesEditTitle => 'Modifica area sicura';
+
+  @override
+  String get safeZonesNewTitle => 'Nuova area sicura';
+
+  @override
+  String get safeZonesNameHint => 'Nome (es. Casa, Scuola)';
+
+  @override
+  String get safeZonesPlaceType => 'Tipo di luogo';
+
+  @override
+  String safeZonesRadiusMeters(int radius) {
+    return 'Raggio: $radius m';
+  }
+
+  @override
+  String safeZonesRadiusValue(int radius) {
+    return '$radius m';
+  }
+
+  @override
+  String get safeZonesOrEnterAddress => 'Oppure inserisci un indirizzo';
+
+  @override
+  String get safeZonesAddressNotFound =>
+      'Indirizzo non trovato. Prova a essere più preciso.';
+
+  @override
+  String get safeZonesAddressSearchError =>
+      'Non siamo riusciti a cercare questo indirizzo. Riprova.';
+
+  @override
+  String get safeZonesPlusOnly => 'Le aree sicure sono una funzione Kinly+.';
+
+  @override
+  String get safeZonesSaveChangesError =>
+      'Non siamo riusciti a salvare le modifiche. Riprova.';
+
+  @override
+  String get safeZonesCreateError =>
+      'Non siamo riusciti a creare l\'area. Riprova.';
+
+  @override
+  String get safeZonesSaveChanges => 'Salva modifiche';
+
+  @override
+  String get safeZonesCreateButton => 'Crea area';
+
+  @override
+  String get historyDeleteConfirmTitle => 'Cancellare la cronologia?';
+
+  @override
+  String get historyDeleteConfirmBody =>
+      'Elimina tutti i punti registrati finora, incluse le statistiche di itinerari già calcolate da questi dati. Non si può annullare.';
+
+  @override
+  String get historyDeleteButton => 'Cancella';
+
+  @override
+  String get historyDeletedSnackbar => 'Cronologia cancellata.';
+
+  @override
+  String get historyDeleteError =>
+      'Non siamo riusciti a cancellare la cronologia. Riprova.';
+
+  @override
+  String historyTitle(String name) {
+    return 'Cronologia · $name';
+  }
+
+  @override
+  String get historyDeleteTooltip => 'Cancella cronologia';
+
+  @override
+  String get historyUpsellMessage =>
+      'Passa a Kinly+ per rivedere dove sono stati i membri della cerchia nei giorni passati.';
+
+  @override
+  String get historyEmpty => 'Ancora nessuno storico disponibile.';
+
+  @override
+  String historyToday(String time) {
+    return 'Oggi, $time';
+  }
+
+  @override
+  String statsTitle(String name) {
+    return 'Statistiche · $name';
+  }
+
+  @override
+  String get statsUpsellMessage =>
+      'Passa a Kinly+ per vedere quanta strada avete fatto e rivedere gli itinerari percorsi.';
+
+  @override
+  String get statsNoTripsYet =>
+      'Ancora nessun itinerario disponibile: torna qui dopo qualche spostamento.';
+
+  @override
+  String get statsLast7Days => 'Ultimi 7 giorni';
+
+  @override
+  String get statsLast30Days => 'Ultimi 30 giorni';
+
+  @override
+  String get statsWeeklySummary => 'Riepilogo settimanale';
+
+  @override
+  String statsTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tragitti',
+      one: '$count tragitto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get statsRecentTrips => 'Itinerari recenti';
+
+  @override
+  String get statsTripLabel => 'Itinerario';
+
+  @override
+  String get statsDeparture => 'Partenza';
+
+  @override
+  String get statsArrival => 'Arrivo';
+
+  @override
+  String get statsDistance => 'Distanza';
+
+  @override
+  String get statsDuration => 'Durata';
+
+  @override
+  String statsMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String statsDateAndMinutes(String date, int minutes) {
+    return '$date · $minutes min';
+  }
+
+  @override
+  String get statsDayMon => 'L';
+
+  @override
+  String get statsDayTue => 'M';
+
+  @override
+  String get statsDayWed => 'M';
+
+  @override
+  String get statsDayThu => 'G';
+
+  @override
+  String get statsDayFri => 'V';
+
+  @override
+  String get statsDaySat => 'S';
+
+  @override
+  String get statsDaySun => 'D';
+
+  @override
+  String speedAlertsTitle(String name) {
+    return 'Avvisi di guida · $name';
+  }
+
+  @override
+  String get speedAlertsUpsellMessage =>
+      'Passa a Kinly+ per sapere quando chi guida supera il limite di velocità che si è impostato.';
+
+  @override
+  String get speedAlertsEmpty =>
+      'Nessun avviso registrato: questa persona non ha ancora superato la soglia di velocità impostata (o non l\'ha impostata).';
+
+  @override
+  String speedAlertsKmhLimit(int speed, int threshold) {
+    return '$speed km/h (limite $threshold km/h)';
+  }
 }

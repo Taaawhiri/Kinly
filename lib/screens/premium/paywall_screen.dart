@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/person.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
@@ -21,17 +22,17 @@ class PaywallScreen extends StatefulWidget {
   State<PaywallScreen> createState() => _PaywallScreenState();
 }
 
-const _features = [
-  (Icons.history_rounded, 'Cronologia posizioni', 'Rivedi dove sono stati i membri della cerchia nei giorni passati.'),
-  (Icons.route_rounded, 'Statistiche e itinerari', 'Distanza percorsa e mappa dei tragitti fatti, ricostruiti dallo storico.'),
-  (Icons.fence_rounded, 'Aree sicure', 'Casa, lavoro, scuola: ricevi una notifica personalizzata quando qualcuno arriva o esce.'),
-  (Icons.groups_rounded, 'Cerchie senza limiti', 'Nessun limite al numero di cerchie o di persone per cerchia.'),
-  (Icons.speed_rounded, 'Avvisi di guida', 'Sappi quando chi guida supera un limite di velocità impostato.'),
-  (Icons.gps_fixed_rounded, 'Tracciamento in background', 'La posizione continua ad aggiornarsi anche con l\'app chiusa.'),
-  (Icons.forum_rounded, 'Messaggi, ping e spese illimitati', 'Manda quanti messaggi, ping e spese vuoi, senza il limite giornaliero.'),
-  (Icons.shopping_bag_outlined, 'Portami qualcosa', 'Segnala alla cerchia quando sei al supermercato o al bar, per farti chiedere qualcosa al volo.'),
-  (Icons.support_agent_rounded, 'Assistenza prioritaria', 'Supporto dedicato per la tua cerchia, 7 giorni su 7.'),
-];
+List<(IconData, String, String)> _features(AppLocalizations l10n) => [
+      (Icons.history_rounded, l10n.paywallFeatureLocationHistoryTitle, l10n.paywallFeatureLocationHistoryDesc),
+      (Icons.route_rounded, l10n.paywallFeatureStatsTitle, l10n.paywallFeatureStatsDesc),
+      (Icons.fence_rounded, l10n.paywallFeatureSafeZonesTitle, l10n.paywallFeatureSafeZonesDesc),
+      (Icons.groups_rounded, l10n.paywallFeatureUnlimitedCirclesTitle, l10n.paywallFeatureUnlimitedCirclesDesc),
+      (Icons.speed_rounded, l10n.paywallFeatureDrivingTitle, l10n.paywallFeatureDrivingDesc),
+      (Icons.gps_fixed_rounded, l10n.paywallFeatureBackgroundTitle, l10n.paywallFeatureBackgroundDesc),
+      (Icons.forum_rounded, l10n.paywallFeatureUnlimitedMsgTitle, l10n.paywallFeatureUnlimitedMsgDesc),
+      (Icons.shopping_bag_outlined, l10n.paywallFeatureShoppingTitle, l10n.paywallFeatureShoppingDesc),
+      (Icons.support_agent_rounded, l10n.paywallFeaturePriorityTitle, l10n.paywallFeaturePriorityDesc),
+    ];
 
 class _PaywallScreenState extends State<PaywallScreen> {
   bool _sendingCancelRequest = false;
@@ -40,13 +41,14 @@ class _PaywallScreenState extends State<PaywallScreen> {
   String? _upgradeRequestSentFor;
 
   Future<void> _requestCancellation() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _sendingCancelRequest = true);
     try {
-      await AppState.instance.sendSupportMessage('Vorrei annullare il mio abbonamento Kinly+.');
+      await AppState.instance.sendSupportMessage(l10n.paywallCancelMessage);
       if (mounted) setState(() => _cancelRequestSent = true);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a inviare la richiesta. Riprova.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.paywallRequestError)));
       }
     } finally {
       if (mounted) setState(() => _sendingCancelRequest = false);
@@ -54,14 +56,15 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   Future<void> _requestPlan(String planLabel) async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _sendingUpgrade = true);
     try {
-      await AppState.instance.sendSupportMessage('Vorrei attivare il piano Kinly+ $planLabel.');
+      await AppState.instance.sendSupportMessage(l10n.paywallUpgradeMessage(planLabel));
       if (mounted) setState(() => _upgradeRequestSentFor = planLabel);
       if (mounted) _showComingSoon(context);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a inviare la richiesta. Riprova.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.paywallRequestError)));
       }
     } finally {
       if (mounted) setState(() => _sendingUpgrade = false);
@@ -69,14 +72,15 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   void _showComingSoon(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('In arrivo'),
-        content: const Text('I pagamenti Kinly+ non sono ancora attivi: abbiamo registrato la tua richiesta, ti attiveremo il piano a mano.'),
+        title: Text(l10n.paywallComingSoonTitle),
+        content: Text(l10n.paywallComingSoonBody),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Ho capito')),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.circleMessagesGotIt)),
         ],
       ),
     );
@@ -91,6 +95,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
         final isPremium = state.isPremium;
         final tier = state.myPremiumTier;
         final familyOwnerName = state.familyPlanOwnerName;
+        final l10n = AppLocalizations.of(context)!;
 
         return Scaffold(
           appBar: AppBar(title: const Text('Kinly+')),
@@ -112,9 +117,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         decoration: BoxDecoration(color: Colors.white.withOpacity(0.18), borderRadius: BorderRadius.circular(20)),
                         child: Text(
                           switch (tier) {
-                            PremiumTier.family => 'Kinly+ Family attivo',
-                            PremiumTier.individual => 'Kinly+ Individual attivo',
-                            PremiumTier.none => familyOwnerName != null ? 'Kinly+ incluso' : 'Kinly+',
+                            PremiumTier.family => l10n.paywallFamilyActive,
+                            PremiumTier.individual => l10n.paywallIndividualActive,
+                            PremiumTier.none => familyOwnerName != null ? l10n.paywallIncluded : 'Kinly+',
                           },
                           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12),
                         ),
@@ -122,26 +127,24 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       const SizedBox(height: 14),
                       Text(
                         familyOwnerName != null
-                            ? 'Incluso nel piano Family di $familyOwnerName'
-                            : (isPremium ? 'Il tuo abbonamento è attivo' : 'Più tranquillità per tutta la cerchia'),
+                            ? l10n.paywallIncludedInFamilyOf(familyOwnerName)
+                            : (isPremium ? l10n.paywallYourSubscriptionActive : l10n.paywallMorePeaceOfMind),
                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 22, height: 1.2),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         familyOwnerName != null
-                            ? 'Finché fai parte della sua cerchia, hai tutti i vantaggi Kinly+ senza pagare nulla.'
-                            : (isPremium
-                                ? 'Tutti i vantaggi qui sotto sono sbloccati per te e per le tue cerchie.'
-                                : 'Un piano Individual sblocca i vantaggi solo per te; un piano Family li estende a chi inviti.'),
+                            ? l10n.paywallFamilyIncludedHint
+                            : (isPremium ? l10n.paywallAllUnlockedHint : l10n.paywallChooseTierHint),
                         style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13, height: 1.4),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text('Cosa include', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                Text(l10n.paywallWhatIncludes, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                 const SizedBox(height: 12),
-                for (final f in _features)
+                for (final f in _features(l10n))
                   Container(
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(14),
@@ -170,7 +173,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     ),
                   ),
                 const SizedBox(height: 24),
-                Text('Confronta i piani', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                Text(l10n.paywallComparePlans, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                 const SizedBox(height: 12),
                 const _PlanComparisonTable(),
                 const SizedBox(height: 12),
@@ -179,7 +182,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(16)),
                     child: Text(
-                      'Non paghi nulla: chi ha creato quella cerchia con il piano Family ha esteso Kinly+ a te e agli altri primi membri (fino a 6).',
+                      l10n.paywallFamilyMemberHint,
                       style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                     ),
                   ),
@@ -190,22 +193,22 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Il tuo piano Family', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
+                        Text(l10n.paywallYourFamilyPlan, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
                         const SizedBox(height: 6),
                         Text(
-                          'Chi entra in una cerchia che hai creato (fino a 6 persone, in base a quando sono entrate) ha Kinly+ incluso, senza pagare nulla.',
+                          l10n.paywallFamilyOwnerHint,
                           style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                         ),
                         const SizedBox(height: 14),
                         if (_cancelRequestSent)
-                          _sentRow('Richiesta inviata.')
+                          _sentRow(l10n.paywallRequestSent)
                         else
                           OutlinedButton(
                             onPressed: _sendingCancelRequest ? null : _requestCancellation,
                             style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
                             child: _sendingCancelRequest
                                 ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
-                                : const Text('Richiedi annullamento'),
+                                : Text(l10n.paywallRequestCancellation),
                           ),
                       ],
                     ),
@@ -217,61 +220,61 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Gestisci abbonamento', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
+                        Text(l10n.paywallManageSubscription, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
                         const SizedBox(height: 6),
                         Text(
-                          'Il tuo Kinly+ non è ancora collegato a un pagamento reale. Per disattivarlo, invia una richiesta: te lo disattiviamo a mano.',
+                          l10n.paywallIndividualCancelHint,
                           style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                         ),
                         const SizedBox(height: 14),
                         if (_cancelRequestSent)
-                          _sentRow('Richiesta inviata.')
+                          _sentRow(l10n.paywallRequestSent)
                         else
                           OutlinedButton(
                             onPressed: _sendingCancelRequest ? null : _requestCancellation,
                             style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
                             child: _sendingCancelRequest
                                 ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
-                                : const Text('Richiedi annullamento'),
+                                : Text(l10n.paywallRequestCancellation),
                           ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 14),
                   _PlanCard(
-                    title: 'Passa a Family',
-                    price: '9,90 €',
-                    description: 'Estendi Kinly+ anche a chi inviti nelle cerchie che crei (fino a 6 persone), non solo a te.',
-                    buttonLabel: 'Passa a Family',
+                    title: l10n.paywallSwitchToFamily,
+                    price: l10n.paywallFamilyPrice,
+                    description: l10n.paywallFamilyUpgradeDesc,
+                    buttonLabel: l10n.paywallSwitchToFamily,
                     busy: _sendingUpgrade,
-                    sent: _upgradeRequestSentFor == 'Family (9,90€/mese)',
-                    onTap: () => _requestPlan('Family (9,90€/mese)'),
+                    sent: _upgradeRequestSentFor == l10n.paywallPlanLabelFamily,
+                    onTap: () => _requestPlan(l10n.paywallPlanLabelFamily),
                   ),
                 ] else ...[
                   _PlanCard(
-                    title: 'Individual',
-                    price: '3,90 €',
-                    description: 'Sblocca tutti i vantaggi Kinly+ per te, in tutte le tue cerchie.',
-                    buttonLabel: 'Passa a Individual',
+                    title: l10n.paywallIndividualTitle,
+                    price: l10n.paywallIndividualPrice,
+                    description: l10n.paywallIndividualDesc,
+                    buttonLabel: l10n.paywallSwitchToIndividual,
                     busy: _sendingUpgrade,
-                    sent: _upgradeRequestSentFor == 'Individual (3,90€/mese)',
-                    onTap: () => _requestPlan('Individual (3,90€/mese)'),
+                    sent: _upgradeRequestSentFor == l10n.paywallPlanLabelIndividual,
+                    onTap: () => _requestPlan(l10n.paywallPlanLabelIndividual),
                   ),
                   const SizedBox(height: 14),
                   _PlanCard(
-                    title: 'Family',
-                    price: '9,90 €',
-                    description: 'Un solo abbonamento: chi entra in una cerchia che crei (fino a 6 persone) ha Kinly+ incluso.',
-                    buttonLabel: 'Passa a Family',
+                    title: l10n.paywallFamilyTitle,
+                    price: l10n.paywallFamilyPrice,
+                    description: l10n.paywallFamilyDesc,
+                    buttonLabel: l10n.paywallSwitchToFamily,
                     highlighted: true,
                     busy: _sendingUpgrade,
-                    sent: _upgradeRequestSentFor == 'Family (9,90€/mese)',
-                    onTap: () => _requestPlan('Family (9,90€/mese)'),
+                    sent: _upgradeRequestSentFor == l10n.paywallPlanLabelFamily,
+                    onTap: () => _requestPlan(l10n.paywallPlanLabelFamily),
                   ),
                   const SizedBox(height: 10),
                   Center(
                     child: Text(
-                      'Anteprima del design: i pagamenti non sono ancora attivi.',
+                      l10n.paywallDesignPreviewHint,
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5),
                     ),
@@ -319,6 +322,7 @@ class _PlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -341,7 +345,7 @@ class _PlanCard extends StatelessWidget {
                     Text.rich(
                       TextSpan(children: [
                         TextSpan(text: price, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.textPrimary)),
-                        TextSpan(text: ' / mese', style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary)),
+                        TextSpan(text: l10n.paywallPerMonth, style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary)),
                       ]),
                     ),
                   ],
@@ -357,7 +361,7 @@ class _PlanCard extends StatelessWidget {
               children: [
                 const Icon(Icons.check_circle_rounded, color: AppTheme.accentGreen, size: 18),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Richiesta inviata.', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 13))),
+                Expanded(child: Text(l10n.paywallRequestSent, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 13))),
               ],
             )
           else
@@ -374,19 +378,19 @@ class _PlanCard extends StatelessWidget {
   }
 }
 
-const _comparisonRows = [
-  ('Cerchie e membri', 'Fino a 2 / 6', 'Illimitati', 'Illimitati'),
-  ('Messaggi, ping, spese', '5 al giorno', 'Illimitati', 'Illimitati'),
-  ('Aree sicure (creare)', null, 'check', 'check'),
-  ('Cronologia posizioni', null, 'check', 'check'),
-  ('Statistiche e itinerari', null, 'check', 'check'),
-  ('Avvisi di guida', null, 'check', 'check'),
-  ('Tracciamento in background', null, 'check', 'check'),
-  ('Portami qualcosa', null, 'check', 'check'),
-  ('Assistenza prioritaria', null, 'check', 'check'),
-  ('Chi beneficia', 'Solo tu', 'Solo tu', 'Fino a 6 persone'),
-  ('Prezzo', 'Gratis', '3,90 €/mese', '9,90 €/mese'),
-];
+List<(String, String?, String, String)> _comparisonRows(AppLocalizations l10n) => [
+      (l10n.paywallCompareCirclesMembers, l10n.paywallCompareFreeCircleLimit, l10n.paywallCompareUnlimited, l10n.paywallCompareUnlimited),
+      (l10n.paywallCompareMessagesPingExpenses, l10n.paywallCompare5PerDay, l10n.paywallCompareUnlimited, l10n.paywallCompareUnlimited),
+      (l10n.paywallCompareSafeZonesCreate, null, 'check', 'check'),
+      (l10n.personLocationHistoryLink, null, 'check', 'check'),
+      (l10n.personStatisticsLink, null, 'check', 'check'),
+      (l10n.personDrivingAlertsLink, null, 'check', 'check'),
+      (l10n.privacyBackgroundTrackingHeader, null, 'check', 'check'),
+      (l10n.paywallFeatureShoppingTitle, null, 'check', 'check'),
+      (l10n.paywallFeaturePriorityTitle, null, 'check', 'check'),
+      (l10n.paywallCompareWhoBenefits, l10n.paywallCompareOnlyYou, l10n.paywallCompareOnlyYou, l10n.paywallCompareUpTo6People),
+      (l10n.paywallComparePrice, l10n.paywallCompareFree, l10n.paywallCompareIndividualPricePerMonth, l10n.paywallCompareFamilyPricePerMonth),
+    ];
 
 /// Tabella riassuntiva Free / Individual / Family: utile per decidere
 /// rapidamente senza dover leggere le descrizioni una per una.
@@ -395,6 +399,7 @@ class _PlanComparisonTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(16)),
       clipBehavior: Clip.antiAlias,
@@ -405,12 +410,12 @@ class _PlanComparisonTable extends StatelessWidget {
             decoration: BoxDecoration(color: AppTheme.surfaceAlt),
             children: [
               const _TableCell('', header: true),
-              _TableCell('Free', header: true),
-              _TableCell('Individual', header: true),
-              _TableCell('Family', header: true),
+              _TableCell(l10n.paywallTierFree, header: true),
+              _TableCell(l10n.paywallIndividualTitle, header: true),
+              _TableCell(l10n.paywallFamilyTitle, header: true),
             ],
           ),
-          for (final row in _comparisonRows)
+          for (final row in _comparisonRows(l10n))
             TableRow(
               decoration: BoxDecoration(border: Border(top: BorderSide(color: AppTheme.divider, width: 0.6))),
               children: [
