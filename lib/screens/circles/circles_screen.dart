@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/circle_group.dart';
 import '../../models/person.dart';
 import '../../models/routine_anomaly.dart';
@@ -15,9 +18,55 @@ import '../premium/safe_zones_screen.dart';
 import 'circle_expenses_screen.dart';
 import 'circle_messages_screen.dart';
 import 'meeting_point_screen.dart';
+import 'weekly_summary_screen.dart';
 
-class CirclesScreen extends StatelessWidget {
-  const CirclesScreen({super.key});
+class CirclesScreen extends StatefulWidget {
+  const CirclesScreen({super.key, this.forceCoachMark = false});
+
+  /// Se true, mostra sempre la guida introduttiva anche se è già stata vista
+  /// (richiamata a mano da Impostazioni), invece di controllare se è la
+  /// prima volta.
+  final bool forceCoachMark;
+
+  @override
+  State<CirclesScreen> createState() => _CirclesScreenState();
+}
+
+class _CirclesScreenState extends State<CirclesScreen> {
+  static const _coachMarkPrefKey = 'circles_coachmark_seen';
+
+  final _headerKey = GlobalKey();
+  final _actionsKey = GlobalKey();
+  final _inviteKey = GlobalKey();
+
+  /// 0 = nascosta, 1..3 = passo corrente della guida.
+  int _coachMarkStep = 0;
+  bool _coachMarkChecked = false;
+
+  void _maybeStartCoachMark(bool hasCircles) {
+    if (_coachMarkChecked || !hasCircles) return;
+    _coachMarkChecked = true;
+    if (widget.forceCoachMark) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _coachMarkStep = 1);
+      });
+      return;
+    }
+    unawaited(_maybeShowFirstTime());
+  }
+
+  Future<void> _maybeShowFirstTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_coachMarkPrefKey) ?? false) return;
+    await prefs.setBool(_coachMarkPrefKey, true);
+    if (mounted) setState(() => _coachMarkStep = 1);
+  }
+
+  void _advanceCoachMark() {
+    setState(() => _coachMarkStep = _coachMarkStep >= 3 ? 0 : _coachMarkStep + 1);
+  }
+
+  void _dismissCoachMark() => setState(() => _coachMarkStep = 0);
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +74,13 @@ class CirclesScreen extends StatelessWidget {
       listenable: AppState.instance,
       builder: (context, _) {
         final state = AppState.instance;
+        _maybeStartCoachMark(state.circles.isNotEmpty);
+        GlobalKey? targetFor(int step) => switch (step) {
+              1 => _headerKey,
+              2 => _actionsKey,
+              3 => _inviteKey,
+              _ => null,
+            };
         return Scaffold(
           appBar: AppBar(
             title: const Text('Le tue cerchie'),
@@ -35,11 +91,29 @@ class CirclesScreen extends StatelessWidget {
               ),
             ],
           ),
-          body: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          body: Stack(
             children: [
-              for (final anomaly in state.routineAnomalies) _RoutineAnomalyBanner(anomaly: anomaly),
-              for (final circle in state.circles) _CircleCard(circle: circle),
+              ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                children: [
+                  for (final anomaly in state.routineAnomalies) _RoutineAnomalyBanner(anomaly: anomaly),
+                  for (var i = 0; i < state.circles.length; i++)
+                    _CircleCard(
+                      circle: state.circles[i],
+                      headerKey: i == 0 ? _headerKey : null,
+                      actionsKey: i == 0 ? _actionsKey : null,
+                      inviteKey: i == 0 ? _inviteKey : null,
+                    ),
+                ],
+              ),
+              if (_coachMarkStep > 0)
+                _CoachMarkOverlay(
+                  key: ValueKey(_coachMarkStep),
+                  step: _coachMarkStep,
+                  targetKey: targetFor(_coachMarkStep),
+                  onNext: _advanceCoachMark,
+                  onSkip: _dismissCoachMark,
+                ),
             ],
           ),
         );
@@ -266,8 +340,14 @@ class _RoutineAnomalyBanner extends StatelessWidget {
 }
 
 class _CircleCard extends StatelessWidget {
-  const _CircleCard({required this.circle});
+  const _CircleCard({required this.circle, this.headerKey, this.actionsKey, this.inviteKey});
   final CircleGroup circle;
+
+  /// Punti di ancoraggio per la guida introduttiva (vedi _CoachMarkOverlay):
+  /// valorizzati solo sulla prima cerchia della lista, le altre restano null.
+  final GlobalKey? headerKey;
+  final GlobalKey? actionsKey;
+  final GlobalKey? inviteKey;
 
   @override
   Widget build(BuildContext context) {
@@ -284,6 +364,7 @@ class _CircleCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            key: headerKey,
             children: [
               Container(
                 width: 42,
@@ -323,98 +404,247 @@ class _CircleCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: circle.inviteCode));
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Codice invito copiato')));
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(10)),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            circle.inviteCode,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1, fontSize: 13, color: AppTheme.textPrimary),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Icon(Icons.copy_rounded, size: 13, color: AppTheme.textSecondary),
-                      ],
-                    ),
+          InkWell(
+            key: inviteKey,
+            borderRadius: BorderRadius.circular(10),
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: circle.inviteCode));
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Codice invito copiato')));
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(10)),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    circle.inviteCode,
+                    style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1, fontSize: 13, color: AppTheme.textPrimary),
                   ),
+                  const SizedBox(width: 6),
+                  Icon(Icons.copy_rounded, size: 13, color: AppTheme.textSecondary),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            key: actionsKey,
+            height: 34,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                _ActionChip(
+                  icon: Icons.ios_share_rounded,
+                  label: 'Invita',
+                  onTap: () {
+                    // Condivisione via WhatsApp e simili: include sia il
+                    // codice (funziona sempre) sia il link kinly:// che apre
+                    // l'app già compilata dove i link personalizzati sono
+                    // cliccabili.
+                    Share.share(
+                      'Entra nella mia cerchia "${circle.name}" su Kinly!\n\n'
+                      'Codice di invito: ${circle.inviteCode}\n\n'
+                      'Apri Kinly e tocca "Ho un codice di invito", oppure tocca: kinly://join/${circle.inviteCode}',
+                    );
+                  },
                 ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: () {
-                  // Condivisione via WhatsApp e simili: include sia il
-                  // codice (funziona sempre) sia il link kinly:// che apre
-                  // l'app già compilata dove i link personalizzati sono
-                  // cliccabili.
-                  Share.share(
-                    'Entra nella mia cerchia "${circle.name}" su Kinly!\n\n'
-                    'Codice di invito: ${circle.inviteCode}\n\n'
-                    'Apri Kinly e tocca "Ho un codice di invito", oppure tocca: kinly://join/${circle.inviteCode}',
-                  );
-                },
-                icon: Icon(Icons.ios_share_rounded, size: 18, color: AppTheme.textSecondary),
-                tooltip: 'Invita qualcuno',
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-              ),
-              IconButton(
-                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SafeZonesScreen(circle: circle))),
-                icon: Icon(Icons.fence_rounded, size: 18, color: AppTheme.textSecondary),
-                tooltip: 'Aree sicure',
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-              ),
-              IconButton(
-                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => MeetingPointScreen(circle: circle))),
-                icon: Icon(Icons.share_location_rounded, size: 18, color: AppTheme.textSecondary),
-                tooltip: 'Punto d\'incontro',
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-              ),
-              IconButton(
-                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleMessagesScreen(circle: circle))),
-                icon: Icon(Icons.forum_outlined, size: 18, color: AppTheme.textSecondary),
-                tooltip: 'Messaggi',
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-              ),
-              IconButton(
-                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleExpensesScreen(circle: circle))),
-                icon: Icon(Icons.receipt_long_outlined, size: 18, color: AppTheme.textSecondary),
-                tooltip: 'Spese di gruppo',
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-              ),
-              IconButton(
-                onPressed: () => _openSharingModeSheet(context, circle),
-                icon: Icon(Icons.tune_rounded, size: 18, color: AppTheme.textSecondary),
-                tooltip: 'La tua modalità in questa cerchia',
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-              ),
-            ],
+                _ActionChip(
+                  icon: Icons.fence_rounded,
+                  label: 'Aree sicure',
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SafeZonesScreen(circle: circle))),
+                ),
+                _ActionChip(
+                  icon: Icons.share_location_rounded,
+                  label: 'Punto d\'incontro',
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => MeetingPointScreen(circle: circle))),
+                ),
+                _ActionChip(
+                  icon: Icons.forum_outlined,
+                  label: 'Messaggi',
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleMessagesScreen(circle: circle))),
+                ),
+                _ActionChip(
+                  icon: Icons.receipt_long_outlined,
+                  label: 'Spese',
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleExpensesScreen(circle: circle))),
+                ),
+                _ActionChip(
+                  icon: Icons.insights_rounded,
+                  label: 'Riepilogo',
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WeeklySummaryScreen(circle: circle))),
+                ),
+                _ActionChip(
+                  icon: Icons.tune_rounded,
+                  label: 'La tua modalità',
+                  onTap: () => _openSharingModeSheet(context, circle),
+                ),
+              ],
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Pillola icona + etichetta per la riga di azioni di una cerchia: a
+/// differenza delle sole icone di prima, il testo rende chiaro cosa fa
+/// ciascuna voce senza dover prima toccarla per scoprirlo.
+class _ActionChip extends StatelessWidget {
+  const _ActionChip({required this.icon, required this.label, required this.onTap});
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(10)),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 16, color: AppTheme.textSecondary),
+              const SizedBox(width: 6),
+              Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Guida introduttiva a 3 passi sulla prima cerchia della lista: evidenzia a
+/// turno l'intestazione, la riga di azioni e il codice invito con un
+/// riquadro e una nuvoletta esplicativa. Non "buca" lo scrim scuro attorno
+/// al riquadro evidenziato (richiederebbe un CustomPainter dedicato): il
+/// bordo bianco intorno al riquadro basta a farlo risaltare comunque.
+class _CoachMarkOverlay extends StatefulWidget {
+  const _CoachMarkOverlay({super.key, required this.step, required this.targetKey, required this.onNext, required this.onSkip});
+  final int step;
+  final GlobalKey? targetKey;
+  final VoidCallback onNext;
+  final VoidCallback onSkip;
+
+  @override
+  State<_CoachMarkOverlay> createState() => _CoachMarkOverlayState();
+}
+
+class _CoachMarkOverlayState extends State<_CoachMarkOverlay> {
+  Rect? _targetRect;
+
+  static const _steps = {
+    1: (
+      'La tua cerchia',
+      'Ogni cerchia ha i suoi membri, la sua icona e le sue impostazioni: puoi averne più di una.',
+    ),
+    2: (
+      'Le azioni della cerchia',
+      'Da qui gestisci aree sicure, punto d\'incontro, messaggi, spese di gruppo e il riepilogo settimanale.',
+    ),
+    3: (
+      'Codice di invito',
+      'Tocca per copiarlo: solo chi lo riceve da te può entrare in questa cerchia.',
+    ),
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+  }
+
+  void _measure() {
+    final box = widget.targetKey?.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) {
+      // Punto di ancoraggio non disegnato (es. schermo molto corto): salta
+      // il passo invece di mostrare un riquadro senza senso.
+      widget.onNext();
+      return;
+    }
+    final topLeft = box.localToGlobal(Offset.zero);
+    if (mounted) setState(() => _targetRect = topLeft & box.size);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final rect = _targetRect;
+    if (rect == null) return const SizedBox.shrink();
+    final screen = MediaQuery.of(context).size;
+    final (title, body) = _steps[widget.step]!;
+    final showBubbleBelow = rect.bottom < screen.height * 0.6;
+
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {},
+            child: Container(color: Colors.black.withOpacity(0.55)),
+          ),
+        ),
+        Positioned(
+          left: rect.left - 6,
+          top: rect.top - 6,
+          width: rect.width + 12,
+          height: rect.height + 12,
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.white, width: 2.5),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 20,
+          right: 20,
+          top: showBubbleBelow ? rect.bottom + 18 : null,
+          bottom: showBubbleBelow ? null : screen.height - rect.top + 18,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(16)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(title, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                  const SizedBox(height: 6),
+                  Text(body, style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.4)),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      for (var i = 1; i <= 3; i++)
+                        Container(
+                          margin: const EdgeInsets.only(right: 5),
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: i <= widget.step ? AppTheme.primary : AppTheme.divider,
+                          ),
+                        ),
+                      const Spacer(),
+                      TextButton(onPressed: widget.onSkip, child: const Text('Salta')),
+                      FilledButton(onPressed: widget.onNext, child: Text(widget.step >= 3 ? 'Fine' : 'Avanti')),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

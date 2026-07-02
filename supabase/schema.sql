@@ -102,6 +102,16 @@ alter table public.profiles add column if not exists avatar_key text;
 -- in basso, quindi va impostato a mano da SQL Editor, come is_premium.
 alter table public.profiles add column if not exists is_admin boolean not null default false;
 
+-- Numero di telefono (facoltativo): permette a chi riceve un tuo SOS o una
+-- richiesta di aiuto di chiamarti direttamente con un tocco, invece di
+-- vedere solo la posizione.
+alter table public.profiles add column if not exists phone_number text;
+
+-- Riepilogo settimanale via notifica push (attività della cerchia
+-- nell'ultima settimana): attivo di default, disattivabile dalle
+-- impostazioni.
+alter table public.profiles add column if not exists weekly_summary_enabled boolean not null default true;
+
 create table if not exists public.circles (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -295,6 +305,17 @@ create table if not exists public.help_requests (
   resolved_at timestamptz
 );
 
+-- Riepilogo settimanale per cerchia: righe "vuote" inserite una volta a
+-- settimana da un cron solo per far scattare il Database Webhook che manda
+-- la notifica push (stesso meccanismo di sos_alerts/safe_zone_events più
+-- sotto). Il contenuto vero e proprio si calcola al volo con la funzione
+-- weekly_circle_stats più in basso, non viene salvato qui.
+create table if not exists public.weekly_summary_events (
+  id uuid primary key default gen_random_uuid(),
+  circle_id uuid not null references public.circles (id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.device_tokens (
   profile_id uuid not null references public.profiles (id) on delete cascade,
   token text not null,
@@ -314,6 +335,7 @@ create index if not exists support_messages_profile_idx on public.support_messag
 create index if not exists meeting_points_circle_idx on public.meeting_points (circle_id);
 create index if not exists meeting_point_arrivals_point_idx on public.meeting_point_arrivals (meeting_point_id);
 create index if not exists sos_alerts_profile_idx on public.sos_alerts (profile_id, created_at desc);
+create index if not exists weekly_summary_events_circle_idx on public.weekly_summary_events (circle_id, created_at desc);
 create index if not exists circle_messages_circle_idx on public.circle_messages (circle_id, created_at desc);
 create index if not exists help_requests_circle_idx on public.help_requests (circle_id, created_at desc);
 
@@ -691,6 +713,7 @@ alter table public.sos_trusted_contacts enable row level security;
 alter table public.device_tokens enable row level security;
 alter table public.circle_messages enable row level security;
 alter table public.help_requests enable row level security;
+alter table public.weekly_summary_events enable row level security;
 
 -- Ogni policy è preceduta da un "drop if exists" così l'intero script è
 -- rieseguibile senza errori (es. dopo averlo modificato) anche se le
@@ -944,6 +967,13 @@ create policy "help_requests_insert_self" on public.help_requests
 drop policy if exists "help_requests_update_self" on public.help_requests;
 create policy "help_requests_update_self" on public.help_requests
   for update using (profile_id = auth.uid()) with check (profile_id = auth.uid());
+
+-- weekly_summary_events: solo lettura per i membri della cerchia. Nessuna
+-- policy di insert per "authenticated": le righe le crea solo il cron (vedi
+-- generate_weekly_summary_events più in basso, SECURITY DEFINER).
+drop policy if exists "weekly_summary_events_select" on public.weekly_summary_events;
+create policy "weekly_summary_events_select" on public.weekly_summary_events
+  for select using (circle_id in (select public.my_circle_ids()));
 
 -- device_tokens: ognuno gestisce solo i propri token. La Edge Function che
 -- invia le notifiche usa la service_role key, che scavalca la RLS.
@@ -1292,7 +1322,7 @@ create policy "live_share_links_delete_own" on public.live_share_links
 revoke update on public.profiles from authenticated;
 grant update (
   name, color, sharing_mode, battery_percent, speed_alert_kmh, auto_ghost_start, auto_ghost_end, avatar_key,
-  birthday, status_emoji, status_text, status_expires_at, payment_link
+  birthday, status_emoji, status_text, status_expires_at, payment_link, phone_number, weekly_summary_enabled
 ) on public.profiles to authenticated;
 
 -- =========================================================================
@@ -1333,4 +1363,67 @@ select cron.schedule(
   'kinly_location_history_cleanup',
   '0 3 * * *',
   $$delete from public.location_history where recorded_at < now() - interval '90 days'$$
+);
+
+-- =========================================================================
+-- Riepilogo settimanale per cerchia
+-- =========================================================================
+
+-- Attività di una cerchia nell'ultima settimana (o da p_since, se passato):
+-- usata sia dal client su richiesta (tasto "Riepilogo" nella cerchia) sia
+-- dalla Edge Function send-push per scrivere il testo della notifica.
+-- Nessun SECURITY DEFINER: girando con i permessi di chi chiama, le RLS già
+-- esistenti di sos_alerts/help_requests/safe_zone_events/speed_events
+-- bastano a limitare i conteggi a ciò che chi chiama può già vedere.
+create or replace function public.weekly_circle_stats(p_circle_id uuid, p_since timestamptz default now() - interval '7 days')
+returns table (sos_count bigint, help_count bigint, safe_zone_entries bigint, speed_alerts bigint)
+language sql
+stable
+as $$
+  select
+    (select count(*) from public.sos_alerts
+      where profile_id in (select profile_id from public.circle_members where circle_id = p_circle_id)
+        and created_at > p_since) as sos_count,
+    (select count(*) from public.help_requests
+      where circle_id = p_circle_id and created_at > p_since) as help_count,
+    (select count(*) from public.safe_zone_events e
+      join public.safe_zones z on z.id = e.zone_id
+      where z.circle_id = p_circle_id and e.event_type = 'enter' and e.occurred_at > p_since) as safe_zone_entries,
+    (select count(*) from public.speed_events
+      where profile_id in (select profile_id from public.circle_members where circle_id = p_circle_id)
+        and occurred_at > p_since) as speed_alerts;
+$$;
+
+grant execute on function public.weekly_circle_stats(uuid, timestamptz) to authenticated;
+
+-- Una volta a settimana inserisce una riga "vuota" per ogni cerchia in
+-- weekly_summary_events: serve solo a far scattare il Database Webhook che
+-- chiama send-push (stesso meccanismo di sos_alerts/safe_zone_events). Il
+-- contenuto della notifica lo calcola la Edge Function chiamando
+-- weekly_circle_stats sopra. SECURITY DEFINER perché weekly_summary_events
+-- non ha una policy di insert per "authenticated" (vedi RLS più in alto).
+create or replace function public.generate_weekly_summary_events()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.weekly_summary_events (circle_id)
+  select id from public.circles;
+end;
+$$;
+
+do $$
+begin
+  perform cron.unschedule('kinly_weekly_summary');
+exception when others then
+  null; -- non era ancora schedulato: va bene, si schedula sotto.
+end $$;
+
+-- Ogni lunedì alle 08:00 UTC.
+select cron.schedule(
+  'kinly_weekly_summary',
+  '0 8 * * 1',
+  $$select public.generate_weekly_summary_events();$$
 );

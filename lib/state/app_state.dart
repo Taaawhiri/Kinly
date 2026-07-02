@@ -328,6 +328,8 @@ class AppState extends ChangeNotifier {
       statusExpiresAt: profile['status_expires_at'] != null ? DateTime.parse(profile['status_expires_at'] as String) : null,
       paymentLink: profile['payment_link'] as String?,
       premiumTier: PremiumTierData.fromDb(profile['premium_tier'] as String?),
+      phoneNumber: profile['phone_number'] as String?,
+      weeklySummaryEnabled: profile['weekly_summary_enabled'] as bool? ?? true,
     );
   }
 
@@ -798,6 +800,23 @@ class AppState extends ChangeNotifier {
     await _repo.updatePaymentLink(link);
     unawaited(_refreshData().then((_) => notifyListeners()));
   }
+
+  Future<void> setPhoneNumber(String? phoneNumber) async {
+    if (_me != null) {
+      _me = _me!.copyWith(phoneNumber: phoneNumber, clearPhoneNumber: phoneNumber == null);
+    }
+    notifyListeners();
+    await _repo.updatePhoneNumber(phoneNumber);
+    unawaited(_refreshData().then((_) => notifyListeners()));
+  }
+
+  Future<void> setWeeklySummaryEnabled(bool enabled) async {
+    if (_me != null) _me = _me!.copyWith(weeklySummaryEnabled: enabled);
+    notifyListeners();
+    await _repo.updateWeeklySummaryEnabled(enabled);
+  }
+
+  Future<Map<String, dynamic>> fetchWeeklyCircleStats(String circleId) => _repo.fetchWeeklyCircleStats(circleId);
 
   /// Imposta il mio stato del momento (emoji + testo breve, opzionale):
   /// scade da solo a fine giornata.

@@ -51,6 +51,23 @@ class KinlyRepository {
     await supabase.from('profiles').update({'payment_link': link}).eq('id', _myId);
   }
 
+  Future<void> updatePhoneNumber(String? phoneNumber) async {
+    await supabase.from('profiles').update({'phone_number': phoneNumber}).eq('id', _myId);
+  }
+
+  Future<void> updateWeeklySummaryEnabled(bool enabled) async {
+    await supabase.from('profiles').update({'weekly_summary_enabled': enabled}).eq('id', _myId);
+  }
+
+  /// Attività della cerchia nell'ultima settimana (SOS, richieste di aiuto,
+  /// ingressi in aree sicure, avvisi di velocità): vedi weekly_circle_stats
+  /// nello schema. Le RLS delle tabelle sottostanti già limitano i conteggi
+  /// a ciò che posso vedere.
+  Future<Map<String, dynamic>> fetchWeeklyCircleStats(String circleId) async {
+    final row = await supabase.rpc('weekly_circle_stats', params: {'p_circle_id': circleId}).single();
+    return row;
+  }
+
   /// Imposta il mio stato del momento: scade automaticamente a mezzanotte
   /// locale, senza bisogno di un'azione per toglierlo.
   Future<void> updateStatus({required String emoji, String? text}) async {

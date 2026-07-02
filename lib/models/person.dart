@@ -60,6 +60,8 @@ class Person {
     this.statusExpiresAt,
     this.paymentLink,
     this.premiumTier = PremiumTier.none,
+    this.phoneNumber,
+    this.weeklySummaryEnabled = true,
   });
 
   final String id;
@@ -121,6 +123,16 @@ class Person {
   /// è davvero attivo.
   final PremiumTier premiumTier;
 
+  /// Numero di telefono (facoltativo, lo aggiunge chi vuole): permette a chi
+  /// riceve un SOS o una richiesta di aiuto di chiamare direttamente invece
+  /// di vedere solo la posizione.
+  final String? phoneNumber;
+
+  /// Se ricevere la notifica push col riepilogo settimanale della cerchia.
+  /// Riguarda solo [isMe]: per gli altri membri arriva com'è dal server,
+  /// qui non serve mostrarlo.
+  final bool weeklySummaryEnabled;
+
   bool get hasActiveStatus => statusEmoji != null && statusExpiresAt != null && statusExpiresAt!.isAfter(DateTime.now());
 
   bool get isBirthdayToday {
@@ -169,6 +181,9 @@ class Person {
     DateTime? statusExpiresAt,
     bool clearStatus = false,
     String? paymentLink,
+    String? phoneNumber,
+    bool clearPhoneNumber = false,
+    bool? weeklySummaryEnabled,
   }) {
     return Person(
       id: id,
@@ -194,6 +209,8 @@ class Person {
       statusExpiresAt: clearStatus ? null : (statusExpiresAt ?? this.statusExpiresAt),
       paymentLink: paymentLink ?? this.paymentLink,
       premiumTier: premiumTier,
+      phoneNumber: clearPhoneNumber ? null : (phoneNumber ?? this.phoneNumber),
+      weeklySummaryEnabled: weeklySummaryEnabled ?? this.weeklySummaryEnabled,
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/person.dart';
 import '../../models/sos_alert.dart';
 import '../../state/app_state.dart';
@@ -38,6 +39,11 @@ class _SosAlertScreenState extends State<SosAlertScreen> {
     } catch (_) {
       // Va bene anche senza indirizzo leggibile.
     }
+  }
+
+  Future<void> _call(String phoneNumber) async {
+    final uri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
   Future<void> _resolve() async {
@@ -121,6 +127,15 @@ class _SosAlertScreenState extends State<SosAlertScreen> {
                         ],
                       ),
                     ),
+                    if (!isMine && (widget.person.phoneNumber ?? '').isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      FilledButton.icon(
+                        onPressed: () => _call(widget.person.phoneNumber!),
+                        icon: const Icon(Icons.call_rounded, size: 18),
+                        label: Text('Chiama ${widget.person.name}'),
+                        style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52), backgroundColor: AppTheme.accentCoral),
+                      ),
+                    ],
                     if (isMine) ...[
                       const SizedBox(height: 24),
                       FilledButton.icon(

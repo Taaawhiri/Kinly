@@ -107,6 +107,18 @@ async function circleRecipients(supabase: SupabaseClient, circleId: string, excl
   return (data ?? []).map((r: { profile_id: string }) => r.profile_id).filter((id: string) => id !== excludeProfileId);
 }
 
+/// Come circleRecipients, ma solo per chi non ha disattivato il riepilogo
+/// settimanale dalle impostazioni (weekly_summary_enabled). Qui non c'è un
+/// "mittente" da escludere: il riepilogo è per tutta la cerchia.
+async function weeklySummaryRecipients(supabase: SupabaseClient, circleId: string): Promise<string[]> {
+  const { data } = await supabase
+    .from('circle_members')
+    .select('profile_id, profiles!inner(weekly_summary_enabled)')
+    .eq('circle_id', circleId)
+    .eq('profiles.weekly_summary_enabled', true);
+  return (data ?? []).map((r: { profile_id: string }) => r.profile_id);
+}
+
 /// Replica la logica della policy RLS sos_alerts_select: tutta la cerchia,
 /// a meno che non siano stati configurati dei contatti di fiducia.
 async function sosRecipients(supabase: SupabaseClient, profileId: string): Promise<string[]> {
@@ -260,6 +272,24 @@ async function buildNotification(supabase: SupabaseClient, table: string, record
       if (!stop) return null;
       const name = await fetchName(supabase, record.from_id);
       return { recipients: [stop.profile_id], title: `${name} ti ha chiesto:`, body: record.note };
+    }
+    case 'weekly_summary_events': {
+      const [{ data: circle }, recipients, { data: stats }] = await Promise.all([
+        supabase.from('circles').select('name').eq('id', record.circle_id).single(),
+        weeklySummaryRecipients(supabase, record.circle_id),
+        supabase.rpc('weekly_circle_stats', { p_circle_id: record.circle_id }).single(),
+      ]);
+      if (!circle || recipients.length === 0) return null;
+      const s = (stats ?? {}) as { sos_count?: number; help_count?: number; safe_zone_entries?: number; speed_alerts?: number };
+      const parts: string[] = [];
+      if (s.sos_count) parts.push(`${s.sos_count} SOS`);
+      if (s.help_count) parts.push(`${s.help_count} richieste di aiuto`);
+      if (s.safe_zone_entries) parts.push(`${s.safe_zone_entries} ingressi in aree sicure`);
+      if (s.speed_alerts) parts.push(`${s.speed_alerts} avvisi di velocità`);
+      const body = parts.length > 0
+        ? `Questa settimana: ${parts.join(', ')}.`
+        : 'Settimana tranquilla: nessun evento da segnalare.';
+      return { recipients, title: `📊 Riepilogo settimanale - ${circle.name}`, body };
     }
     case 'circle_expenses': {
       const [name, recipients] = await Promise.all([

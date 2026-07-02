@@ -12,6 +12,7 @@ import '../../services/location_tracker.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/date_input_formatter.dart';
+import '../circles/circles_screen.dart';
 import '../people/sos_contacts_screen.dart';
 import '../premium/paywall_screen.dart';
 import 'change_password_screen.dart';
@@ -303,6 +304,28 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     await AppState.instance.setPaymentLink(result.isEmpty ? null : result);
   }
 
+  Future<void> _editPhoneNumber() async {
+    final controller = TextEditingController(text: AppState.instance.me.phoneNumber ?? '');
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Numero di telefono'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.phone,
+          decoration: const InputDecoration(hintText: 'Es. +39 333 1234567'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(''), child: const Text('Rimuovi')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text.trim()), child: const Text('Salva')),
+        ],
+      ),
+    );
+    if (result == null) return;
+    await AppState.instance.setPhoneNumber(result.isEmpty ? null : result);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
@@ -353,7 +376,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 Text('Info personali', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                 const SizedBox(height: 6),
                 Text(
-                  'Facoltative: usate solo per un\'iconcina di compleanno tra i membri della cerchia e per aprire un pagamento diretto dalle spese di gruppo.',
+                  'Facoltative: usate solo per un\'iconcina di compleanno tra i membri della cerchia, per aprire un pagamento diretto dalle spese di gruppo e per farti chiamare da chi riceve un tuo SOS o richiesta di aiuto.',
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                 ),
                 const SizedBox(height: 10),
@@ -369,6 +392,12 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   icon: Icons.payments_outlined,
                   label: state.me.paymentLink == null ? 'Aggiungi link di pagamento' : 'Link di pagamento impostato',
                   onTap: _editPaymentLink,
+                ),
+                const SizedBox(height: 10),
+                _ActionTile(
+                  icon: Icons.call_outlined,
+                  label: state.me.phoneNumber == null ? 'Aggiungi numero di telefono' : 'Numero: ${state.me.phoneNumber}',
+                  onTap: _editPhoneNumber,
                 ),
                 if (!_biometricLoading && _biometricSupported) ...[
                   const SizedBox(height: 24),
@@ -579,6 +608,39 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                         ),
                       ],
                     ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text('Riepilogo settimanale', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                const SizedBox(height: 6),
+                Text(
+                  'Una notifica alla settimana con l\'attività della cerchia: SOS, richieste di aiuto, ingressi in aree sicure, avvisi di velocità.',
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(16)),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text('Ricevi il riepilogo', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                      ),
+                      Switch(
+                        value: state.me.weeklySummaryEnabled,
+                        onChanged: (v) => AppState.instance.setWeeklySummaryEnabled(v),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text('Guida', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                const SizedBox(height: 10),
+                _ActionTile(
+                  icon: Icons.help_outline_rounded,
+                  label: 'Rivedi la guida delle cerchie',
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const CirclesScreen(forceCoachMark: true)),
                   ),
                 ),
               ],
