@@ -1326,6 +1326,72 @@ grant update (
 ) on public.profiles to authenticated;
 
 -- =========================================================================
+-- Trigger di notifica push (send-push)
+-- =========================================================================
+
+-- public.notify_send_push() chiama la Edge Function send-push via pg_net
+-- (creata a mano nell'SQL Editor in una sessione precedente, non tracciata
+-- qui: se questo script viene eseguito su un progetto nuovo da zero, va
+-- ricreata prima di questi trigger, altrimenti falliscono con "function
+-- does not exist"). Ogni tabella che deve generare una notifica ha un
+-- trigger AFTER INSERT che la richiama: send-push decide il testo giusto
+-- in base al nome della tabella (vedi supabase/functions/send-push).
+drop trigger if exists send_push_trigger on public.sos_alerts;
+create trigger send_push_trigger
+  after insert on public.sos_alerts
+  for each row execute function public.notify_send_push();
+
+drop trigger if exists send_push_trigger on public.safe_zone_events;
+create trigger send_push_trigger
+  after insert on public.safe_zone_events
+  for each row execute function public.notify_send_push();
+
+drop trigger if exists send_push_trigger on public.location_requests;
+create trigger send_push_trigger
+  after insert on public.location_requests
+  for each row execute function public.notify_send_push();
+
+drop trigger if exists send_push_trigger on public.circle_messages;
+create trigger send_push_trigger
+  after insert on public.circle_messages
+  for each row execute function public.notify_send_push();
+
+drop trigger if exists send_push_trigger on public.help_requests;
+create trigger send_push_trigger
+  after insert on public.help_requests
+  for each row execute function public.notify_send_push();
+
+drop trigger if exists send_push_trigger on public.pings;
+create trigger send_push_trigger
+  after insert on public.pings
+  for each row execute function public.notify_send_push();
+
+drop trigger if exists send_push_trigger on public.encounters;
+create trigger send_push_trigger
+  after insert on public.encounters
+  for each row execute function public.notify_send_push();
+
+drop trigger if exists send_push_trigger on public.shopping_stops;
+create trigger send_push_trigger
+  after insert on public.shopping_stops
+  for each row execute function public.notify_send_push();
+
+drop trigger if exists send_push_trigger on public.shopping_requests;
+create trigger send_push_trigger
+  after insert on public.shopping_requests
+  for each row execute function public.notify_send_push();
+
+drop trigger if exists send_push_trigger on public.circle_expenses;
+create trigger send_push_trigger
+  after insert on public.circle_expenses
+  for each row execute function public.notify_send_push();
+
+drop trigger if exists send_push_trigger on public.weekly_summary_events;
+create trigger send_push_trigger
+  after insert on public.weekly_summary_events
+  for each row execute function public.notify_send_push();
+
+-- =========================================================================
 -- Realtime (idempotente: evita errori se rilanci lo script)
 -- =========================================================================
 
