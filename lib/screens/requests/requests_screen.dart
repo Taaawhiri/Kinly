@@ -28,17 +28,17 @@ class RequestsScreen extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                   children: [
                     if (incoming.isNotEmpty) ...[
-                      const _SectionTitle('In arrivo'),
+                      _SectionTitle(AppLocalizations.of(context)!.requestsIncoming),
                       for (final r in incoming) _IncomingCard(request: r),
                       const SizedBox(height: 12),
                     ],
                     if (outgoing.isNotEmpty) ...[
-                      const _SectionTitle('In attesa di risposta'),
+                      _SectionTitle(AppLocalizations.of(context)!.requestsWaitingReply),
                       for (final r in outgoing) _OutgoingCard(request: r),
                       const SizedBox(height: 12),
                     ],
                     if (history.isNotEmpty) ...[
-                      const _SectionTitle('Storico'),
+                      _SectionTitle(AppLocalizations.of(context)!.requestsHistory),
                       for (final r in history) _HistoryTile(request: r),
                     ],
                   ],
@@ -70,6 +70,7 @@ class _IncomingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final person = AppState.instance.personById(request.personId);
     if (person == null) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context)!;
     return _Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,14 +80,9 @@ class _IncomingCard extends StatelessWidget {
               PersonAvatar(person: person, size: 40, showStatusDot: false),
               const SizedBox(width: 12),
               Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    style: TextStyle(color: AppTheme.textPrimary, fontSize: 14),
-                    children: [
-                      TextSpan(text: person.name, style: const TextStyle(fontWeight: FontWeight.w800)),
-                      const TextSpan(text: ' vuole vedere dove sei'),
-                    ],
-                  ),
+                child: Text(
+                  l10n.requestsWantsToSeeYou(person.name),
+                  style: TextStyle(color: AppTheme.textPrimary, fontSize: 14),
                 ),
               ),
             ],
@@ -97,14 +93,14 @@ class _IncomingCard extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () => AppState.instance.respondToIncoming(request.id, false),
-                  child: const Text('Rifiuta'),
+                  child: Text(l10n.requestsReject),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: FilledButton(
                   onPressed: () => AppState.instance.respondToIncoming(request.id, true),
-                  child: const Text('Approva'),
+                  child: Text(l10n.requestsApprove),
                 ),
               ),
             ],
@@ -123,6 +119,7 @@ class _OutgoingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final person = AppState.instance.personById(request.personId);
     if (person == null) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context)!;
     return _Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,8 +132,8 @@ class _OutgoingCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('In attesa di ${person.name}', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
-                    Text('Riceverai una notifica alla risposta', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                    Text(l10n.requestsWaitingFor(person.name), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
+                    Text(l10n.requestsNotifyOnReply, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
                   ],
                 ),
               ),
@@ -157,8 +154,9 @@ class _HistoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final person = AppState.instance.personById(request.personId);
     if (person == null) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context)!;
     final accepted = request.status == RequestStatus.accepted;
-    final directionLabel = request.direction == RequestDirection.incoming ? '${person.name} ti ha chiesto la posizione' : 'Hai chiesto la posizione a ${person.name}';
+    final directionLabel = request.direction == RequestDirection.incoming ? l10n.requestsTheyAskedYou(person.name) : l10n.requestsYouAsked(person.name);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -203,10 +201,11 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const EmptyStateView(
+    final l10n = AppLocalizations.of(context)!;
+    return EmptyStateView(
       icon: Icons.mail_outline_rounded,
-      title: 'Nessuna richiesta',
-      message: 'Quando qualcuno vorrà vedere la tua posizione, o tu quella di qualcun altro, la richiesta apparirà qui.',
+      title: l10n.requestsEmptyTitle,
+      message: l10n.requestsEmptyMessage,
     );
   }
 }

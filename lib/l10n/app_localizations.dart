@@ -1300,6 +1300,78 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Puoi ricevere questo riepilogo anche via notifica una volta a settimana: attivalo da Profilo → Privacy e sicurezza.'**
   String get weeklySummaryPushHint;
+
+  /// No description provided for @requestsIncoming.
+  ///
+  /// In it, this message translates to:
+  /// **'In arrivo'**
+  String get requestsIncoming;
+
+  /// No description provided for @requestsWaitingReply.
+  ///
+  /// In it, this message translates to:
+  /// **'In attesa di risposta'**
+  String get requestsWaitingReply;
+
+  /// No description provided for @requestsHistory.
+  ///
+  /// In it, this message translates to:
+  /// **'Storico'**
+  String get requestsHistory;
+
+  /// No description provided for @requestsWantsToSeeYou.
+  ///
+  /// In it, this message translates to:
+  /// **'{name} vuole vedere dove sei'**
+  String requestsWantsToSeeYou(String name);
+
+  /// No description provided for @requestsReject.
+  ///
+  /// In it, this message translates to:
+  /// **'Rifiuta'**
+  String get requestsReject;
+
+  /// No description provided for @requestsApprove.
+  ///
+  /// In it, this message translates to:
+  /// **'Approva'**
+  String get requestsApprove;
+
+  /// No description provided for @requestsWaitingFor.
+  ///
+  /// In it, this message translates to:
+  /// **'In attesa di {name}'**
+  String requestsWaitingFor(String name);
+
+  /// No description provided for @requestsNotifyOnReply.
+  ///
+  /// In it, this message translates to:
+  /// **'Riceverai una notifica alla risposta'**
+  String get requestsNotifyOnReply;
+
+  /// No description provided for @requestsTheyAskedYou.
+  ///
+  /// In it, this message translates to:
+  /// **'{name} ti ha chiesto la posizione'**
+  String requestsTheyAskedYou(String name);
+
+  /// No description provided for @requestsYouAsked.
+  ///
+  /// In it, this message translates to:
+  /// **'Hai chiesto la posizione a {name}'**
+  String requestsYouAsked(String name);
+
+  /// No description provided for @requestsEmptyTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna richiesta'**
+  String get requestsEmptyTitle;
+
+  /// No description provided for @requestsEmptyMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Quando qualcuno vorrà vedere la tua posizione, o tu quella di qualcun altro, la richiesta apparirà qui.'**
+  String get requestsEmptyMessage;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

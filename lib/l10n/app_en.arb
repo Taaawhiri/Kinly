@@ -212,5 +212,18 @@
   "weeklySummaryHelpRequests": "Help requests",
   "weeklySummarySafeZoneEntries": "Safe zone entries",
   "weeklySummarySpeedAlerts": "Speed alerts",
-  "weeklySummaryPushHint": "You can also receive this summary via notification once a week: turn it on from Profile → Privacy and safety."
+  "weeklySummaryPushHint": "You can also receive this summary via notification once a week: turn it on from Profile → Privacy and safety.",
+
+  "requestsIncoming": "Incoming",
+  "requestsWaitingReply": "Awaiting reply",
+  "requestsHistory": "History",
+  "requestsWantsToSeeYou": "{name} wants to see where you are",
+  "requestsReject": "Decline",
+  "requestsApprove": "Approve",
+  "requestsWaitingFor": "Waiting for {name}",
+  "requestsNotifyOnReply": "You'll get a notification when they reply",
+  "requestsTheyAskedYou": "{name} asked for your location",
+  "requestsYouAsked": "You asked {name} for their location",
+  "requestsEmptyTitle": "No requests",
+  "requestsEmptyMessage": "When someone wants to see your location, or you want to see theirs, the request will appear here."
 }

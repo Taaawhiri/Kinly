@@ -682,4 +682,48 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get weeklySummaryPushHint => 'Puoi ricevere questo riepilogo anche via notifica una volta a settimana: attivalo da Profilo → Privacy e sicurezza.';
+
+  @override
+  String get requestsIncoming => 'In arrivo';
+
+  @override
+  String get requestsWaitingReply => 'In attesa di risposta';
+
+  @override
+  String get requestsHistory => 'Storico';
+
+  @override
+  String requestsWantsToSeeYou(String name) {
+    return '$name vuole vedere dove sei';
+  }
+
+  @override
+  String get requestsReject => 'Rifiuta';
+
+  @override
+  String get requestsApprove => 'Approva';
+
+  @override
+  String requestsWaitingFor(String name) {
+    return 'In attesa di $name';
+  }
+
+  @override
+  String get requestsNotifyOnReply => 'Riceverai una notifica alla risposta';
+
+  @override
+  String requestsTheyAskedYou(String name) {
+    return '$name ti ha chiesto la posizione';
+  }
+
+  @override
+  String requestsYouAsked(String name) {
+    return 'Hai chiesto la posizione a $name';
+  }
+
+  @override
+  String get requestsEmptyTitle => 'Nessuna richiesta';
+
+  @override
+  String get requestsEmptyMessage => 'Quando qualcuno vorrà vedere la tua posizione, o tu quella di qualcun altro, la richiesta apparirà qui.';
 }

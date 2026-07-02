@@ -246,5 +246,22 @@
   "weeklySummaryHelpRequests": "Richieste di aiuto",
   "weeklySummarySafeZoneEntries": "Ingressi in aree sicure",
   "weeklySummarySpeedAlerts": "Avvisi di velocità",
-  "weeklySummaryPushHint": "Puoi ricevere questo riepilogo anche via notifica una volta a settimana: attivalo da Profilo → Privacy e sicurezza."
+  "weeklySummaryPushHint": "Puoi ricevere questo riepilogo anche via notifica una volta a settimana: attivalo da Profilo → Privacy e sicurezza.",
+
+  "requestsIncoming": "In arrivo",
+  "requestsWaitingReply": "In attesa di risposta",
+  "requestsHistory": "Storico",
+  "requestsWantsToSeeYou": "{name} vuole vedere dove sei",
+  "@requestsWantsToSeeYou": {"placeholders": {"name": {"type": "String"}}},
+  "requestsReject": "Rifiuta",
+  "requestsApprove": "Approva",
+  "requestsWaitingFor": "In attesa di {name}",
+  "@requestsWaitingFor": {"placeholders": {"name": {"type": "String"}}},
+  "requestsNotifyOnReply": "Riceverai una notifica alla risposta",
+  "requestsTheyAskedYou": "{name} ti ha chiesto la posizione",
+  "@requestsTheyAskedYou": {"placeholders": {"name": {"type": "String"}}},
+  "requestsYouAsked": "Hai chiesto la posizione a {name}",
+  "@requestsYouAsked": {"placeholders": {"name": {"type": "String"}}},
+  "requestsEmptyTitle": "Nessuna richiesta",
+  "requestsEmptyMessage": "Quando qualcuno vorrà vedere la tua posizione, o tu quella di qualcun altro, la richiesta apparirà qui."
 }
