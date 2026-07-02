@@ -11,6 +11,7 @@
     --primary-dark: #2F3FAE;
     --coral: #FF6B6B;
     --amber: #FFB020;
+    --green: #23C16B;
     --bg: #F4F6FB;
     --surface: #FFFFFF;
     --surface-alt: #EEF1FA;
@@ -103,40 +104,37 @@
   .feature b { display: block; font-size: 14px; margin-bottom: 4px; }
   .feature span { font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; }
 
-  /* Anteprima "Dentro l'app": non sono screenshot veri (arriveranno con i
+  /* Anteprime "Come funziona": non sono screenshot veri (arriveranno con i
      primi utenti registrati), ma illustrazioni in stile scheletro/skeleton
      che riprendono i colori e le forme reali dell'app, cosi' e' chiaro che
-     sono un'anteprima e non una schermata fotografica. */
-  .preview-carousel-wrap { position: relative; }
-  .preview-carousel {
+     sono un'anteprima e non una schermata fotografica. Un mockup + una
+     descrizione per riga, alternati, invece di un carosello: si legge
+     meglio e non serve scorrere per capire cosa fa ciascuna funzione. */
+  .story-list {
     display: flex;
-    gap: 18px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding: 0 20px;
-    padding: 6px calc(50% - 85px) 10px;
-    margin: 0 -20px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    flex-direction: column;
+    gap: 52px;
+    max-width: 720px;
+    margin: 0 auto;
   }
-  .preview-carousel::-webkit-scrollbar { display: none; }
-  .preview-phone {
-    flex: 0 0 auto;
-    width: 170px;
-    text-align: center;
-    scroll-snap-align: center;
+  .story {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
   }
-  .preview-carousel-wrap::before,
-  .preview-carousel-wrap::after {
-    content: '';
-    position: absolute;
-    top: 0; bottom: 0;
-    width: 32px;
-    z-index: 2;
-    pointer-events: none;
+  .story.visible { opacity: 1; transform: translateY(0); }
+  .story.reverse { flex-direction: row-reverse; }
+  .story-media { flex: 0 0 auto; width: 170px; }
+  .story-text { flex: 1; min-width: 0; }
+  .story-text h3 { font-size: 17px; font-weight: 800; margin: 0 0 8px; color: var(--text); }
+  .story-text p { font-size: 13.5px; color: var(--text-secondary); line-height: 1.6; margin: 0; }
+  @media (max-width: 580px) {
+    .story, .story.reverse { flex-direction: column; text-align: center; }
+    .story-media { width: 150px; }
   }
-  .preview-carousel-wrap::before { left: 0; background: linear-gradient(90deg, var(--bg), transparent); }
-  .preview-carousel-wrap::after { right: 0; background: linear-gradient(-90deg, var(--bg), transparent); }
   .phone-frame {
     width: 100%;
     max-width: 190px;
@@ -149,14 +147,22 @@
     position: relative;
     background: var(--bg);
   }
-  .preview-caption { margin-top: 12px; font-size: 12.5px; font-weight: 700; }
-  .preview-note {
+  .story-note {
     text-align: center;
     font-size: 12px;
     color: var(--text-secondary);
     max-width: 420px;
-    margin: 20px auto 0;
+    margin: 32px auto 0;
     line-height: 1.5;
+  }
+  .jump-link {
+    display: inline-block;
+    margin-top: 18px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    text-decoration: none;
+    animation: fadeInUp 0.6s ease 0.3s both;
   }
 
   @keyframes shimmer {
@@ -259,6 +265,29 @@
   .perm-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--divider); flex: none; }
   .perm-dot.selected { border-color: var(--primary); background: var(--primary); }
 
+  /* SOS e richieste di aiuto (skeleton): banner acceso + mappa + bottone. */
+  .sos-mock { position: absolute; inset: 0; padding: 14% 10%; }
+  .sos-banner {
+    display: flex; align-items: center; gap: 9px;
+    background: rgba(255, 107, 107, 0.12);
+    border: 1px solid rgba(255, 107, 107, 0.35);
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 14px;
+  }
+  .sos-banner .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--coral); flex: none; animation: shimmer 1.3s ease-in-out infinite; }
+  .sos-banner .bar { margin: 0; background: rgba(255, 107, 107, 0.4); }
+  .sos-map { height: 92px; border-radius: 12px; background: var(--surface-alt); position: relative; overflow: hidden; margin-bottom: 14px; }
+  .sos-button { height: 26px; border-radius: 8px; background: var(--green); animation: shimmer 2.4s ease-in-out infinite; }
+
+  /* Messaggi di gruppo (skeleton): nuvolette alternate. */
+  .chat-mock { position: absolute; inset: 0; padding: 16% 10%; display: flex; flex-direction: column; gap: 10px; }
+  .chat-bubble { max-width: 72%; padding: 9px 12px; border-radius: 14px; }
+  .chat-bubble .bar { margin: 0; }
+  .chat-bubble.left { align-self: flex-start; background: var(--surface-alt); border-bottom-left-radius: 4px; }
+  .chat-bubble.right { align-self: flex-end; background: var(--primary); border-bottom-right-radius: 4px; }
+  .chat-bubble.right .bar { background: rgba(255, 255, 255, 0.55); }
+
   .plans {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -348,6 +377,7 @@
   <img class="logo" src="icon.png" alt="Kinly">
   <h1>Kinly</h1>
   <p class="tagline">Condividi la posizione con chi conta, solo su invito. Famiglia, amici e colleghi: sempre tranquilli, mai controllati.</p>
+  <a class="jump-link" href="#come-funziona">Scopri come funziona &darr;</a>
 </header>
 
 <div class="wrap">
@@ -444,117 +474,181 @@
     </div>
   </section>
 
-  <section>
-    <h2>Dentro l'app</h2>
-    <div class="preview-carousel-wrap">
-    <div class="preview-carousel">
-      <div class="preview-phone">
-        <div class="phone-frame">
-          <div class="reg-mock">
-            <div class="reg-logo"></div>
-            <div class="reg-tabs">
-              <div class="reg-tab active"></div>
-              <div class="reg-tab"></div>
-            </div>
-            <div class="reg-field"></div>
-            <div class="reg-field"></div>
-            <div class="reg-field"></div>
-            <div class="reg-button"></div>
-          </div>
-        </div>
-        <p class="preview-caption">Registrazione in pochi secondi</p>
-      </div>
-      <div class="preview-phone">
-        <div class="phone-frame">
-          <div class="map-bg"></div>
-          <div class="skel-dot" style="background: var(--primary); top: 22%; left: 32%;"></div>
-          <div class="skel-dot" style="background: var(--coral); top: 34%; left: 62%; animation-delay: 0.4s;"></div>
-          <div class="skel-dot" style="background: var(--amber); top: 15%; left: 55%; animation-delay: 0.8s;"></div>
-          <div class="sheet">
-            <div class="sheet-handle"></div>
-            <div class="sheet-row">
-              <div class="sheet-avatar" style="background: var(--primary);"></div>
-              <div class="sheet-bars"><div class="bar" style="width: 60%;"></div><div class="bar light" style="width: 40%;"></div></div>
-            </div>
-            <div class="sheet-row">
-              <div class="sheet-avatar" style="background: var(--coral);"></div>
-              <div class="sheet-bars"><div class="bar" style="width: 50%;"></div><div class="bar light" style="width: 35%;"></div></div>
-            </div>
-            <div class="sheet-row">
-              <div class="sheet-avatar" style="background: var(--amber);"></div>
-              <div class="sheet-bars"><div class="bar" style="width: 55%;"></div><div class="bar light" style="width: 30%;"></div></div>
+  <section id="come-funziona">
+    <h2>Come funziona</h2>
+    <div class="story-list">
+      <div class="story">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="reg-mock">
+              <div class="reg-logo"></div>
+              <div class="reg-tabs">
+                <div class="reg-tab active"></div>
+                <div class="reg-tab"></div>
+              </div>
+              <div class="reg-field"></div>
+              <div class="reg-field"></div>
+              <div class="reg-field"></div>
+              <div class="reg-button"></div>
             </div>
           </div>
         </div>
-        <p class="preview-caption">La mappa live della tua cerchia</p>
+        <div class="story-text">
+          <h3>Registrazione in pochi secondi</h3>
+          <p>Crei un account, crei o entri in una cerchia con un codice di invito: nessuna registrazione pubblica, si entra solo su invito di chi gia' la usa.</p>
+        </div>
       </div>
-      <div class="preview-phone">
-        <div class="phone-frame">
-          <div class="detail-card">
-            <div class="detail-avatar"></div>
-            <div class="bar"></div>
-            <div class="bar small"></div>
-            <div class="battery-mock">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="7" width="17" height="10" rx="2"/>
-                <path d="M21 10v4"/>
-              </svg>
+
+      <div class="story reverse">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="map-bg"></div>
+            <div class="skel-dot" style="background: var(--primary); top: 22%; left: 32%;"></div>
+            <div class="skel-dot" style="background: var(--coral); top: 34%; left: 62%; animation-delay: 0.4s;"></div>
+            <div class="skel-dot" style="background: var(--amber); top: 15%; left: 55%; animation-delay: 0.8s;"></div>
+            <div class="sheet">
+              <div class="sheet-handle"></div>
+              <div class="sheet-row">
+                <div class="sheet-avatar" style="background: var(--primary);"></div>
+                <div class="sheet-bars"><div class="bar" style="width: 60%;"></div><div class="bar light" style="width: 40%;"></div></div>
+              </div>
+              <div class="sheet-row">
+                <div class="sheet-avatar" style="background: var(--coral);"></div>
+                <div class="sheet-bars"><div class="bar" style="width: 50%;"></div><div class="bar light" style="width: 35%;"></div></div>
+              </div>
+              <div class="sheet-row">
+                <div class="sheet-avatar" style="background: var(--amber);"></div>
+                <div class="sheet-bars"><div class="bar" style="width: 55%;"></div><div class="bar light" style="width: 30%;"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="story-text">
+          <h3>La mappa live della tua cerchia</h3>
+          <p>Vedi dove si trova ciascun membro in tempo reale, con l'avatar che ha scelto: apri l'app e sai subito se sono a casa, a scuola o in giro.</p>
+        </div>
+      </div>
+
+      <div class="story">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="sos-mock">
+              <div class="sos-banner">
+                <div class="dot"></div>
+                <div class="bar" style="width: 65%;"></div>
+              </div>
+              <div class="sos-map">
+                <div class="skel-dot" style="background: var(--coral); top: 40%; left: 42%;"></div>
+              </div>
+              <div class="sos-button"></div>
+            </div>
+          </div>
+        </div>
+        <div class="story-text">
+          <h3>SOS e richieste di aiuto</h3>
+          <p>Un tocco avvisa la tua cerchia (o solo i contatti di fiducia che scegli tu) con la posizione esatta. Chi riceve l'allerta puo' anche chiamarti direttamente, con un pulsante.</p>
+        </div>
+      </div>
+
+      <div class="story reverse">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="groups-mock">
+              <div class="group-card">
+                <div class="group-card-head">
+                  <div class="group-icon" style="background: var(--coral);"></div>
+                  <div class="bar" style="width: 45%;"></div>
+                </div>
+                <div class="mini-avatars">
+                  <div class="mini-avatar" style="background: var(--primary);"></div>
+                  <div class="mini-avatar" style="background: var(--amber);"></div>
+                  <div class="mini-avatar" style="background: var(--coral);"></div>
+                </div>
+              </div>
+              <div class="perm-option"><div class="perm-dot selected"></div><div class="bar" style="width: 55%;"></div></div>
+              <div class="perm-option"><div class="perm-dot"></div><div class="bar light" style="width: 40%;"></div></div>
+              <div class="perm-option"><div class="perm-dot"></div><div class="bar light" style="width: 48%;"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="story-text">
+          <h3>Cerchie e autorizzazioni sotto controllo</h3>
+          <p>Puoi far parte di piu' cerchie (famiglia, amici, colleghi) e scegliere una modalita' di condivisione diversa per ciascuna: automatica con chi ti fidi di piu', approssimativa o sospesa con gli altri.</p>
+        </div>
+      </div>
+
+      <div class="story">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="chat-mock">
+              <div class="chat-bubble left"><div class="bar" style="width: 70px;"></div></div>
+              <div class="chat-bubble right"><div class="bar" style="width: 90px;"></div></div>
+              <div class="chat-bubble left"><div class="bar" style="width: 50px;"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="story-text">
+          <h3>Messaggi di gruppo</h3>
+          <p>Una chat dedicata per ogni cerchia, pensata per avvisi rapidi ("sto arrivando", "chiamami") piu' che per chiacchierare: niente feed infinito da controllare.</p>
+        </div>
+      </div>
+
+      <div class="story reverse">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="settings-mock">
+              <div class="settings-row">
+                <div class="settings-icon"></div>
+                <div class="sheet-bars"><div class="bar" style="width: 70%;"></div><div class="bar light" style="width: 45%;"></div></div>
+              </div>
+              <div class="settings-row">
+                <div class="settings-icon"></div>
+                <div class="sheet-bars"><div class="bar" style="width: 55%;"></div></div>
+                <div class="toggle on"></div>
+              </div>
+              <div class="settings-row">
+                <div class="settings-icon"></div>
+                <div class="sheet-bars"><div class="bar" style="width: 60%;"></div></div>
+                <div class="toggle"></div>
+              </div>
+              <div class="settings-row">
+                <div class="settings-icon"></div>
+                <div class="sheet-bars"><div class="bar" style="width: 50%;"></div></div>
+                <div class="toggle on"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="story-text">
+          <h3>Privacy e impostazioni a portata di mano</h3>
+          <p>Orario di reperibilita', tracciamento in background opt-in, riepilogo settimanale, numero di telefono per farti chiamare: tutto facoltativo, tutto disattivabile in un tocco.</p>
+        </div>
+      </div>
+
+      <div class="story">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="detail-card">
+              <div class="detail-avatar"></div>
               <div class="bar"></div>
-            </div>
-          </div>
-        </div>
-        <p class="preview-caption">Stato e batteria di chi ami</p>
-      </div>
-      <div class="preview-phone">
-        <div class="phone-frame">
-          <div class="groups-mock">
-            <div class="group-card">
-              <div class="group-card-head">
-                <div class="group-icon" style="background: var(--coral);"></div>
-                <div class="bar" style="width: 45%;"></div>
-              </div>
-              <div class="mini-avatars">
-                <div class="mini-avatar" style="background: var(--primary);"></div>
-                <div class="mini-avatar" style="background: var(--amber);"></div>
-                <div class="mini-avatar" style="background: var(--coral);"></div>
+              <div class="bar small"></div>
+              <div class="battery-mock">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="7" width="17" height="10" rx="2"/>
+                  <path d="M21 10v4"/>
+                </svg>
+                <div class="bar"></div>
               </div>
             </div>
-            <div class="perm-option"><div class="perm-dot selected"></div><div class="bar" style="width: 55%;"></div></div>
-            <div class="perm-option"><div class="perm-dot"></div><div class="bar light" style="width: 40%;"></div></div>
-            <div class="perm-option"><div class="perm-dot"></div><div class="bar light" style="width: 48%;"></div></div>
           </div>
         </div>
-        <p class="preview-caption">Cerchie e autorizzazioni sotto controllo</p>
-      </div>
-      <div class="preview-phone">
-        <div class="phone-frame">
-          <div class="settings-mock">
-            <div class="settings-row">
-              <div class="settings-icon"></div>
-              <div class="sheet-bars"><div class="bar" style="width: 70%;"></div><div class="bar light" style="width: 45%;"></div></div>
-            </div>
-            <div class="settings-row">
-              <div class="settings-icon"></div>
-              <div class="sheet-bars"><div class="bar" style="width: 55%;"></div></div>
-              <div class="toggle on"></div>
-            </div>
-            <div class="settings-row">
-              <div class="settings-icon"></div>
-              <div class="sheet-bars"><div class="bar" style="width: 60%;"></div></div>
-              <div class="toggle"></div>
-            </div>
-            <div class="settings-row">
-              <div class="settings-icon"></div>
-              <div class="sheet-bars"><div class="bar" style="width: 50%;"></div></div>
-              <div class="toggle on"></div>
-            </div>
-          </div>
+        <div class="story-text">
+          <h3>Stato e batteria di chi ami</h3>
+          <p>Nome, avatar e batteria del telefono di ogni persona della cerchia, visibili con un tocco: utile per sapere se rischia di restare senza contatto.</p>
         </div>
-        <p class="preview-caption">Privacy e impostazioni a portata di mano</p>
       </div>
     </div>
-    </div>
-    <p class="preview-note">Scorri per vedere tutte le anteprime &middot; in stile Kinly, non screenshot: arriveranno con i primi utenti registrati.</p>
+    <p class="story-note">Anteprime in stile Kinly, non screenshot: arriveranno con i primi utenti registrati.</p>
   </section>
 
   <section>
@@ -615,7 +709,7 @@
   // Le card di funzioni e piani compaiono una alla volta mentre si scorre,
   // invece di essere tutte visibili da subito: un tocco di movimento senza
   // dipendenze esterne.
-  var items = document.querySelectorAll('.feature, .plan, .faq-item');
+  var items = document.querySelectorAll('.feature, .plan, .faq-item, .story');
   items.forEach(function (el, i) {
     el.style.transitionDelay = (i % 4) * 0.08 + 's';
   });
@@ -628,19 +722,6 @@
     });
   }, { threshold: 0.15 });
   items.forEach(function (el) { observer.observe(el); });
-
-  // Il carosello "Dentro l'app" e' pensato per lo swipe su mobile; su
-  // desktop, dove si scorre di solito in verticale con la rotella, la
-  // trasformiamo in scorrimento orizzontale cosi' funziona subito anche li'.
-  var carousel = document.querySelector('.preview-carousel');
-  if (carousel) {
-    carousel.addEventListener('wheel', function (e) {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        carousel.scrollLeft += e.deltaY;
-        e.preventDefault();
-      }
-    }, { passive: false });
-  }
 </script>
 
 </body>
