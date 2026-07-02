@@ -9,6 +9,7 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/help_request.dart';
 import '../../models/person.dart';
 import '../../models/ping.dart';
@@ -192,8 +193,9 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   /// d'incontro invece di aprire l'intera schermata di gestione.
   Future<void> _makeSearchResultMeetingPoint(PlaceResult place) async {
     final state = AppState.instance;
+    final l10n = AppLocalizations.of(context)!;
     if (state.circles.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Crea o entra in una cerchia prima.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.mapNeedCircleFirst)));
       return;
     }
     var circleId = state.activeCircleId ?? (state.circles.length == 1 ? state.circles.first.id : null);
@@ -206,11 +208,11 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(20, 16, 20, 4),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('In quale cerchia?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                  child: Text(l10n.mapWhichCircleTitle, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                 ),
               ),
               for (final c in state.circles)
@@ -228,7 +230,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     final name = place.label.split(',').first;
     await AppState.instance.createMeetingPoint(circleId: circleId, name: name, lat: place.lat, lng: place.lng);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('"$name" aggiunto come punto d\'incontro.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.mapMeetingPointAdded(name))));
       _clearSearch();
     }
   }
@@ -247,6 +249,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   }
 
   Widget _buildSearchBar() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -266,7 +269,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 decoration: InputDecoration(
-                  hintText: 'Cerca un indirizzo o un negozio…',
+                  hintText: l10n.mapSearchHint,
                   hintStyle: TextStyle(fontSize: 13.5, color: AppTheme.textSecondary),
                   prefixIcon: Icon(Icons.search_rounded, color: AppTheme.textSecondary, size: 20),
                   suffixIcon: _searching
@@ -347,7 +350,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                 FilledButton.icon(
                   onPressed: () => _makeSearchResultMeetingPoint(_selectedPlace!),
                   icon: const Icon(Icons.share_location_rounded, size: 18),
-                  label: const Text('Rendi punto d\'incontro'),
+                  label: Text(l10n.mapMakeMeetingPoint),
                   style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(40)),
                 ),
               ],
@@ -364,7 +367,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       await _mapController?.animateCamera(CameraUpdate.newLatLngZoom(LatLng(position.latitude, position.longitude), 15));
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a rilevare la tua posizione.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.mapLocationUnavailable)));
       }
     } finally {
       if (mounted) setState(() => _centering = false);
@@ -372,20 +375,19 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   }
 
   Future<void> _confirmAndTriggerSos() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Attivare l\'SOS?'),
-        content: const Text(
-          'La tua posizione esatta verrà condivisa subito con tutte le tue cerchie, anche se hai una modalità di condivisione ridotta. Nessuna registrazione audio: solo posizione.',
-        ),
+        title: Text(l10n.mapSosConfirmTitle),
+        content: Text(l10n.mapSosConfirmBody),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Annulla')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonCancel)),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(backgroundColor: AppTheme.accentCoral),
-            child: const Text('Attiva SOS'),
+            child: Text(l10n.mapActivateSos),
           ),
         ],
       ),
@@ -398,7 +400,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     } catch (_) {
       if (!mounted) return;
       if (position == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a rilevare la tua posizione per l\'SOS.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.mapLocationUnavailableForSos)));
       } else {
         // Posizione trovata ma invio fallito: probabilmente non c'è
         // internet. Proponi il piano B via SMS, se un numero è configurato.
@@ -410,11 +412,12 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   /// SOS via SMS quando internet non c'è: apre l'app SMS con destinatario e
   /// testo (coordinate + link mappa) già compilati — l'invio lo confermi tu.
   Future<void> _offerSmsFallback(Position position) async {
+    final l10n = AppLocalizations.of(context)!;
     final number = await EmergencySmsSettings.instance.getNumber();
     if (!mounted) return;
     if (number == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('SOS non inviato (sei offline?). Imposta un numero SOS via SMS in Privacy e sicurezza per avere un piano B.'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(l10n.mapSosNotSentOffline),
       ));
       return;
     }
@@ -422,14 +425,14 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Niente internet: SOS via SMS?'),
-        content: Text('Non siamo riusciti a inviare l\'SOS online. Vuoi mandare un SMS con la tua posizione a $number?'),
+        title: Text(l10n.mapNoInternetSosSmsTitle),
+        content: Text(l10n.mapNoInternetSosSmsBody(number)),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('No')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonNo)),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(backgroundColor: AppTheme.accentCoral),
-            child: const Text('Prepara SMS'),
+            child: Text(l10n.mapPrepareSms),
           ),
         ],
       ),
@@ -448,6 +451,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   // -----------------------------------------------------------------------
 
   void _onWalkMeHomeTap() {
+    final l10n = AppLocalizations.of(context)!;
     final walk = WalkMeHomeService.instance;
     if (walk.isActive) {
       final remaining = walk.remaining.inMinutes + 1;
@@ -455,16 +459,16 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
         context: context,
         builder: (context) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: const Text('Accompagnami attivo'),
-          content: Text('Se non confermi entro ~$remaining min, la tua cerchia riceve un avviso con la tua posizione.'),
+          title: Text(l10n.mapWalkMeHomeActiveTitle),
+          content: Text(l10n.mapWalkMeHomeActiveBody(remaining)),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Chiudi')),
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.commonClose)),
             FilledButton(
               onPressed: () {
                 walk.confirmArrival();
                 Navigator.of(context).pop();
               },
-              child: const Text('Sono arrivato/a'),
+              child: Text(l10n.mapArrived),
             ),
           ],
         ),
@@ -474,7 +478,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
 
     final state = AppState.instance;
     if (state.circles.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Crea o entra in una cerchia prima.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.mapNeedCircleFirst)));
       return;
     }
     final circleId = state.activeCircleId ?? state.circles.first.id;
@@ -489,10 +493,10 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Accompagnami', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+              Text(AppLocalizations.of(sheetContext)!.mapWalkMeHomeTitle, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
               const SizedBox(height: 6),
               Text(
-                'Scegli in quanto tempo prevedi di arrivare: se non confermi entro quel tempo (o non entri in un\'area Casa), la tua cerchia riceve automaticamente un avviso con la tua posizione.',
+                AppLocalizations.of(sheetContext)!.mapWalkMeHomeDescription,
                 style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
               ),
               const SizedBox(height: 16),
@@ -502,7 +506,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                 children: [
                   for (final minutes in [10, 20, 30, 45, 60])
                     ActionChip(
-                      label: Text('$minutes min'),
+                      label: Text(AppLocalizations.of(sheetContext)!.mapWalkMeHomeMinutes(minutes)),
                       onPressed: () {
                         WalkMeHomeService.instance.start(duration: Duration(minutes: minutes), circleId: circleId);
                         Navigator.of(sheetContext).pop();
@@ -512,7 +516,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Nota: se il telefono chiude del tutto l\'app prima della scadenza, l\'avviso automatico potrebbe non partire.',
+                AppLocalizations.of(sheetContext)!.mapWalkMeHomeNote,
                 style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, height: 1.3),
               ),
             ],
@@ -547,10 +551,11 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               }
             });
           }
+          final l10n = AppLocalizations.of(dialogContext)!;
           return AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            title: const Text('Possibile incidente rilevato'),
-            content: Text('SOS automatico tra $secondsLeft secondi. Stai bene? Annulla se è un falso allarme.'),
+            title: Text(l10n.mapCrashDetectedTitle),
+            content: Text(l10n.mapCrashDetectedBody(secondsLeft)),
             actions: [
               FilledButton(
                 onPressed: () {
@@ -558,7 +563,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                   Navigator.of(dialogContext).pop();
                 },
                 style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-                child: const Text('Sto bene, annulla'),
+                child: Text(l10n.mapImFine),
               ),
             ],
           );
@@ -599,10 +604,10 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Condividi la posizione con un link', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+              Text(AppLocalizations.of(sheetContext)!.mapShareLocationLinkTitle, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
               const SizedBox(height: 6),
               Text(
-                'Chi riceve il link vede la tua posizione live dal browser, anche senza l\'app. Il link scade da solo.',
+                AppLocalizations.of(sheetContext)!.mapShareLocationLinkBody,
                 style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
               ),
               const SizedBox(height: 16),
@@ -610,17 +615,22 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  for (final (label, duration) in [('1 ora', Duration(hours: 1)), ('3 ore', Duration(hours: 3)), ('24 ore', Duration(hours: 24))])
+                  for (final (label, duration) in [
+                    (AppLocalizations.of(sheetContext)!.mapDuration1h, Duration(hours: 1)),
+                    (AppLocalizations.of(sheetContext)!.mapDuration3h, Duration(hours: 3)),
+                    (AppLocalizations.of(sheetContext)!.mapDuration24h, Duration(hours: 24)),
+                  ])
                     ActionChip(
                       label: Text(label),
                       onPressed: () async {
+                        final l10n = AppLocalizations.of(context)!;
                         Navigator.of(sheetContext).pop();
                         try {
                           final url = await KinlyRepository.instance.createLiveShareLink(duration);
-                          await Share.share('Segui la mia posizione live su Kinly (valido $label): $url');
+                          await Share.share(l10n.mapShareLiveMessage(label, url));
                         } catch (_) {
                           if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a creare il link. Riprova.')));
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.mapLinkCreateError)));
                           }
                         }
                       },
@@ -644,7 +654,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       return;
     }
     if (state.circles.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Crea o entra in una cerchia prima.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.mapNeedCircleFirst)));
       return;
     }
     showBlurredModalBottomSheet(
@@ -655,9 +665,9 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 16, 20, 4),
-              child: Align(alignment: Alignment.centerLeft, child: Text('Per quale cerchia?', style: TextStyle(fontWeight: FontWeight.w800))),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+              child: Align(alignment: Alignment.centerLeft, child: Text(AppLocalizations.of(sheetContext)!.mapWhichCircleForMeetingPoint, style: const TextStyle(fontWeight: FontWeight.w800))),
             ),
             for (final c in state.circles)
               ListTile(
@@ -726,7 +736,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(zone.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
-                        Text('${zone.kind.label} · raggio ${zone.radiusMeters} m', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                        Text(AppLocalizations.of(sheetContext)!.mapSafeZoneLabelAndRadius(zone.kind.label, zone.radiusMeters), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
                       ],
                     ),
                   ),
@@ -740,7 +750,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                     Navigator.of(context).push(MaterialPageRoute(builder: (_) => SafeZonesScreen(circle: circle)));
                   },
                   icon: const Icon(Icons.fence_rounded, size: 18),
-                  label: const Text('Gestisci aree sicure'),
+                  label: Text(AppLocalizations.of(sheetContext)!.mapManageSafeZones),
                   style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
                 ),
               ],
@@ -791,6 +801,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   }
 
   Widget _buildBanners(AppState state) {
+    final someone = AppLocalizations.of(context)!.commonSomeone;
     return Column(
       children: [
         if (WalkMeHomeService.instance.isActive)
@@ -802,7 +813,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
           EntranceFade(
             key: ValueKey('sos_${alert.id}'),
             child: _SosBanner(
-              personName: state.personById(alert.profileId)?.name ?? 'Qualcuno',
+              personName: state.personById(alert.profileId)?.name ?? someone,
               onTap: () {
                 final person = state.personById(alert.profileId);
                 if (person != null) {
@@ -817,7 +828,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
           EntranceFade(
             key: ValueKey('help_${request.id}'),
             child: _HelpBanner(
-              personName: state.personById(request.profileId)?.name ?? 'Qualcuno',
+              personName: state.personById(request.profileId)?.name ?? someone,
               reasonLabel: request.reason.label,
               onTap: () {
                 final person = state.personById(request.profileId);
@@ -831,7 +842,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
           ),
         for (final encounter in state.recentEncounters)
           _EncounterBanner(
-            personName: state.personById(encounter.otherPersonId(state.me.id))?.name ?? 'Qualcuno',
+            personName: state.personById(encounter.otherPersonId(state.me.id))?.name ?? someone,
             onHighFive: () {
               state.sendPing(toId: encounter.otherPersonId(state.me.id), kind: PingKind.highFive);
               state.dismissEncounter(encounter.id);
@@ -840,20 +851,20 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
           ),
         for (final ping in state.incomingPings)
           _PingBanner(
-            personName: state.personById(ping.fromId)?.name ?? 'Qualcuno',
+            personName: state.personById(ping.fromId)?.name ?? someone,
             kind: ping.kind,
             onDismiss: () => state.dismissPing(ping.id),
           ),
         for (final stop in state.othersActiveShoppingStops)
           _ShoppingStopBanner(
-            personName: state.personById(stop.profileId)?.name ?? 'Qualcuno',
+            personName: state.personById(stop.profileId)?.name ?? someone,
             stop: stop,
             onSend: (note) => state.sendShoppingRequest(stopId: stop.id, note: note),
           ),
         if (state.myActiveShoppingStop != null && state.requestsForStop(state.myActiveShoppingStop!.id).isNotEmpty)
           _MyShoppingRequestsBanner(
             requests: state.requestsForStop(state.myActiveShoppingStop!.id),
-            nameFor: (id) => state.personById(id)?.name ?? 'Qualcuno',
+            nameFor: (id) => state.personById(id)?.name ?? someone,
           ),
       ],
     );
@@ -869,7 +880,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               scrollDirection: Axis.horizontal,
               children: [
                 CircleChip(
-                  label: 'Tutte',
+                  label: AppLocalizations.of(context)!.mapAllCirclesChip,
                   isSelected: state.activeCircleId == null,
                   onTap: () => state.setActiveCircle(null),
                 ),
@@ -901,24 +912,25 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   /// larghi. [scrollController] arriva dal DraggableScrollableSheet solo
   /// nel primo caso: senza, la lista usa il proprio scroll indipendente.
   Widget _buildCircleListBody(List<Person> people, {ScrollController? scrollController}) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
           child: Row(
             children: [
-              Text('La tua cerchia', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
+              Text(l10n.mapYourCircle, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
               const Spacer(),
-              Text('${people.length} persone', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+              Text(l10n.mapPeopleCount(people.length), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
               IconButton(
                 icon: const Icon(Icons.add_location_alt_outlined, size: 20),
-                tooltip: 'Nuovo punto d\'incontro',
+                tooltip: l10n.mapNewMeetingPointTooltip,
                 visualDensity: VisualDensity.compact,
                 onPressed: _openMeetingPointEntry,
               ),
               IconButton(
                 icon: const Icon(Icons.link_rounded, size: 20),
-                tooltip: 'Condividi posizione con un link',
+                tooltip: l10n.mapShareLocationLinkTooltip,
                 visualDensity: VisualDensity.compact,
                 onPressed: _openLiveShareSheet,
               ),
@@ -935,11 +947,11 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                   controller: scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  children: const [
+                  children: [
                     EmptyStateView(
                       icon: Icons.person_add_alt_1_rounded,
-                      title: 'Nessuno da vedere qui ancora',
-                      message: 'Invita una persona nella cerchia per vederla sulla mappa.',
+                      title: l10n.mapEmptyCircleTitle,
+                      message: l10n.mapEmptyCircleMessage,
                     ),
                   ],
                 )
@@ -1255,7 +1267,7 @@ class _WebCompanionNotice extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Stai usando la versione web di Kinly: qui la posizione si aggiorna solo mentre questa scheda e\' aperta. Per il tracciamento continuo, notifiche push e sblocco biometrico serve l\'app.',
+              AppLocalizations.of(context)!.mapWebNotice,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.4),
             ),
           ),
@@ -1291,6 +1303,7 @@ class _EmergencyActionsGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surface,
@@ -1304,8 +1317,8 @@ class _EmergencyActionsGroup extends StatelessWidget {
             icon: Icons.emergency_rounded,
             color: AppTheme.accentCoral,
             active: sosActive,
-            activeLabel: 'SOS attivo',
-            semanticLabel: 'Attiva SOS',
+            activeLabel: l10n.mapSosActiveLabel,
+            semanticLabel: l10n.mapActivateSosSemantic,
             onTap: onSosTap,
             topRadius: 18,
           ),
@@ -1314,8 +1327,8 @@ class _EmergencyActionsGroup extends StatelessWidget {
             icon: Icons.pan_tool_alt_rounded,
             color: AppTheme.accentAmber,
             active: helpActive,
-            activeLabel: 'Aiuto richiesto',
-            semanticLabel: 'Chiedi aiuto',
+            activeLabel: l10n.mapHelpRequestedLabel,
+            semanticLabel: l10n.mapAskForHelp,
             onTap: onHelpTap,
           ),
           Container(height: 1, width: 40, color: AppTheme.divider),
@@ -1323,8 +1336,8 @@ class _EmergencyActionsGroup extends StatelessWidget {
             icon: Icons.directions_walk_rounded,
             color: AppTheme.primary,
             active: walkActive,
-            activeLabel: 'Accompagnami attivo',
-            semanticLabel: 'Accompagnami',
+            activeLabel: l10n.mapWalkMeHomeActiveLabel,
+            semanticLabel: l10n.mapWalkMeHomeSemantic,
             onTap: onWalkTap,
             bottomRadius: 18,
           ),
@@ -1412,7 +1425,7 @@ class _SosBanner extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                '$personName ha attivato l\'SOS · tocca per vedere dove si trova',
+                AppLocalizations.of(context)!.mapSosBannerText(personName),
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12.5),
               ),
             ),
@@ -1447,7 +1460,7 @@ class _HelpBanner extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                '$personName ha bisogno di aiuto ($reasonLabel) · tocca per i dettagli',
+                AppLocalizations.of(context)!.mapHelpBannerText(personName, reasonLabel),
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12.5),
               ),
             ),
@@ -1480,11 +1493,11 @@ class _WalkMeHomeBanner extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Accompagnami attivo · conferma entro ~$minutes min',
+              AppLocalizations.of(context)!.mapWalkMeHomeBannerText(minutes),
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AppTheme.textPrimary),
             ),
           ),
-          TextButton(onPressed: onArrived, child: const Text('Sono arrivato/a')),
+          TextButton(onPressed: onArrived, child: Text(AppLocalizations.of(context)!.mapArrived)),
         ],
       ),
     );
@@ -1511,11 +1524,11 @@ class _EncounterBanner extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Ti sei incrociato con $personName!',
+              AppLocalizations.of(context)!.mapEncounterText(personName),
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AppTheme.textPrimary),
             ),
           ),
-          TextButton(onPressed: onHighFive, child: const Text('High five')),
+          TextButton(onPressed: onHighFive, child: Text(AppLocalizations.of(context)!.mapHighFive)),
           IconButton(icon: const Icon(Icons.close_rounded, size: 18), onPressed: onDismiss, visualDensity: VisualDensity.compact),
         ],
       ),
@@ -1600,14 +1613,14 @@ class _ShoppingStopBannerState extends State<_ShoppingStopBanner> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  '${widget.personName} è al negozio$place',
+                  AppLocalizations.of(context)!.mapShoppingAtStore(widget.personName, place),
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AppTheme.textPrimary),
                 ),
               ),
               if (_sent)
                 const Icon(Icons.check_circle_rounded, color: AppTheme.accentGreen, size: 18)
               else
-                TextButton(onPressed: () => setState(() => _expanded = !_expanded), child: const Text('Chiedi qualcosa')),
+                TextButton(onPressed: () => setState(() => _expanded = !_expanded), child: Text(AppLocalizations.of(context)!.mapAskSomething)),
             ],
           ),
           if (_expanded && !_sent) ...[
@@ -1619,7 +1632,7 @@ class _ShoppingStopBannerState extends State<_ShoppingStopBanner> {
                     controller: _controller,
                     autofocus: true,
                     decoration: InputDecoration(
-                      hintText: 'Es. Latte!',
+                      hintText: AppLocalizations.of(context)!.mapShoppingHint,
                       filled: true,
                       fillColor: AppTheme.surfaceAlt,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -1656,10 +1669,10 @@ class _MyShoppingRequestsBanner extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Ti hanno chiesto:', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5, color: AppTheme.textPrimary)),
+          Text(AppLocalizations.of(context)!.mapTheyAskedFor, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5, color: AppTheme.textPrimary)),
           const SizedBox(height: 4),
           for (final r in requests)
-            Text('${nameFor(r.fromId)}: ${r.note}', style: TextStyle(fontSize: 12.5, color: AppTheme.textPrimary)),
+            Text(AppLocalizations.of(context)!.mapShoppingRequestLine(nameFor(r.fromId), r.note), style: TextStyle(fontSize: 12.5, color: AppTheme.textPrimary)),
         ],
       ),
     );
@@ -1803,7 +1816,7 @@ class _HelpRequestSheetState extends State<_HelpRequestSheet> {
   Future<void> _send() async {
     final circleId = _circleId;
     if (circleId == null) {
-      setState(() => _error = 'Crea o entra in una cerchia prima di chiedere aiuto.');
+      setState(() => _error = AppLocalizations.of(context)!.mapNeedCircleForHelp);
       return;
     }
     setState(() {
@@ -1821,7 +1834,7 @@ class _HelpRequestSheetState extends State<_HelpRequestSheet> {
       );
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
-      if (mounted) setState(() => _error = 'Non siamo riusciti a inviare la richiesta. Riprova.');
+      if (mounted) setState(() => _error = AppLocalizations.of(context)!.mapHelpRequestSendError);
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -1830,6 +1843,7 @@ class _HelpRequestSheetState extends State<_HelpRequestSheet> {
   @override
   Widget build(BuildContext context) {
     final state = AppState.instance;
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
       child: SingleChildScrollView(
@@ -1837,15 +1851,15 @@ class _HelpRequestSheetState extends State<_HelpRequestSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Chiedi aiuto', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+            Text(l10n.mapAskForHelp, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
             const SizedBox(height: 6),
             Text(
-              'Avvisa la tua cerchia con un motivo e la tua posizione attuale. A differenza dell\'SOS, non cambia la tua modalità di condivisione.',
+              l10n.mapHelpRequestDescription,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
             ),
             const SizedBox(height: 16),
             if (state.circles.length > 1) ...[
-              Text('Cerchia', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+              Text(l10n.mapCircleLabel, style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -1861,7 +1875,7 @@ class _HelpRequestSheetState extends State<_HelpRequestSheet> {
               ),
               const SizedBox(height: 16),
             ],
-            Text('Motivo', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+            Text(l10n.mapReasonLabel, style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
             const SizedBox(height: 10),
             GridView.count(
               crossAxisCount: 2,
@@ -1880,7 +1894,7 @@ class _HelpRequestSheetState extends State<_HelpRequestSheet> {
               maxLength: 140,
               maxLines: 3,
               decoration: InputDecoration(
-                hintText: 'Aggiungi un dettaglio (opzionale)',
+                hintText: l10n.mapNoteHint,
                 filled: true,
                 fillColor: AppTheme.surfaceAlt,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -1897,7 +1911,7 @@ class _HelpRequestSheetState extends State<_HelpRequestSheet> {
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52), backgroundColor: AppTheme.accentAmber),
               child: _sending
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
-                  : const Text('Invia richiesta'),
+                  : Text(l10n.mapSendRequest),
             ),
           ],
         ),
