@@ -63,6 +63,17 @@
     animation: fadeInUp 0.6s ease 0.1s both;
   }
 
+  .phone-mockup {
+    width: 220px;
+    margin: 32px auto 0;
+    border-radius: 32px;
+    border: 8px solid var(--text);
+    overflow: hidden;
+    box-shadow: 0 20px 44px rgba(28, 34, 51, 0.28);
+    animation: fadeInUp 0.6s ease 0.2s both;
+  }
+  .phone-mockup img { display: block; width: 100%; }
+
   section {
     padding: 32px 0;
   }
@@ -136,6 +147,48 @@
   .plan-price small { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
   .plan-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-top: 10px; }
 
+  .faq {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .faq-item {
+    background: var(--surface);
+    border-radius: 14px;
+    margin-bottom: 10px;
+    padding: 4px 18px;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .faq-item.visible { opacity: 1; transform: translateY(0); }
+  .faq-item summary {
+    padding: 14px 0;
+    font-size: 14.5px;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: '+';
+    flex: none;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--primary);
+    transition: transform 0.2s ease;
+  }
+  .faq-item[open] summary::after { transform: rotate(45deg); }
+  .faq-item p {
+    margin: 0 0 16px;
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
   footer {
     text-align: center;
     padding: 32px 20px 48px;
@@ -150,6 +203,9 @@
   <img class="logo" src="icon.png" alt="Kinly">
   <h1>Kinly</h1>
   <p class="tagline">Condividi la posizione con chi conta, solo su invito. Famiglia, amici e colleghi: sempre tranquilli, mai controllati.</p>
+  <div class="phone-mockup">
+    <img src="screenshot-app.png" alt="Schermata di registrazione di Kinly">
+  </div>
 </header>
 
 <div class="wrap">
@@ -268,6 +324,32 @@
     </div>
   </section>
 
+  <section>
+    <h2>Domande frequenti</h2>
+    <div class="faq">
+      <details class="faq-item">
+        <summary>Chi puo' vedere la mia posizione?</summary>
+        <p>Solo le persone che inviti tu nelle tue cerchie. Non esiste un elenco pubblico e nessuno puo' cercarti: l'accesso ai dati e' protetto da regole a livello di database (Row Level Security), non solo dall'interfaccia dell'app.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Posso smettere di condividere quando voglio?</summary>
+        <p>Si', in ogni momento. Puoi passare alla modalita' sfumata (mostra solo la zona, non l'indirizzo esatto) oppure impostare un orario di reperibilita' per non essere visibile fuori da certe ore.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Il tracciamento in background scarica la batteria?</summary>
+        <p>E' disattivato di default. Puoi accenderlo (funzione Kinly+) solo se vuoi restare visibile anche ad app chiusa, e ricevi comunque un avviso quando la batteria del telefono si sta scaricando.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Cosa succede se premo SOS?</summary>
+        <p>Avvisi subito le persone di fiducia che scegli tu, con la posizione esatta: non serve avvertire tutta la cerchia.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Serve la carta di credito per iniziare?</summary>
+        <p>No. Il piano Free e' gratuito e include gia' cerchie, SOS, aree sicure e messaggi. Passi a Kinly+ solo se ti servono cronologia, cerchie illimitate o tracciamento in background.</p>
+      </details>
+    </div>
+  </section>
+
 </div>
 
 <footer>
@@ -278,7 +360,7 @@
   // Le card di funzioni e piani compaiono una alla volta mentre si scorre,
   // invece di essere tutte visibili da subito: un tocco di movimento senza
   // dipendenze esterne.
-  var items = document.querySelectorAll('.feature, .plan');
+  var items = document.querySelectorAll('.feature, .plan, .faq-item');
   items.forEach(function (el, i) {
     el.style.transitionDelay = (i % 4) * 0.08 + 's';
   });
