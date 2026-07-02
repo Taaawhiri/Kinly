@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
@@ -487,6 +488,25 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                     onMapReady: (controller) => _mapController = controller,
                     onMeetingPointTap: (id) => _openMeetingPointInfo(id),
                     onSafeZoneTap: (id) => _openSafeZoneInfo(id),
+                  ),
+                  // Sfoca la mappa man mano che trascini su il pannello "La
+                  // tua cerchia" oltre la sua altezza di riposo: l'attenzione
+                  // si sposta sulla lista senza uno scatto netto. IgnorePointer
+                  // evita che questo livello (trasparente, sopra la mappa)
+                  // rubi i gesti di pan/zoom quando non sta sfocando nulla.
+                  AnimatedBuilder(
+                    animation: _sheetController,
+                    builder: (context, child) {
+                      final extent = _sheetController.isAttached ? _sheetController.size : _sheetInitialSize;
+                      final t = ((extent - _sheetInitialSize) / (_sheetMaxSize - _sheetInitialSize)).clamp(0.0, 1.0);
+                      if (t <= 0) return const SizedBox.shrink();
+                      return IgnorePointer(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 6 * t, sigmaY: 6 * t),
+                          child: Container(color: Colors.transparent),
+                        ),
+                      );
+                    },
                   ),
                   SafeArea(
                     child: Align(
