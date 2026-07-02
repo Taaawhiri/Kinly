@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Posizione live - Kinly</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  body { margin: 0; font-family: system-ui, sans-serif; }
+  #map { position: fixed; inset: 0; }
+  .banner {
+    position: fixed; top: 12px; left: 12px; right: 12px; z-index: 1000;
+    background: white; border-radius: 14px; padding: 12px 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15); font-size: 14px;
+  }
+  .banner b { color: #4A63E7; }
+  .expired { color: #C0392B; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="banner" id="banner">Caricamento...</div>
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // Il token arriva dall'URL della pagina stessa (?t=...): questa pagina e'
+  // statica e uguale per tutti, e' l'API Supabase sotto a decidere di chi e'
+  // la posizione e se il link e' ancora valido.
+  var params = new URLSearchParams(location.search);
+  var token = params.get('t');
+  var apiUrl = 'https://tteqhmlcsgduuzlcqbrt.supabase.co/functions/v1/live-share?t=' + encodeURIComponent(token || '');
+
+  var map = L.map('map').setView([45.4642, 9.19], 13);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+  var marker = null;
+  var centered = false;
+  var banner = document.getElementById('banner');
+
+  function refresh() {
+    if (!token) {
+      banner.innerHTML = '<span class="expired">Link non valido.</span>';
+      return;
+    }
+    fetch(apiUrl)
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.expired) {
+          banner.innerHTML = '<span class="expired">Questo link e\' scaduto.</span>';
+          return;
+        }
+        banner.innerHTML = 'Posizione live di <b>' + (data.name || 'Qualcuno') + '</b> - condivisa con Kinly';
+        if (data.lat == null) { setTimeout(refresh, 15000); return; }
+        var pos = [data.lat, data.lng];
+        if (!marker) {
+          marker = L.marker(pos).addTo(map);
+        } else {
+          marker.setLatLng(pos);
+        }
+        if (!centered) { map.setView(pos, 15); centered = true; }
+        setTimeout(refresh, 15000);
+      })
+      .catch(function () { setTimeout(refresh, 30000); });
+  }
+  refresh();
+</script>
+</body>
+</html>
