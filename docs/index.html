@@ -38,11 +38,21 @@
     display: block;
     margin: 0 auto 18px;
     box-shadow: 0 8px 24px rgba(74, 99, 231, 0.25);
+    animation: float 4s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   h1 {
     font-size: 30px;
     margin: 0 0 10px;
     font-weight: 800;
+    animation: fadeInUp 0.6s ease both;
   }
   .tagline {
     font-size: 16px;
@@ -50,6 +60,7 @@
     max-width: 480px;
     margin: 0 auto;
     line-height: 1.5;
+    animation: fadeInUp 0.6s ease 0.1s both;
   }
 
   section {
@@ -72,7 +83,12 @@
     border-radius: 16px;
     padding: 18px 16px;
     text-align: center;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.2s ease;
   }
+  .feature.visible { opacity: 1; transform: translateY(0); }
+  .feature.visible:hover { box-shadow: 0 10px 24px rgba(28, 34, 51, 0.08); transform: translateY(-3px); }
   .feature .emoji { font-size: 26px; margin-bottom: 8px; }
   .feature b { display: block; font-size: 14px; margin-bottom: 4px; }
   .feature span { font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; }
@@ -88,7 +104,12 @@
     padding: 24px 20px;
     text-align: center;
     border: 2px solid transparent;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.2s ease;
   }
+  .plan.visible { opacity: 1; transform: translateY(0); }
+  .plan.visible:hover { box-shadow: 0 12px 28px rgba(28, 34, 51, 0.1); transform: translateY(-3px); }
   .plan.highlight { border-color: var(--primary); }
   .plan .badge {
     display: inline-block;
@@ -156,6 +177,16 @@
         <b>Modalita' sfumata</b>
         <span>Scegli tu quanto essere precisi: zona invece che indirizzo esatto.</span>
       </div>
+      <div class="feature">
+        <div class="emoji">🚶</div>
+        <b>Accompagnami</b>
+        <span>Avvia un conto alla rovescia per il rientro: se non confermi, la cerchia viene avvisata da sola.</span>
+      </div>
+      <div class="feature">
+        <div class="emoji">🛒</div>
+        <b>Portami qualcosa</b>
+        <span>Se sei vicino a un negozio, la cerchia puo' chiederti al volo di prendere qualcosa.</span>
+      </div>
     </div>
   </section>
 
@@ -186,6 +217,25 @@
 <footer>
   Kinly &middot; questa pagina serve anche ad aprire i link "segui la mia posizione" condivisi dall'app.
 </footer>
+
+<script>
+  // Le card di funzioni e piani compaiono una alla volta mentre si scorre,
+  // invece di essere tutte visibili da subito: un tocco di movimento senza
+  // dipendenze esterne.
+  var items = document.querySelectorAll('.feature, .plan');
+  items.forEach(function (el, i) {
+    el.style.transitionDelay = (i % 4) * 0.08 + 's';
+  });
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  items.forEach(function (el) { observer.observe(el); });
+</script>
 
 </body>
 </html>
