@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/circle_group.dart';
 import '../../models/meeting_point.dart';
 import '../../models/person.dart';
@@ -29,15 +30,16 @@ class MeetingPointScreen extends StatelessWidget {
         final state = AppState.instance;
         final point = state.meetingPointForCircle(circle.id);
         final members = circle.memberIds.map(state.personById).whereType<Person>().toList();
+        final l10n = AppLocalizations.of(context)!;
 
         return Scaffold(
           appBar: AppBar(
-            title: Text('Punto d\'incontro'),
+            title: Text(l10n.meetingPointTitle),
             actions: [
               if (point != null && point.createdBy == state.me.id)
                 IconButton(
                   icon: const Icon(Icons.delete_outline_rounded),
-                  tooltip: 'Elimina punto d\'incontro',
+                  tooltip: l10n.meetingPointDeleteTooltip,
                   onPressed: () => state.deleteMeetingPoint(point.id),
                 ),
             ],
@@ -46,7 +48,7 @@ class MeetingPointScreen extends StatelessWidget {
               ? FloatingActionButton.extended(
                   onPressed: () => _openCreateSheet(context),
                   icon: const Icon(Icons.add_location_alt_rounded),
-                  label: const Text('Crea punto'),
+                  label: Text(l10n.meetingPointCreateButton),
                 )
               : null,
           body: SafeArea(
@@ -58,15 +60,17 @@ class MeetingPointScreen extends StatelessWidget {
   }
 
   Widget _buildEmpty(BuildContext context) {
-    return const EmptyStateView(
+    final l10n = AppLocalizations.of(context)!;
+    return EmptyStateView(
       icon: Icons.share_location_rounded,
-      title: 'Nessun punto d\'incontro',
-      message: 'Proponi un luogo dove ritrovarvi: tutti vedranno la propria distanza in tempo reale, senza scriversi "dove sei?".',
+      title: l10n.meetingPointEmptyTitle,
+      message: l10n.meetingPointEmptyMessage,
     );
   }
 
   Widget _buildActive(BuildContext context, MeetingPoint point, List<Person> members) {
     final state = AppState.instance;
+    final l10n = AppLocalizations.of(context)!;
     final entries = <(Person, double?, bool)>[];
     for (final m in members) {
       final distance = (m.lat != null && m.lng != null) ? Geolocator.distanceBetween(m.lat!, m.lng!, point.lat, point.lng) : null;
@@ -107,7 +111,7 @@ class MeetingPointScreen extends StatelessWidget {
                     Text(point.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: AppTheme.textPrimary)),
                     if (point.scheduledAt != null) ...[
                       const SizedBox(height: 2),
-                      Text(_formatScheduled(point.scheduledAt!), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                      Text(_formatScheduled(l10n, point.scheduledAt!), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
                     ],
                   ],
                 ),
@@ -122,20 +126,22 @@ class MeetingPointScreen extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () => state.markArrivedAt(point.id),
               icon: const Icon(Icons.check_circle_outline_rounded, size: 18),
-              label: const Text('Segna il mio arrivo'),
+              label: Text(l10n.meetingPointMarkArrived),
               style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
             ),
           ),
-        Text('Chi sta arrivando', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+        Text(l10n.meetingPointWhoArriving, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
         const SizedBox(height: 10),
         for (final entry in entries) _MemberDistanceTile(person: entry.$1, distanceMeters: entry.$2, arrived: entry.$3, point: point),
       ],
     );
   }
 
-  String _formatScheduled(DateTime dt) {
+  String _formatScheduled(AppLocalizations l10n, DateTime dt) {
     final local = dt.toLocal();
-    return 'Ore ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')} · ${local.day.toString().padLeft(2, '0')}/${local.month.toString().padLeft(2, '0')}';
+    final time = '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+    final date = '${local.day.toString().padLeft(2, '0')}/${local.month.toString().padLeft(2, '0')}';
+    return l10n.meetingPointScheduledAt(time, date);
   }
 
   void _openCreateSheet(BuildContext context) {
@@ -158,11 +164,12 @@ class _MemberDistanceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     String distanceLabel;
     if (arrived) {
-      distanceLabel = 'Arrivato/a';
+      distanceLabel = l10n.meetingPointArrived;
     } else if (distanceMeters == null) {
-      distanceLabel = 'Posizione non disponibile';
+      distanceLabel = l10n.meetingPointPositionUnavailable;
     } else if (distanceMeters! >= 1000) {
       distanceLabel = '${(distanceMeters! / 1000).toStringAsFixed(1)} km';
     } else {
@@ -208,7 +215,7 @@ class _MemberDistanceTile extends StatelessWidget {
                   builder: (context, snapshot) {
                     final eta = snapshot.data;
                     if (eta == null) return const SizedBox.shrink();
-                    return Text('~${eta.inMinutes} min in auto', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11));
+                    return Text(l10n.meetingPointEtaMinutes(eta.inMinutes), style: TextStyle(color: AppTheme.textSecondary, fontSize: 11));
                   },
                 ),
             ],
@@ -282,9 +289,9 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
     try {
       final results = await PlaceSearchService.instance.search(query);
       if (mounted) setState(() => _results = results);
-      if (results.isEmpty && mounted) setState(() => _error = 'Nessun risultato per "$query".');
+      if (results.isEmpty && mounted) setState(() => _error = AppLocalizations.of(context)!.meetingPointNoResultsFor(query));
     } catch (_) {
-      if (mounted) setState(() => _error = 'Ricerca non riuscita. Riprova.');
+      if (mounted) setState(() => _error = AppLocalizations.of(context)!.meetingPointSearchFailed);
     } finally {
       if (mounted) setState(() => _searching = false);
     }
@@ -346,7 +353,7 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
         }
       });
     } catch (_) {
-      if (mounted) setState(() => _error = 'Non siamo riusciti a rilevare la tua posizione.');
+      if (mounted) setState(() => _error = AppLocalizations.of(context)!.meetingPointLocationUnavailable);
     } finally {
       if (mounted) setState(() => _locating = false);
     }
@@ -355,7 +362,7 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
   Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.isEmpty || _lat == null || _lng == null) {
-      setState(() => _error = 'Scegli un nome e una posizione.');
+      setState(() => _error = AppLocalizations.of(context)!.meetingPointChooseNameAndLocation);
       return;
     }
     setState(() {
@@ -372,7 +379,7 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
       );
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
-      if (mounted) setState(() => _error = 'Non siamo riusciti a creare il punto d\'incontro. Riprova.');
+      if (mounted) setState(() => _error = AppLocalizations.of(context)!.meetingPointCreateError);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -380,6 +387,7 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
       child: SingleChildScrollView(
@@ -387,7 +395,7 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Nuovo punto d\'incontro', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+            Text(l10n.meetingPointNewTitle, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
             const SizedBox(height: 16),
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -397,7 +405,7 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
                     controller: _searchController,
                     autofocus: true,
                     decoration: InputDecoration(
-                      hintText: 'Cerca un luogo o un indirizzo…',
+                      hintText: l10n.meetingPointSearchHint,
                       prefixIcon: _searching
                           ? const Padding(padding: EdgeInsets.all(14), child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)))
                           : const Icon(Icons.search_rounded),
@@ -456,7 +464,7 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
             ],
             const SizedBox(height: 10),
             Row(
-              children: const [Expanded(child: Divider()), Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text('oppure')), Expanded(child: Divider())],
+              children: [Expanded(child: const Divider()), Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Text(l10n.meetingPointOr)), Expanded(child: const Divider())],
             ),
             const SizedBox(height: 10),
             OutlinedButton.icon(
@@ -464,14 +472,14 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
               icon: _locating
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.my_location_rounded, size: 18),
-              label: Text(_lat == null ? 'Usa la mia posizione attuale' : 'Posizione impostata'),
+              label: Text(_lat == null ? l10n.meetingPointUseMyLocation : l10n.meetingPointPositionSet),
               style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
-                hintText: 'Nome (es. Ingresso stadio, Bar Roma)',
+                hintText: l10n.meetingPointNameHint,
                 filled: true,
                 fillColor: AppTheme.surfaceAlt,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -482,7 +490,7 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
             OutlinedButton.icon(
               onPressed: _pickScheduledTime,
               icon: const Icon(Icons.schedule_rounded, size: 18),
-              label: Text(_scheduledAt == null ? 'Imposta un orario (opzionale)' : _formatScheduledForSheet(_scheduledAt!)),
+              label: Text(_scheduledAt == null ? l10n.meetingPointSetTime : _formatScheduledForSheet(_scheduledAt!)),
               style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
             ),
             if (_error != null) ...[
@@ -495,7 +503,7 @@ class _CreateMeetingPointSheetState extends State<_CreateMeetingPointSheet> {
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
               child: _saving
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
-                  : const Text('Crea punto'),
+                  : Text(l10n.meetingPointCreateButton),
             ),
           ],
         ),

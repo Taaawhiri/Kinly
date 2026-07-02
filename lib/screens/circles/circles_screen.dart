@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/circle_group.dart';
 import '../../models/person.dart';
 import '../../models/routine_anomaly.dart';
@@ -83,7 +84,7 @@ class _CirclesScreenState extends State<CirclesScreen> {
             };
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Le tue cerchie'),
+            title: Text(AppLocalizations.of(context)!.circlesTitle),
             actions: [
               IconButton(
                 icon: const Icon(Icons.person_add_alt_1_outlined),
@@ -122,6 +123,7 @@ class _CirclesScreenState extends State<CirclesScreen> {
   }
 
   void _showAddOptions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.surface,
@@ -133,12 +135,12 @@ class _CirclesScreenState extends State<CirclesScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Aggiungi una cerchia', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+              Text(l10n.circlesAddTitle, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
               const SizedBox(height: 16),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: CircleAvatar(backgroundColor: AppTheme.surfaceAlt, child: Icon(Icons.add_rounded, color: AppTheme.primary)),
-                title: const Text('Crea una nuova cerchia'),
+                title: Text(l10n.circlesCreateNew),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   Navigator.of(context).push(
@@ -149,14 +151,14 @@ class _CirclesScreenState extends State<CirclesScreen> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: CircleAvatar(backgroundColor: AppTheme.surfaceAlt, child: Icon(Icons.qr_code_rounded, color: AppTheme.primary)),
-                title: const Text('Ho un codice di invito'),
+                title: Text(l10n.circlesHaveInviteCode),
                 onTap: () async {
                   Navigator.of(sheetContext).pop();
                   final circle = await Navigator.of(context).push<CircleGroup>(
                     MaterialPageRoute(builder: (_) => const JoinCircleScreen(isOnboarding: false)),
                   );
                   if (circle != null && context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Sei entrato in "${circle.name}"')));
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.circlesJoinedSnackbar(circle.name))));
                   }
                 },
               ),
@@ -193,6 +195,7 @@ class _CircleSharingModeSheet extends StatelessWidget {
       builder: (context, _) {
         final state = AppState.instance;
         final override = state.modeOverrideForCircle(circle.id);
+        final l10n = AppLocalizations.of(context)!;
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -200,16 +203,16 @@ class _CircleSharingModeSheet extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('La tua modalità in "${circle.name}"', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+                Text(l10n.circlesYourModeInTitle(circle.name), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
                 const SizedBox(height: 6),
                 Text(
-                  'Vale solo per questa cerchia: nelle altre resta quella generale del tuo profilo.',
+                  l10n.circlesModeOverrideHint,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                 ),
                 const SizedBox(height: 14),
                 _SharingOptionTile(
-                  label: 'Usa la modalità generale',
-                  description: 'Quella scelta nel tuo profilo (${state.myMode.label}).',
+                  label: l10n.circlesUseGeneralMode,
+                  description: l10n.circlesGeneralModeDescription(state.myMode.label),
                   icon: Icons.settings_backup_restore_rounded,
                   color: AppTheme.textSecondary,
                   selected: override == null,
@@ -301,8 +304,9 @@ class _RoutineAnomalyBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final person = AppState.instance.personById(anomaly.profileId);
-    final name = person?.name ?? 'Qualcuno';
+    final name = person?.name ?? l10n.commonSomeone;
     final expected = anomaly.expectedExit.format(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -322,12 +326,12 @@ class _RoutineAnomalyBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$name è ancora ${anomaly.zoneName}',
+                  l10n.circlesAnomalyStillAt(name, anomaly.zoneName),
                   style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: AppTheme.textPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Di solito esce entro le $expected · ${anomaly.minutesLate} min di ritardo',
+                  l10n.circlesAnomalyLate(expected, anomaly.minutesLate),
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
               ],
@@ -351,6 +355,7 @@ class _CircleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final members = circle.memberIds.map(AppState.instance.personById).whereType<Person>().toList();
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -379,7 +384,7 @@ class _CircleCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(circle.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5, color: AppTheme.textPrimary)),
-                    Text('${members.length} persone', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                    Text(l10n.mapPeopleCount(members.length), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
                   ],
                 ),
               ),
@@ -409,7 +414,7 @@ class _CircleCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             onTap: () {
               Clipboard.setData(ClipboardData(text: circle.inviteCode));
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Codice invito copiato')));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.circlesInviteCodeCopied)));
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -436,47 +441,43 @@ class _CircleCard extends StatelessWidget {
               children: [
                 _ActionChip(
                   icon: Icons.ios_share_rounded,
-                  label: 'Invita',
+                  label: l10n.circlesActionInvite,
                   onTap: () {
                     // Condivisione via WhatsApp e simili: include sia il
                     // codice (funziona sempre) sia il link kinly:// che apre
                     // l'app già compilata dove i link personalizzati sono
                     // cliccabili.
-                    Share.share(
-                      'Entra nella mia cerchia "${circle.name}" su Kinly!\n\n'
-                      'Codice di invito: ${circle.inviteCode}\n\n'
-                      'Apri Kinly e tocca "Ho un codice di invito", oppure tocca: kinly://join/${circle.inviteCode}',
-                    );
+                    Share.share(l10n.circlesInviteShareMessage(circle.name, circle.inviteCode));
                   },
                 ),
                 _ActionChip(
                   icon: Icons.fence_rounded,
-                  label: 'Aree sicure',
+                  label: l10n.circlesActionSafeZones,
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SafeZonesScreen(circle: circle))),
                 ),
                 _ActionChip(
                   icon: Icons.share_location_rounded,
-                  label: 'Punto d\'incontro',
+                  label: l10n.circlesActionMeetingPoint,
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => MeetingPointScreen(circle: circle))),
                 ),
                 _ActionChip(
                   icon: Icons.forum_outlined,
-                  label: 'Messaggi',
+                  label: l10n.circlesActionMessages,
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleMessagesScreen(circle: circle))),
                 ),
                 _ActionChip(
                   icon: Icons.receipt_long_outlined,
-                  label: 'Spese',
+                  label: l10n.circlesActionExpenses,
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleExpensesScreen(circle: circle))),
                 ),
                 _ActionChip(
                   icon: Icons.insights_rounded,
-                  label: 'Riepilogo',
+                  label: l10n.circlesActionSummary,
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WeeklySummaryScreen(circle: circle))),
                 ),
                 _ActionChip(
                   icon: Icons.tune_rounded,
-                  label: 'La tua modalità',
+                  label: l10n.circlesActionYourMode,
                   onTap: () => _openSharingModeSheet(context, circle),
                 ),
               ],
@@ -540,20 +541,14 @@ class _CoachMarkOverlay extends StatefulWidget {
 class _CoachMarkOverlayState extends State<_CoachMarkOverlay> {
   Rect? _targetRect;
 
-  static const _steps = {
-    1: (
-      'La tua cerchia',
-      'Ogni cerchia ha i suoi membri, la sua icona e le sue impostazioni: puoi averne più di una.',
-    ),
-    2: (
-      'Le azioni della cerchia',
-      'Da qui gestisci aree sicure, punto d\'incontro, messaggi, spese di gruppo e il riepilogo settimanale.',
-    ),
-    3: (
-      'Codice di invito',
-      'Tocca per copiarlo: solo chi lo riceve da te può entrare in questa cerchia.',
-    ),
-  };
+  (String, String) _stepContent(BuildContext context, int step) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (step) {
+      1 => (l10n.circlesCoachStep1Title, l10n.circlesCoachStep1Body),
+      2 => (l10n.circlesCoachStep2Title, l10n.circlesCoachStep2Body),
+      _ => (l10n.circlesCoachStep3Title, l10n.circlesCoachStep3Body),
+    };
+  }
 
   @override
   void initState() {
@@ -595,7 +590,7 @@ class _CoachMarkOverlayState extends State<_CoachMarkOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    final (title, body) = _steps[widget.step]!;
+    final (title, body) = _stepContent(context, widget.step);
     final rect = _targetRect;
 
     return Stack(
@@ -664,8 +659,11 @@ class _CoachMarkOverlayState extends State<_CoachMarkOverlay> {
                           ),
                         ),
                       const Spacer(),
-                      TextButton(onPressed: widget.onSkip, child: const Text('Salta')),
-                      FilledButton(onPressed: widget.onNext, child: Text(widget.step >= 3 ? 'Fine' : 'Avanti')),
+                      TextButton(onPressed: widget.onSkip, child: Text(AppLocalizations.of(context)!.circlesCoachSkip)),
+                      FilledButton(
+                        onPressed: widget.onNext,
+                        child: Text(widget.step >= 3 ? AppLocalizations.of(context)!.circlesCoachFinish : AppLocalizations.of(context)!.circlesCoachNext),
+                      ),
                     ],
                   ),
                 ],

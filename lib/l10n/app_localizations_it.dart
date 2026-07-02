@@ -319,4 +319,367 @@ class AppLocalizationsIt extends AppLocalizations {
   String mapSafeZoneLabelAndRadius(String kindLabel, int radius) {
     return '$kindLabel · raggio $radius m';
   }
+
+  @override
+  String get circlesTitle => 'Le tue cerchie';
+
+  @override
+  String get circlesAddTitle => 'Aggiungi una cerchia';
+
+  @override
+  String get circlesCreateNew => 'Crea una nuova cerchia';
+
+  @override
+  String get circlesHaveInviteCode => 'Ho un codice di invito';
+
+  @override
+  String circlesJoinedSnackbar(String name) {
+    return 'Sei entrato in \"$name\"';
+  }
+
+  @override
+  String circlesYourModeInTitle(String name) {
+    return 'La tua modalità in \"$name\"';
+  }
+
+  @override
+  String get circlesModeOverrideHint => 'Vale solo per questa cerchia: nelle altre resta quella generale del tuo profilo.';
+
+  @override
+  String get circlesUseGeneralMode => 'Usa la modalità generale';
+
+  @override
+  String circlesGeneralModeDescription(String modeLabel) {
+    return 'Quella scelta nel tuo profilo ($modeLabel).';
+  }
+
+  @override
+  String circlesAnomalyStillAt(String name, String zoneName) {
+    return '$name è ancora $zoneName';
+  }
+
+  @override
+  String circlesAnomalyLate(String expected, int minutes) {
+    return 'Di solito esce entro le $expected · $minutes min di ritardo';
+  }
+
+  @override
+  String get circlesInviteCodeCopied => 'Codice invito copiato';
+
+  @override
+  String get circlesActionInvite => 'Invita';
+
+  @override
+  String circlesInviteShareMessage(String circleName, String inviteCode) {
+    return 'Entra nella mia cerchia \"$circleName\" su Kinly!\n\nCodice di invito: $inviteCode\n\nApri Kinly e tocca \"Ho un codice di invito\", oppure tocca: kinly://join/$inviteCode';
+  }
+
+  @override
+  String get circlesActionSafeZones => 'Aree sicure';
+
+  @override
+  String get circlesActionMeetingPoint => 'Punto d\'incontro';
+
+  @override
+  String get circlesActionMessages => 'Messaggi';
+
+  @override
+  String get circlesActionExpenses => 'Spese';
+
+  @override
+  String get circlesActionSummary => 'Riepilogo';
+
+  @override
+  String get circlesActionYourMode => 'La tua modalità';
+
+  @override
+  String get circlesCoachStep1Title => 'La tua cerchia';
+
+  @override
+  String get circlesCoachStep1Body => 'Ogni cerchia ha i suoi membri, la sua icona e le sue impostazioni: puoi averne più di una.';
+
+  @override
+  String get circlesCoachStep2Title => 'Le azioni della cerchia';
+
+  @override
+  String get circlesCoachStep2Body => 'Da qui gestisci aree sicure, punto d\'incontro, messaggi, spese di gruppo e il riepilogo settimanale.';
+
+  @override
+  String get circlesCoachStep3Title => 'Codice di invito';
+
+  @override
+  String get circlesCoachStep3Body => 'Tocca per copiarlo: solo chi lo riceve da te può entrare in questa cerchia.';
+
+  @override
+  String get circlesCoachSkip => 'Salta';
+
+  @override
+  String get circlesCoachNext => 'Avanti';
+
+  @override
+  String get circlesCoachFinish => 'Fine';
+
+  @override
+  String get meetingPointTitle => 'Punto d\'incontro';
+
+  @override
+  String get meetingPointDeleteTooltip => 'Elimina punto d\'incontro';
+
+  @override
+  String get meetingPointCreateButton => 'Crea punto';
+
+  @override
+  String get meetingPointEmptyTitle => 'Nessun punto d\'incontro';
+
+  @override
+  String get meetingPointEmptyMessage => 'Proponi un luogo dove ritrovarvi: tutti vedranno la propria distanza in tempo reale, senza scriversi \"dove sei?\".';
+
+  @override
+  String get meetingPointMarkArrived => 'Segna il mio arrivo';
+
+  @override
+  String get meetingPointWhoArriving => 'Chi sta arrivando';
+
+  @override
+  String meetingPointScheduledAt(String time, String date) {
+    return 'Ore $time · $date';
+  }
+
+  @override
+  String get meetingPointArrived => 'Arrivato/a';
+
+  @override
+  String get meetingPointPositionUnavailable => 'Posizione non disponibile';
+
+  @override
+  String meetingPointEtaMinutes(int minutes) {
+    return '~$minutes min in auto';
+  }
+
+  @override
+  String get meetingPointNewTitle => 'Nuovo punto d\'incontro';
+
+  @override
+  String get meetingPointSearchHint => 'Cerca un luogo o un indirizzo…';
+
+  @override
+  String get meetingPointOr => 'oppure';
+
+  @override
+  String get meetingPointUseMyLocation => 'Usa la mia posizione attuale';
+
+  @override
+  String get meetingPointPositionSet => 'Posizione impostata';
+
+  @override
+  String get meetingPointNameHint => 'Nome (es. Ingresso stadio, Bar Roma)';
+
+  @override
+  String get meetingPointSetTime => 'Imposta un orario (opzionale)';
+
+  @override
+  String meetingPointNoResultsFor(String query) {
+    return 'Nessun risultato per \"$query\".';
+  }
+
+  @override
+  String get meetingPointSearchFailed => 'Ricerca non riuscita. Riprova.';
+
+  @override
+  String get meetingPointLocationUnavailable => 'Non siamo riusciti a rilevare la tua posizione.';
+
+  @override
+  String get meetingPointChooseNameAndLocation => 'Scegli un nome e una posizione.';
+
+  @override
+  String get meetingPointCreateError => 'Non siamo riusciti a creare il punto d\'incontro. Riprova.';
+
+  @override
+  String circleMessagesTitle(String circleName) {
+    return 'Messaggi · $circleName';
+  }
+
+  @override
+  String get circleMessagesSendError => 'Non siamo riusciti a inviare il messaggio. Riprova.';
+
+  @override
+  String get circleMessagesDailyLimitTitle => 'Limite giornaliero raggiunto';
+
+  @override
+  String get circleMessagesDailyLimitBody => 'Hai già inviato 5 messaggi oggi: è il limite del piano gratuito. Con Kinly+ puoi mandarne quanti vuoi.';
+
+  @override
+  String get circleMessagesGotIt => 'Ho capito';
+
+  @override
+  String get circleMessagesDiscoverPlus => 'Scopri Kinly+';
+
+  @override
+  String get circleMessagesHintPremium => 'Solo per avvisi brevi e importanti. Per chiacchierare usa WhatsApp o un\'altra app di messaggistica.';
+
+  @override
+  String get circleMessagesHintFree => 'Solo per avvisi brevi e importanti (max 5 al giorno nel piano gratuito). Per chiacchierare usa WhatsApp o un\'altra app di messaggistica.';
+
+  @override
+  String get circleMessagesEmptyTitle => 'Nessun messaggio ancora';
+
+  @override
+  String get circleMessagesEmptyMessage => 'Manda il primo avviso qui sotto.';
+
+  @override
+  String get circleMessagesTimeNow => 'ora';
+
+  @override
+  String circleMessagesTimeMinutesAgo(int minutes) {
+    return '$minutes min fa';
+  }
+
+  @override
+  String circleMessagesTimeHoursAgo(int hours) {
+    return '$hours h fa';
+  }
+
+  @override
+  String get circleMessagesComposerHint => 'Scrivi un avviso breve...';
+
+  @override
+  String get quickMessage1 => 'Sto arrivando 🚗';
+
+  @override
+  String get quickMessage2 => 'Sono in ritardo ⏰';
+
+  @override
+  String get quickMessage3 => 'Sono arrivato/a 🏠';
+
+  @override
+  String get quickMessage4 => 'Tutto ok? 👋';
+
+  @override
+  String get quickMessage5 => 'Chiamami quando puoi 📞';
+
+  @override
+  String get quickMessage6 => 'Buongiorno ☀️';
+
+  @override
+  String get quickMessage7 => 'Buonanotte 🌙';
+
+  @override
+  String get quickMessage8 => 'Grazie! ❤️';
+
+  @override
+  String get expensesTitle => 'Spese di gruppo';
+
+  @override
+  String get expensesNewButton => 'Nuova spesa';
+
+  @override
+  String get expensesEmptyTitle => 'Nessuna spesa';
+
+  @override
+  String get expensesEmptyMessage => 'Tieni traccia di chi ha pagato cosa nella cerchia, senza scriverlo a memoria.';
+
+  @override
+  String get expensesBalancesTitle => 'Saldi';
+
+  @override
+  String get expensesListTitle => 'Spese';
+
+  @override
+  String get expensesSetPaymentLinkHint => 'Imposta il tuo link di pagamento in Privacy e sicurezza per farlo pagare più facilmente.';
+
+  @override
+  String get expensesLinkCopied => 'Link di pagamento copiato: mandaglielo.';
+
+  @override
+  String expensesNoPaymentLink(String name) {
+    return '$name non ha impostato un link di pagamento.';
+  }
+
+  @override
+  String get expensesThisPerson => 'Questa persona';
+
+  @override
+  String expensesOwesYou(String name) {
+    return '$name ti deve';
+  }
+
+  @override
+  String expensesYouOwe(String name) {
+    return 'Devi a $name';
+  }
+
+  @override
+  String get expensesRequestBalance => 'Chiedi il saldo';
+
+  @override
+  String get expensesPay => 'Paga';
+
+  @override
+  String expensesPaidBy(String name) {
+    return 'Pagato da $name';
+  }
+
+  @override
+  String get expensesFillFields => 'Compila descrizione, importo e almeno una persona.';
+
+  @override
+  String get expensesSaveError => 'Non siamo riusciti a salvare la spesa. Riprova.';
+
+  @override
+  String get expensesDailyLimitTitle => 'Limite giornaliero raggiunto';
+
+  @override
+  String get expensesDailyLimitBody => 'Hai già registrato 5 spese oggi: è il limite del piano gratuito. Con Kinly+ puoi registrarne quante vuoi.';
+
+  @override
+  String get expensesSplitHint => 'La paghi tu: la dividi tra le persone che selezioni qui sotto.';
+
+  @override
+  String get expensesDescriptionHint => 'Descrizione (es. Cena, benzina)';
+
+  @override
+  String get expensesAmountHint => 'Importo totale (€)';
+
+  @override
+  String get expensesSplitBetween => 'Dividi tra';
+
+  @override
+  String get expensesSaveButton => 'Salva spesa';
+
+  @override
+  String weeklySummaryTitle(String circleName) {
+    return 'Riepilogo · $circleName';
+  }
+
+  @override
+  String get weeklySummaryLoadError => 'Non siamo riusciti a caricare il riepilogo.';
+
+  @override
+  String get weeklySummaryRetry => 'Riprova';
+
+  @override
+  String get weeklySummaryLast7Days => 'Ultimi 7 giorni';
+
+  @override
+  String weeklySummaryActivityFor(String circleName) {
+    return 'Attività di \"$circleName\", visibile a tutti i membri.';
+  }
+
+  @override
+  String get weeklySummaryQuietWeek => 'Settimana tranquilla: nessun evento da segnalare.';
+
+  @override
+  String get weeklySummarySosActivated => 'SOS attivati';
+
+  @override
+  String get weeklySummaryHelpRequests => 'Richieste di aiuto';
+
+  @override
+  String get weeklySummarySafeZoneEntries => 'Ingressi in aree sicure';
+
+  @override
+  String get weeklySummarySpeedAlerts => 'Avvisi di velocità';
+
+  @override
+  String get weeklySummaryPushHint => 'Puoi ricevere questo riepilogo anche via notifica una volta a settimana: attivalo da Profilo → Privacy e sicurezza.';
 }

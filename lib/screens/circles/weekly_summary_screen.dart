@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/circle_group.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
@@ -23,8 +24,9 @@ class _WeeklySummaryScreenState extends State<WeeklySummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text('Riepilogo · ${widget.circle.name}')),
+      appBar: AppBar(title: Text(l10n.weeklySummaryTitle(widget.circle.name))),
       body: SafeArea(
         child: FutureBuilder<Map<String, dynamic>>(
           future: _future,
@@ -40,12 +42,12 @@ class _WeeklySummaryScreenState extends State<WeeklySummaryScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Non siamo riusciti a caricare il riepilogo.',
+                        l10n.weeklySummaryLoadError,
                         textAlign: TextAlign.center,
                         style: TextStyle(color: AppTheme.textSecondary),
                       ),
                       const SizedBox(height: 12),
-                      FilledButton(onPressed: _retry, child: const Text('Riprova')),
+                      FilledButton(onPressed: _retry, child: Text(l10n.weeklySummaryRetry)),
                     ],
                   ),
                 ),
@@ -62,10 +64,10 @@ class _WeeklySummaryScreenState extends State<WeeklySummaryScreen> {
             return ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                Text('Ultimi 7 giorni', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppTheme.textPrimary)),
+                Text(l10n.weeklySummaryLast7Days, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppTheme.textPrimary)),
                 const SizedBox(height: 4),
                 Text(
-                  'Attività di "${widget.circle.name}", visibile a tutti i membri.',
+                  l10n.weeklySummaryActivityFor(widget.circle.name),
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                 ),
                 const SizedBox(height: 20),
@@ -79,7 +81,7 @@ class _WeeklySummaryScreenState extends State<WeeklySummaryScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'Settimana tranquilla: nessun evento da segnalare.',
+                            l10n.weeklySummaryQuietWeek,
                             style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 13.5),
                           ),
                         ),
@@ -87,13 +89,13 @@ class _WeeklySummaryScreenState extends State<WeeklySummaryScreen> {
                     ),
                   )
                 else ...[
-                  _StatTile(icon: Icons.emergency_outlined, color: AppTheme.accentCoral, label: 'SOS attivati', value: sos),
+                  _StatTile(icon: Icons.emergency_outlined, color: AppTheme.accentCoral, label: l10n.weeklySummarySosActivated, value: sos),
                   const SizedBox(height: 10),
-                  _StatTile(icon: Icons.pan_tool_outlined, color: AppTheme.accentAmber, label: 'Richieste di aiuto', value: help),
+                  _StatTile(icon: Icons.pan_tool_outlined, color: AppTheme.accentAmber, label: l10n.weeklySummaryHelpRequests, value: help),
                   const SizedBox(height: 10),
-                  _StatTile(icon: Icons.fence_rounded, color: AppTheme.accentGreen, label: 'Ingressi in aree sicure', value: safeZone),
+                  _StatTile(icon: Icons.fence_rounded, color: AppTheme.accentGreen, label: l10n.weeklySummarySafeZoneEntries, value: safeZone),
                   const SizedBox(height: 10),
-                  _StatTile(icon: Icons.speed_rounded, color: AppTheme.primary, label: 'Avvisi di velocità', value: speed),
+                  _StatTile(icon: Icons.speed_rounded, color: AppTheme.primary, label: l10n.weeklySummarySpeedAlerts, value: speed),
                 ],
                 const SizedBox(height: 20),
                 Container(
@@ -105,7 +107,7 @@ class _WeeklySummaryScreenState extends State<WeeklySummaryScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Puoi ricevere questo riepilogo anche via notifica una volta a settimana: attivalo da Profilo → Privacy e sicurezza.',
+                          l10n.weeklySummaryPushHint,
                           style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.4),
                         ),
                       ),

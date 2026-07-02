@@ -646,6 +646,660 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'{kindLabel} · raggio {radius} m'**
   String mapSafeZoneLabelAndRadius(String kindLabel, int radius);
+
+  /// No description provided for @circlesTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Le tue cerchie'**
+  String get circlesTitle;
+
+  /// No description provided for @circlesAddTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi una cerchia'**
+  String get circlesAddTitle;
+
+  /// No description provided for @circlesCreateNew.
+  ///
+  /// In it, this message translates to:
+  /// **'Crea una nuova cerchia'**
+  String get circlesCreateNew;
+
+  /// No description provided for @circlesHaveInviteCode.
+  ///
+  /// In it, this message translates to:
+  /// **'Ho un codice di invito'**
+  String get circlesHaveInviteCode;
+
+  /// No description provided for @circlesJoinedSnackbar.
+  ///
+  /// In it, this message translates to:
+  /// **'Sei entrato in \"{name}\"'**
+  String circlesJoinedSnackbar(String name);
+
+  /// No description provided for @circlesYourModeInTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'La tua modalità in \"{name}\"'**
+  String circlesYourModeInTitle(String name);
+
+  /// No description provided for @circlesModeOverrideHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Vale solo per questa cerchia: nelle altre resta quella generale del tuo profilo.'**
+  String get circlesModeOverrideHint;
+
+  /// No description provided for @circlesUseGeneralMode.
+  ///
+  /// In it, this message translates to:
+  /// **'Usa la modalità generale'**
+  String get circlesUseGeneralMode;
+
+  /// No description provided for @circlesGeneralModeDescription.
+  ///
+  /// In it, this message translates to:
+  /// **'Quella scelta nel tuo profilo ({modeLabel}).'**
+  String circlesGeneralModeDescription(String modeLabel);
+
+  /// No description provided for @circlesAnomalyStillAt.
+  ///
+  /// In it, this message translates to:
+  /// **'{name} è ancora {zoneName}'**
+  String circlesAnomalyStillAt(String name, String zoneName);
+
+  /// No description provided for @circlesAnomalyLate.
+  ///
+  /// In it, this message translates to:
+  /// **'Di solito esce entro le {expected} · {minutes} min di ritardo'**
+  String circlesAnomalyLate(String expected, int minutes);
+
+  /// No description provided for @circlesInviteCodeCopied.
+  ///
+  /// In it, this message translates to:
+  /// **'Codice invito copiato'**
+  String get circlesInviteCodeCopied;
+
+  /// No description provided for @circlesActionInvite.
+  ///
+  /// In it, this message translates to:
+  /// **'Invita'**
+  String get circlesActionInvite;
+
+  /// No description provided for @circlesInviteShareMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Entra nella mia cerchia \"{circleName}\" su Kinly!\n\nCodice di invito: {inviteCode}\n\nApri Kinly e tocca \"Ho un codice di invito\", oppure tocca: kinly://join/{inviteCode}'**
+  String circlesInviteShareMessage(String circleName, String inviteCode);
+
+  /// No description provided for @circlesActionSafeZones.
+  ///
+  /// In it, this message translates to:
+  /// **'Aree sicure'**
+  String get circlesActionSafeZones;
+
+  /// No description provided for @circlesActionMeetingPoint.
+  ///
+  /// In it, this message translates to:
+  /// **'Punto d\'incontro'**
+  String get circlesActionMeetingPoint;
+
+  /// No description provided for @circlesActionMessages.
+  ///
+  /// In it, this message translates to:
+  /// **'Messaggi'**
+  String get circlesActionMessages;
+
+  /// No description provided for @circlesActionExpenses.
+  ///
+  /// In it, this message translates to:
+  /// **'Spese'**
+  String get circlesActionExpenses;
+
+  /// No description provided for @circlesActionSummary.
+  ///
+  /// In it, this message translates to:
+  /// **'Riepilogo'**
+  String get circlesActionSummary;
+
+  /// No description provided for @circlesActionYourMode.
+  ///
+  /// In it, this message translates to:
+  /// **'La tua modalità'**
+  String get circlesActionYourMode;
+
+  /// No description provided for @circlesCoachStep1Title.
+  ///
+  /// In it, this message translates to:
+  /// **'La tua cerchia'**
+  String get circlesCoachStep1Title;
+
+  /// No description provided for @circlesCoachStep1Body.
+  ///
+  /// In it, this message translates to:
+  /// **'Ogni cerchia ha i suoi membri, la sua icona e le sue impostazioni: puoi averne più di una.'**
+  String get circlesCoachStep1Body;
+
+  /// No description provided for @circlesCoachStep2Title.
+  ///
+  /// In it, this message translates to:
+  /// **'Le azioni della cerchia'**
+  String get circlesCoachStep2Title;
+
+  /// No description provided for @circlesCoachStep2Body.
+  ///
+  /// In it, this message translates to:
+  /// **'Da qui gestisci aree sicure, punto d\'incontro, messaggi, spese di gruppo e il riepilogo settimanale.'**
+  String get circlesCoachStep2Body;
+
+  /// No description provided for @circlesCoachStep3Title.
+  ///
+  /// In it, this message translates to:
+  /// **'Codice di invito'**
+  String get circlesCoachStep3Title;
+
+  /// No description provided for @circlesCoachStep3Body.
+  ///
+  /// In it, this message translates to:
+  /// **'Tocca per copiarlo: solo chi lo riceve da te può entrare in questa cerchia.'**
+  String get circlesCoachStep3Body;
+
+  /// No description provided for @circlesCoachSkip.
+  ///
+  /// In it, this message translates to:
+  /// **'Salta'**
+  String get circlesCoachSkip;
+
+  /// No description provided for @circlesCoachNext.
+  ///
+  /// In it, this message translates to:
+  /// **'Avanti'**
+  String get circlesCoachNext;
+
+  /// No description provided for @circlesCoachFinish.
+  ///
+  /// In it, this message translates to:
+  /// **'Fine'**
+  String get circlesCoachFinish;
+
+  /// No description provided for @meetingPointTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Punto d\'incontro'**
+  String get meetingPointTitle;
+
+  /// No description provided for @meetingPointDeleteTooltip.
+  ///
+  /// In it, this message translates to:
+  /// **'Elimina punto d\'incontro'**
+  String get meetingPointDeleteTooltip;
+
+  /// No description provided for @meetingPointCreateButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Crea punto'**
+  String get meetingPointCreateButton;
+
+  /// No description provided for @meetingPointEmptyTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun punto d\'incontro'**
+  String get meetingPointEmptyTitle;
+
+  /// No description provided for @meetingPointEmptyMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Proponi un luogo dove ritrovarvi: tutti vedranno la propria distanza in tempo reale, senza scriversi \"dove sei?\".'**
+  String get meetingPointEmptyMessage;
+
+  /// No description provided for @meetingPointMarkArrived.
+  ///
+  /// In it, this message translates to:
+  /// **'Segna il mio arrivo'**
+  String get meetingPointMarkArrived;
+
+  /// No description provided for @meetingPointWhoArriving.
+  ///
+  /// In it, this message translates to:
+  /// **'Chi sta arrivando'**
+  String get meetingPointWhoArriving;
+
+  /// No description provided for @meetingPointScheduledAt.
+  ///
+  /// In it, this message translates to:
+  /// **'Ore {time} · {date}'**
+  String meetingPointScheduledAt(String time, String date);
+
+  /// No description provided for @meetingPointArrived.
+  ///
+  /// In it, this message translates to:
+  /// **'Arrivato/a'**
+  String get meetingPointArrived;
+
+  /// No description provided for @meetingPointPositionUnavailable.
+  ///
+  /// In it, this message translates to:
+  /// **'Posizione non disponibile'**
+  String get meetingPointPositionUnavailable;
+
+  /// No description provided for @meetingPointEtaMinutes.
+  ///
+  /// In it, this message translates to:
+  /// **'~{minutes} min in auto'**
+  String meetingPointEtaMinutes(int minutes);
+
+  /// No description provided for @meetingPointNewTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuovo punto d\'incontro'**
+  String get meetingPointNewTitle;
+
+  /// No description provided for @meetingPointSearchHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Cerca un luogo o un indirizzo…'**
+  String get meetingPointSearchHint;
+
+  /// No description provided for @meetingPointOr.
+  ///
+  /// In it, this message translates to:
+  /// **'oppure'**
+  String get meetingPointOr;
+
+  /// No description provided for @meetingPointUseMyLocation.
+  ///
+  /// In it, this message translates to:
+  /// **'Usa la mia posizione attuale'**
+  String get meetingPointUseMyLocation;
+
+  /// No description provided for @meetingPointPositionSet.
+  ///
+  /// In it, this message translates to:
+  /// **'Posizione impostata'**
+  String get meetingPointPositionSet;
+
+  /// No description provided for @meetingPointNameHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Nome (es. Ingresso stadio, Bar Roma)'**
+  String get meetingPointNameHint;
+
+  /// No description provided for @meetingPointSetTime.
+  ///
+  /// In it, this message translates to:
+  /// **'Imposta un orario (opzionale)'**
+  String get meetingPointSetTime;
+
+  /// No description provided for @meetingPointNoResultsFor.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun risultato per \"{query}\".'**
+  String meetingPointNoResultsFor(String query);
+
+  /// No description provided for @meetingPointSearchFailed.
+  ///
+  /// In it, this message translates to:
+  /// **'Ricerca non riuscita. Riprova.'**
+  String get meetingPointSearchFailed;
+
+  /// No description provided for @meetingPointLocationUnavailable.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a rilevare la tua posizione.'**
+  String get meetingPointLocationUnavailable;
+
+  /// No description provided for @meetingPointChooseNameAndLocation.
+  ///
+  /// In it, this message translates to:
+  /// **'Scegli un nome e una posizione.'**
+  String get meetingPointChooseNameAndLocation;
+
+  /// No description provided for @meetingPointCreateError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a creare il punto d\'incontro. Riprova.'**
+  String get meetingPointCreateError;
+
+  /// No description provided for @circleMessagesTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Messaggi · {circleName}'**
+  String circleMessagesTitle(String circleName);
+
+  /// No description provided for @circleMessagesSendError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a inviare il messaggio. Riprova.'**
+  String get circleMessagesSendError;
+
+  /// No description provided for @circleMessagesDailyLimitTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Limite giornaliero raggiunto'**
+  String get circleMessagesDailyLimitTitle;
+
+  /// No description provided for @circleMessagesDailyLimitBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Hai già inviato 5 messaggi oggi: è il limite del piano gratuito. Con Kinly+ puoi mandarne quanti vuoi.'**
+  String get circleMessagesDailyLimitBody;
+
+  /// No description provided for @circleMessagesGotIt.
+  ///
+  /// In it, this message translates to:
+  /// **'Ho capito'**
+  String get circleMessagesGotIt;
+
+  /// No description provided for @circleMessagesDiscoverPlus.
+  ///
+  /// In it, this message translates to:
+  /// **'Scopri Kinly+'**
+  String get circleMessagesDiscoverPlus;
+
+  /// No description provided for @circleMessagesHintPremium.
+  ///
+  /// In it, this message translates to:
+  /// **'Solo per avvisi brevi e importanti. Per chiacchierare usa WhatsApp o un\'altra app di messaggistica.'**
+  String get circleMessagesHintPremium;
+
+  /// No description provided for @circleMessagesHintFree.
+  ///
+  /// In it, this message translates to:
+  /// **'Solo per avvisi brevi e importanti (max 5 al giorno nel piano gratuito). Per chiacchierare usa WhatsApp o un\'altra app di messaggistica.'**
+  String get circleMessagesHintFree;
+
+  /// No description provided for @circleMessagesEmptyTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun messaggio ancora'**
+  String get circleMessagesEmptyTitle;
+
+  /// No description provided for @circleMessagesEmptyMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Manda il primo avviso qui sotto.'**
+  String get circleMessagesEmptyMessage;
+
+  /// No description provided for @circleMessagesTimeNow.
+  ///
+  /// In it, this message translates to:
+  /// **'ora'**
+  String get circleMessagesTimeNow;
+
+  /// No description provided for @circleMessagesTimeMinutesAgo.
+  ///
+  /// In it, this message translates to:
+  /// **'{minutes} min fa'**
+  String circleMessagesTimeMinutesAgo(int minutes);
+
+  /// No description provided for @circleMessagesTimeHoursAgo.
+  ///
+  /// In it, this message translates to:
+  /// **'{hours} h fa'**
+  String circleMessagesTimeHoursAgo(int hours);
+
+  /// No description provided for @circleMessagesComposerHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Scrivi un avviso breve...'**
+  String get circleMessagesComposerHint;
+
+  /// No description provided for @quickMessage1.
+  ///
+  /// In it, this message translates to:
+  /// **'Sto arrivando 🚗'**
+  String get quickMessage1;
+
+  /// No description provided for @quickMessage2.
+  ///
+  /// In it, this message translates to:
+  /// **'Sono in ritardo ⏰'**
+  String get quickMessage2;
+
+  /// No description provided for @quickMessage3.
+  ///
+  /// In it, this message translates to:
+  /// **'Sono arrivato/a 🏠'**
+  String get quickMessage3;
+
+  /// No description provided for @quickMessage4.
+  ///
+  /// In it, this message translates to:
+  /// **'Tutto ok? 👋'**
+  String get quickMessage4;
+
+  /// No description provided for @quickMessage5.
+  ///
+  /// In it, this message translates to:
+  /// **'Chiamami quando puoi 📞'**
+  String get quickMessage5;
+
+  /// No description provided for @quickMessage6.
+  ///
+  /// In it, this message translates to:
+  /// **'Buongiorno ☀️'**
+  String get quickMessage6;
+
+  /// No description provided for @quickMessage7.
+  ///
+  /// In it, this message translates to:
+  /// **'Buonanotte 🌙'**
+  String get quickMessage7;
+
+  /// No description provided for @quickMessage8.
+  ///
+  /// In it, this message translates to:
+  /// **'Grazie! ❤️'**
+  String get quickMessage8;
+
+  /// No description provided for @expensesTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Spese di gruppo'**
+  String get expensesTitle;
+
+  /// No description provided for @expensesNewButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuova spesa'**
+  String get expensesNewButton;
+
+  /// No description provided for @expensesEmptyTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna spesa'**
+  String get expensesEmptyTitle;
+
+  /// No description provided for @expensesEmptyMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Tieni traccia di chi ha pagato cosa nella cerchia, senza scriverlo a memoria.'**
+  String get expensesEmptyMessage;
+
+  /// No description provided for @expensesBalancesTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Saldi'**
+  String get expensesBalancesTitle;
+
+  /// No description provided for @expensesListTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Spese'**
+  String get expensesListTitle;
+
+  /// No description provided for @expensesSetPaymentLinkHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Imposta il tuo link di pagamento in Privacy e sicurezza per farlo pagare più facilmente.'**
+  String get expensesSetPaymentLinkHint;
+
+  /// No description provided for @expensesLinkCopied.
+  ///
+  /// In it, this message translates to:
+  /// **'Link di pagamento copiato: mandaglielo.'**
+  String get expensesLinkCopied;
+
+  /// No description provided for @expensesNoPaymentLink.
+  ///
+  /// In it, this message translates to:
+  /// **'{name} non ha impostato un link di pagamento.'**
+  String expensesNoPaymentLink(String name);
+
+  /// No description provided for @expensesThisPerson.
+  ///
+  /// In it, this message translates to:
+  /// **'Questa persona'**
+  String get expensesThisPerson;
+
+  /// No description provided for @expensesOwesYou.
+  ///
+  /// In it, this message translates to:
+  /// **'{name} ti deve'**
+  String expensesOwesYou(String name);
+
+  /// No description provided for @expensesYouOwe.
+  ///
+  /// In it, this message translates to:
+  /// **'Devi a {name}'**
+  String expensesYouOwe(String name);
+
+  /// No description provided for @expensesRequestBalance.
+  ///
+  /// In it, this message translates to:
+  /// **'Chiedi il saldo'**
+  String get expensesRequestBalance;
+
+  /// No description provided for @expensesPay.
+  ///
+  /// In it, this message translates to:
+  /// **'Paga'**
+  String get expensesPay;
+
+  /// No description provided for @expensesPaidBy.
+  ///
+  /// In it, this message translates to:
+  /// **'Pagato da {name}'**
+  String expensesPaidBy(String name);
+
+  /// No description provided for @expensesFillFields.
+  ///
+  /// In it, this message translates to:
+  /// **'Compila descrizione, importo e almeno una persona.'**
+  String get expensesFillFields;
+
+  /// No description provided for @expensesSaveError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a salvare la spesa. Riprova.'**
+  String get expensesSaveError;
+
+  /// No description provided for @expensesDailyLimitTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Limite giornaliero raggiunto'**
+  String get expensesDailyLimitTitle;
+
+  /// No description provided for @expensesDailyLimitBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Hai già registrato 5 spese oggi: è il limite del piano gratuito. Con Kinly+ puoi registrarne quante vuoi.'**
+  String get expensesDailyLimitBody;
+
+  /// No description provided for @expensesSplitHint.
+  ///
+  /// In it, this message translates to:
+  /// **'La paghi tu: la dividi tra le persone che selezioni qui sotto.'**
+  String get expensesSplitHint;
+
+  /// No description provided for @expensesDescriptionHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Descrizione (es. Cena, benzina)'**
+  String get expensesDescriptionHint;
+
+  /// No description provided for @expensesAmountHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Importo totale (€)'**
+  String get expensesAmountHint;
+
+  /// No description provided for @expensesSplitBetween.
+  ///
+  /// In it, this message translates to:
+  /// **'Dividi tra'**
+  String get expensesSplitBetween;
+
+  /// No description provided for @expensesSaveButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Salva spesa'**
+  String get expensesSaveButton;
+
+  /// No description provided for @weeklySummaryTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Riepilogo · {circleName}'**
+  String weeklySummaryTitle(String circleName);
+
+  /// No description provided for @weeklySummaryLoadError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a caricare il riepilogo.'**
+  String get weeklySummaryLoadError;
+
+  /// No description provided for @weeklySummaryRetry.
+  ///
+  /// In it, this message translates to:
+  /// **'Riprova'**
+  String get weeklySummaryRetry;
+
+  /// No description provided for @weeklySummaryLast7Days.
+  ///
+  /// In it, this message translates to:
+  /// **'Ultimi 7 giorni'**
+  String get weeklySummaryLast7Days;
+
+  /// No description provided for @weeklySummaryActivityFor.
+  ///
+  /// In it, this message translates to:
+  /// **'Attività di \"{circleName}\", visibile a tutti i membri.'**
+  String weeklySummaryActivityFor(String circleName);
+
+  /// No description provided for @weeklySummaryQuietWeek.
+  ///
+  /// In it, this message translates to:
+  /// **'Settimana tranquilla: nessun evento da segnalare.'**
+  String get weeklySummaryQuietWeek;
+
+  /// No description provided for @weeklySummarySosActivated.
+  ///
+  /// In it, this message translates to:
+  /// **'SOS attivati'**
+  String get weeklySummarySosActivated;
+
+  /// No description provided for @weeklySummaryHelpRequests.
+  ///
+  /// In it, this message translates to:
+  /// **'Richieste di aiuto'**
+  String get weeklySummaryHelpRequests;
+
+  /// No description provided for @weeklySummarySafeZoneEntries.
+  ///
+  /// In it, this message translates to:
+  /// **'Ingressi in aree sicure'**
+  String get weeklySummarySafeZoneEntries;
+
+  /// No description provided for @weeklySummarySpeedAlerts.
+  ///
+  /// In it, this message translates to:
+  /// **'Avvisi di velocità'**
+  String get weeklySummarySpeedAlerts;
+
+  /// No description provided for @weeklySummaryPushHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Puoi ricevere questo riepilogo anche via notifica una volta a settimana: attivalo da Profilo → Privacy e sicurezza.'**
+  String get weeklySummaryPushHint;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

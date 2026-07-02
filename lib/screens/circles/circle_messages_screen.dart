@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/circle_group.dart';
 import '../../models/circle_message.dart';
 import '../../services/kinly_repository.dart';
@@ -41,11 +42,11 @@ class _CircleMessagesScreenState extends State<CircleMessagesScreen> {
       if (mounted && e.kind == FreeLimitKind.dailyMessageLimit) {
         _showDailyLimitReached();
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a inviare il messaggio. Riprova.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.circleMessagesSendError)));
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a inviare il messaggio. Riprova.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.circleMessagesSendError)));
       }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -55,23 +56,24 @@ class _CircleMessagesScreenState extends State<CircleMessagesScreen> {
   void _showDailyLimitReached() {
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Limite giornaliero raggiunto'),
-        content: const Text(
-          'Hai già inviato 5 messaggi oggi: è il limite del piano gratuito. Con Kinly+ puoi mandarne quanti vuoi.',
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Ho capito')),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen()));
-            },
-            child: const Text('Scopri Kinly+'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: Text(l10n.circleMessagesDailyLimitTitle),
+          content: Text(l10n.circleMessagesDailyLimitBody),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.circleMessagesGotIt)),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen()));
+              },
+              child: Text(l10n.circleMessagesDiscoverPlus),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -82,8 +84,9 @@ class _CircleMessagesScreenState extends State<CircleMessagesScreen> {
       builder: (context, _) {
         final state = AppState.instance;
         final messages = state.messagesForCircle(widget.circle.id);
+        final l10n = AppLocalizations.of(context)!;
         return Scaffold(
-          appBar: AppBar(title: Text('Messaggi · ${widget.circle.name}')),
+          appBar: AppBar(title: Text(l10n.circleMessagesTitle(widget.circle.name))),
           body: SafeArea(
             child: Column(
               children: [
@@ -99,9 +102,7 @@ class _CircleMessagesScreenState extends State<CircleMessagesScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          state.isPremium
-                              ? 'Solo per avvisi brevi e importanti. Per chiacchierare usa WhatsApp o un\'altra app di messaggistica.'
-                              : 'Solo per avvisi brevi e importanti (max 5 al giorno nel piano gratuito). Per chiacchierare usa WhatsApp o un\'altra app di messaggistica.',
+                          state.isPremium ? l10n.circleMessagesHintPremium : l10n.circleMessagesHintFree,
                           style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                         ),
                       ),
@@ -110,10 +111,10 @@ class _CircleMessagesScreenState extends State<CircleMessagesScreen> {
                 ),
                 Expanded(
                   child: messages.isEmpty
-                      ? const EmptyStateView(
+                      ? EmptyStateView(
                           icon: Icons.forum_outlined,
-                          title: 'Nessun messaggio ancora',
-                          message: 'Manda il primo avviso qui sotto.',
+                          title: l10n.circleMessagesEmptyTitle,
+                          message: l10n.circleMessagesEmptyMessage,
                         )
                       : ListView.separated(
                           reverse: true,
@@ -139,6 +140,7 @@ class _MessageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final sender = AppState.instance.personById(message.senderId);
     return Container(
       padding: const EdgeInsets.all(12),
@@ -154,9 +156,9 @@ class _MessageTile extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(sender?.name ?? 'Qualcuno', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.textPrimary)),
+                    Text(sender?.name ?? l10n.commonSomeone, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.textPrimary)),
                     const SizedBox(width: 8),
-                    Text(_formatTime(message.createdAt), style: TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
+                    Text(_formatTime(l10n, message.createdAt), style: TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
                   ],
                 ),
                 const SizedBox(height: 3),
@@ -169,12 +171,12 @@ class _MessageTile extends StatelessWidget {
     );
   }
 
-  String _formatTime(DateTime dt) {
+  String _formatTime(AppLocalizations l10n, DateTime dt) {
     final local = dt.toLocal();
     final diff = DateTime.now().difference(local);
-    if (diff.inMinutes < 1) return 'ora';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} min fa';
-    if (diff.inHours < 24) return '${diff.inHours} h fa';
+    if (diff.inMinutes < 1) return l10n.circleMessagesTimeNow;
+    if (diff.inMinutes < 60) return l10n.circleMessagesTimeMinutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.circleMessagesTimeHoursAgo(diff.inHours);
     return '${local.day.toString().padLeft(2, '0')}/${local.month.toString().padLeft(2, '0')}';
   }
 }
@@ -187,6 +189,8 @@ class _Composer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final quickOptions = QuickMessageCatalog.options(l10n);
     return Container(
       padding: EdgeInsets.fromLTRB(16, 10, 16, MediaQuery.of(context).viewInsets.bottom > 0 ? 10 : 16),
       decoration: BoxDecoration(
@@ -201,10 +205,10 @@ class _Composer extends StatelessWidget {
             height: 34,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: QuickMessageCatalog.options.length,
+              itemCount: quickOptions.length,
               separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (context, i) {
-                final option = QuickMessageCatalog.options[i];
+                final option = quickOptions[i];
                 return ActionChip(
                   label: Text(option, style: const TextStyle(fontSize: 12.5)),
                   backgroundColor: AppTheme.surfaceAlt,
@@ -222,7 +226,7 @@ class _Composer extends StatelessWidget {
                   maxLength: CircleMessage.maxLength,
                   buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
                   decoration: InputDecoration(
-                    hintText: 'Scrivi un avviso breve...',
+                    hintText: l10n.circleMessagesComposerHint,
                     filled: true,
                     fillColor: AppTheme.surfaceAlt,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),

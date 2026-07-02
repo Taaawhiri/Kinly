@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/circle_expense.dart';
 import '../../models/circle_group.dart';
 import '../../models/person.dart';
@@ -28,13 +29,14 @@ class CircleExpensesScreen extends StatelessWidget {
         final expenses = state.expensesForCircle(circle.id);
         final balances = state.netBalancesForCircle(circle.id);
         final members = circle.memberIds.map(state.personById).whereType<Person>().toList();
+        final l10n = AppLocalizations.of(context)!;
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Spese di gruppo')),
+          appBar: AppBar(title: Text(l10n.expensesTitle)),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _openAddExpenseSheet(context, members),
             icon: const Icon(Icons.add_rounded),
-            label: const Text('Nuova spesa'),
+            label: Text(l10n.expensesNewButton),
           ),
           body: SafeArea(
             child: expenses.isEmpty
@@ -43,15 +45,15 @@ class CircleExpensesScreen extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
                     children: [
                       if (balances.values.any((v) => v.abs() > 0.01)) ...[
-                        Text('Saldi', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                        Text(l10n.expensesBalancesTitle, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                         const SizedBox(height: 10),
                         for (final entry in balances.entries.where((e) => e.value.abs() > 0.01))
                           _BalanceRow(person: state.personById(entry.key), amount: entry.value),
                         const SizedBox(height: 20),
                       ],
-                      Text('Spese', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                      Text(l10n.expensesListTitle, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                       const SizedBox(height: 10),
-                      for (final expense in expenses) _ExpenseTile(expense: expense, payerName: state.personById(expense.paidBy)?.name ?? 'Qualcuno'),
+                      for (final expense in expenses) _ExpenseTile(expense: expense, payerName: state.personById(expense.paidBy)?.name ?? l10n.commonSomeone),
                     ],
                   ),
           ),
@@ -61,11 +63,12 @@ class CircleExpensesScreen extends StatelessWidget {
   }
 
   Widget _buildEmpty(BuildContext context) {
-    return const EmptyStateView(
+    final l10n = AppLocalizations.of(context)!;
+    return EmptyStateView(
       icon: Icons.receipt_long_outlined,
       color: AppTheme.accentGreen,
-      title: 'Nessuna spesa',
-      message: 'Tieni traccia di chi ha pagato cosa nella cerchia, senza scriverlo a memoria.',
+      title: l10n.expensesEmptyTitle,
+      message: l10n.expensesEmptyMessage,
     );
   }
 
@@ -86,22 +89,23 @@ class _BalanceRow extends StatelessWidget {
   final double amount;
 
   Future<void> _act(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final me = AppState.instance.me;
     if (amount > 0) {
       // Mi deve soldi: gli mostro il MIO link, così può pagarmi.
       if (me.paymentLink == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Imposta il tuo link di pagamento in Privacy e sicurezza per farlo pagare più facilmente.')),
+          SnackBar(content: Text(l10n.expensesSetPaymentLinkHint)),
         );
         return;
       }
       await Clipboard.setData(ClipboardData(text: me.paymentLink!));
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Link di pagamento copiato: mandaglielo.')));
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.expensesLinkCopied)));
     } else {
       final link = person?.paymentLink;
       if (link == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${person?.name ?? 'Questa persona'} non ha impostato un link di pagamento.')),
+          SnackBar(content: Text(l10n.expensesNoPaymentLink(person?.name ?? l10n.expensesThisPerson))),
         );
         return;
       }
@@ -112,8 +116,9 @@ class _BalanceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final owesMe = amount > 0;
-    final label = owesMe ? '${person?.name ?? 'Qualcuno'} ti deve' : 'Devi a ${person?.name ?? 'qualcuno'}';
+    final label = owesMe ? l10n.expensesOwesYou(person?.name ?? l10n.commonSomeone) : l10n.expensesYouOwe(person?.name ?? l10n.commonSomeone);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -134,7 +139,7 @@ class _BalanceRow extends StatelessWidget {
               ],
             ),
           ),
-          OutlinedButton(onPressed: () => _act(context), child: Text(owesMe ? 'Chiedi il saldo' : 'Paga')),
+          OutlinedButton(onPressed: () => _act(context), child: Text(owesMe ? l10n.expensesRequestBalance : l10n.expensesPay)),
         ],
       ),
     );
@@ -167,7 +172,7 @@ class _ExpenseTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(expense.description, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
-                Text('Pagato da $payerName', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                Text(AppLocalizations.of(context)!.expensesPaidBy(payerName), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
               ],
             ),
           ),
@@ -205,7 +210,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
     final description = _descriptionController.text.trim();
     final amount = double.tryParse(_amountController.text.trim().replaceAll(',', '.'));
     if (description.isEmpty || amount == null || amount <= 0 || _selected.isEmpty) {
-      setState(() => _error = 'Compila descrizione, importo e almeno una persona.');
+      setState(() => _error = AppLocalizations.of(context)!.expensesFillFields);
       return;
     }
     setState(() {
@@ -225,10 +230,10 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
       if (mounted && e.kind == FreeLimitKind.dailyExpenseLimit) {
         _showDailyLimitReached();
       } else if (mounted) {
-        setState(() => _error = 'Non siamo riusciti a salvare la spesa. Riprova.');
+        setState(() => _error = AppLocalizations.of(context)!.expensesSaveError);
       }
     } catch (_) {
-      if (mounted) setState(() => _error = 'Non siamo riusciti a salvare la spesa. Riprova.');
+      if (mounted) setState(() => _error = AppLocalizations.of(context)!.expensesSaveError);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -237,26 +242,30 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
   void _showDailyLimitReached() {
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Limite giornaliero raggiunto'),
-        content: const Text('Hai già registrato 5 spese oggi: è il limite del piano gratuito. Con Kinly+ puoi registrarne quante vuoi.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Ho capito')),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen()));
-            },
-            child: const Text('Scopri Kinly+'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: Text(l10n.expensesDailyLimitTitle),
+          content: Text(l10n.expensesDailyLimitBody),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.circleMessagesGotIt)),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen()));
+              },
+              child: Text(l10n.circleMessagesDiscoverPlus),
+            ),
+          ],
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
       child: SingleChildScrollView(
@@ -264,15 +273,15 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Nuova spesa', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+            Text(l10n.expensesNewButton, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
             const SizedBox(height: 6),
-            Text('La paghi tu: la dividi tra le persone che selezioni qui sotto.', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+            Text(l10n.expensesSplitHint, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
             const SizedBox(height: 16),
             TextField(
               controller: _descriptionController,
               autofocus: true,
               decoration: InputDecoration(
-                hintText: 'Descrizione (es. Cena, benzina)',
+                hintText: l10n.expensesDescriptionHint,
                 filled: true,
                 fillColor: AppTheme.surfaceAlt,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -284,7 +293,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
               controller: _amountController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
-                hintText: 'Importo totale (€)',
+                hintText: l10n.expensesAmountHint,
                 filled: true,
                 fillColor: AppTheme.surfaceAlt,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -292,7 +301,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            Text('Dividi tra', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+            Text(l10n.expensesSplitBetween, style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -322,7 +331,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
               child: _saving
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
-                  : const Text('Salva spesa'),
+                  : Text(l10n.expensesSaveButton),
             ),
           ],
         ),
