@@ -3,6 +3,7 @@ import 'package:app_links/app_links.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/auth/biometric_lock_screen.dart';
@@ -22,6 +23,18 @@ import 'theme/app_theme.dart';
 /// Chiave globale del Navigator: serve ai servizi che devono aprire una
 /// schermata senza avere un BuildContext (deep link, rilevamento incidenti).
 final navigatorKey = GlobalKey<NavigatorState>();
+
+/// Di default Flutter non tratta il trascinamento col mouse come uno swipe
+/// (per lasciare libera la selezione del testo su desktop/web): senza
+/// questo, liste e pannelli trascinabili come "La tua cerchia" sulla mappa
+/// restano azionabili solo col touch, inutilizzabili con un mouse.
+class AppScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        ...super.dragDevices,
+        PointerDeviceKind.mouse,
+      };
+}
 
 Future<void> main() async {
   // Tutto l'avvio è in una zona protetta: se una qualunque inizializzazione
@@ -83,6 +96,7 @@ class KinlyApp extends StatelessWidget {
           title: 'Kinly',
           navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
+          scrollBehavior: AppScrollBehavior(),
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: ThemeController.instance.themeMode,

@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/help_request.dart';
+import '../../models/person.dart';
 import '../../models/ping.dart';
 import '../../models/safe_zone.dart';
 import '../../models/shopping_stop.dart';
@@ -38,6 +39,11 @@ class MapHomeScreen extends StatefulWidget {
 const double _sheetInitialSize = 0.42;
 const double _sheetMinSize = 0.14;
 const double _sheetMaxSize = 0.9;
+
+/// Stessa soglia di root_shell.dart (dove si passa da bottom bar a barra
+/// laterale): qui decide se mostrare "La tua cerchia" come pannello fisso
+/// invece che come foglio da trascinare dal basso.
+const double _wideLayoutBreakpoint = 900.0;
 
 class _MapHomeScreenState extends State<MapHomeScreen> {
   static const _webNoticePrefKey = 'web_companion_notice_dismissed';
@@ -485,6 +491,384 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     );
   }
 
+  Widget _buildEmergencyActions(AppState state) {
+    return _EmergencyActionsGroup(
+      sosActive: state.myActiveSos != null,
+      helpActive: state.myActiveHelpRequest != null,
+      walkActive: WalkMeHomeService.instance.isActive,
+      onWalkTap: _onWalkMeHomeTap,
+      onSosTap: () {
+        final mySos = state.myActiveSos;
+        if (mySos != null) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => SosAlertScreen(alert: mySos, person: state.me)),
+          );
+        } else {
+          _confirmAndTriggerSos();
+        }
+      },
+      onHelpTap: () {
+        final mine = state.myActiveHelpRequest;
+        if (mine != null) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => HelpRequestScreen(request: mine, person: state.me)),
+          );
+        } else {
+          _openHelpRequestSheet();
+        }
+      },
+    );
+  }
+
+  Widget _buildBanners(AppState state) {
+    return Column(
+      children: [
+        if (WalkMeHomeService.instance.isActive)
+          _WalkMeHomeBanner(
+            remaining: WalkMeHomeService.instance.remaining,
+            onArrived: () => WalkMeHomeService.instance.confirmArrival(),
+          ),
+        for (final alert in state.activeSosAlerts.where((a) => a.profileId != state.me.id))
+          _SosBanner(
+            personName: state.personById(alert.profileId)?.name ?? 'Qualcuno',
+            onTap: () {
+              final person = state.personById(alert.profileId);
+              if (person != null) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => SosAlertScreen(alert: alert, person: person)),
+                );
+              }
+            },
+          ),
+        for (final request in state.activeHelpRequests.where((h) => h.profileId != state.me.id))
+          _HelpBanner(
+            personName: state.personById(request.profileId)?.name ?? 'Qualcuno',
+            reasonLabel: request.reason.label,
+            onTap: () {
+              final person = state.personById(request.profileId);
+              if (person != null) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => HelpRequestScreen(request: request, person: person)),
+                );
+              }
+            },
+          ),
+        for (final encounter in state.recentEncounters)
+          _EncounterBanner(
+            personName: state.personById(encounter.otherPersonId(state.me.id))?.name ?? 'Qualcuno',
+            onHighFive: () {
+              state.sendPing(toId: encounter.otherPersonId(state.me.id), kind: PingKind.highFive);
+              state.dismissEncounter(encounter.id);
+            },
+            onDismiss: () => state.dismissEncounter(encounter.id),
+          ),
+        for (final ping in state.incomingPings)
+          _PingBanner(
+            personName: state.personById(ping.fromId)?.name ?? 'Qualcuno',
+            kind: ping.kind,
+            onDismiss: () => state.dismissPing(ping.id),
+          ),
+        for (final stop in state.othersActiveShoppingStops)
+          _ShoppingStopBanner(
+            personName: state.personById(stop.profileId)?.name ?? 'Qualcuno',
+            stop: stop,
+            onSend: (note) => state.sendShoppingRequest(stopId: stop.id, note: note),
+          ),
+        if (state.myActiveShoppingStop != null && state.requestsForStop(state.myActiveShoppingStop!.id).isNotEmpty)
+          _MyShoppingRequestsBanner(
+            requests: state.requestsForStop(state.myActiveShoppingStop!.id),
+            nameFor: (id) => state.personById(id)?.name ?? 'Qualcuno',
+          ),
+      ],
+    );
+  }
+
+  Widget _buildCircleChipsRow(AppState state) {
+    return SizedBox(
+      height: 40,
+      child: Row(
+        children: [
+          Expanded(
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                CircleChip(
+                  label: 'Tutte',
+                  isSelected: state.activeCircleId == null,
+                  onTap: () => state.setActiveCircle(null),
+                ),
+                const SizedBox(width: 8),
+                for (final c in state.circles) ...[
+                  CircleChip(
+                    label: c.name,
+                    icon: c.icon,
+                    color: c.color,
+                    isSelected: state.activeCircleId == c.id,
+                    onTap: () => state.setActiveCircle(c.id),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: _CenterOnMeButton(loading: _centering, onTap: _centerOnMyLocation),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Intestazione + lista della cerchia: usata sia dentro il pannello
+  /// trascinabile su mobile sia nel pannello laterale fisso su schermi
+  /// larghi. [scrollController] arriva dal DraggableScrollableSheet solo
+  /// nel primo caso: senza, la lista usa il proprio scroll indipendente.
+  Widget _buildCircleListBody(List<Person> people, {ScrollController? scrollController}) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          child: Row(
+            children: [
+              Text('La tua cerchia', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
+              const Spacer(),
+              Text('${people.length} persone', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+              IconButton(
+                icon: const Icon(Icons.add_location_alt_outlined, size: 20),
+                tooltip: 'Nuovo punto d\'incontro',
+                visualDensity: VisualDensity.compact,
+                onPressed: _openMeetingPointEntry,
+              ),
+              IconButton(
+                icon: const Icon(Icons.link_rounded, size: 20),
+                tooltip: 'Condividi posizione con un link',
+                visualDensity: VisualDensity.compact,
+                onPressed: _openLiveShareSheet,
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: people.isEmpty
+              // Anche vuoto, deve restare un ListView con lo stesso
+              // scrollController del DraggableScrollableSheet: è da lì
+              // che il foglio capisce il gesto di trascinamento su/giù.
+              // Un Center al posto della lista lo disconnetterebbe.
+              ? ListView(
+                  controller: scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                  children: [
+                    Column(
+                      children: [
+                        Icon(Icons.person_add_alt_1_rounded, size: 32, color: AppTheme.textSecondary),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Nessuno da vedere qui ancora.\nInvita una persona nella cerchia per vederla sulla mappa.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5, height: 1.4),
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              : ListView.separated(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  itemCount: people.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, i) {
+                    final p = people[i];
+                    return PersonListTile(
+                      person: p,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: p.id)),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMap(AppState state, List<Person> people) {
+    return KinlyMap(
+      people: [state.me, ...people.where((p) => p.isSharingWithMe)],
+      safeZones: state.visibleSafeZones(),
+      meetingPoints: state.visibleMeetingPoints(),
+      onPersonTap: (personId) => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: personId)),
+      ),
+      onMapReady: (controller) => _mapController = controller,
+      onMeetingPointTap: (id) => _openMeetingPointInfo(id),
+      onSafeZoneTap: (id) => _openSafeZoneInfo(id),
+    );
+  }
+
+  /// Layout mobile/stretto: mappa a schermo intero con il pannello "La tua
+  /// cerchia" trascinabile dal basso, come una vera app.
+  Widget _buildNarrowLayout(BuildContext context, AppState state, List<Person> people) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            _buildMap(state, people),
+            // Sfoca la mappa man mano che trascini su il pannello "La tua
+            // cerchia" oltre la sua altezza di riposo: l'attenzione si
+            // sposta sulla lista senza uno scatto netto. IgnorePointer evita
+            // che questo livello (trasparente, sopra la mappa) rubi i gesti
+            // di pan/zoom quando non sta sfocando nulla.
+            AnimatedBuilder(
+              animation: _sheetController,
+              builder: (context, child) {
+                final extent = _sheetController.isAttached ? _sheetController.size : _sheetInitialSize;
+                final t = ((extent - _sheetInitialSize) / (_sheetMaxSize - _sheetInitialSize)).clamp(0.0, 1.0);
+                if (t <= 0) return const SizedBox.shrink();
+                return IgnorePointer(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 6 * t, sigmaY: 6 * t),
+                    child: Container(color: Colors.transparent),
+                  ),
+                );
+              },
+            ),
+            if (!_webNoticeDismissed)
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: _WebCompanionNotice(onDismiss: _dismissWebNotice),
+                ),
+              ),
+            SafeArea(
+              child: Align(
+                alignment: Alignment.topRight,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 12, 16, 0),
+                  child: _buildEmergencyActions(state),
+                ),
+              ),
+            ),
+            if (_hasAnyBanner(state))
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 130, 16, 0),
+                  child: _buildBanners(state),
+                ),
+              ),
+            // La barra delle cerchie e il pulsante GPS seguono insieme il
+            // bordo superiore del pannello, alla stessa altezza: quando lo
+            // trascini giù, scendono anche loro, invece di restare fermi in
+            // mezzo alla mappa.
+            AnimatedBuilder(
+              animation: _sheetController,
+              builder: (context, child) {
+                final extent = _sheetController.isAttached ? _sheetController.size : _sheetInitialSize;
+                final sheetTop = constraints.maxHeight * (1 - extent);
+                return Positioned(left: 0, right: 0, top: sheetTop - 52, child: child!);
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: _buildCircleChipsRow(state),
+              ),
+            ),
+            DraggableScrollableSheet(
+              controller: _sheetController,
+              initialChildSize: _sheetInitialSize,
+              minChildSize: _sheetMinSize,
+              maxChildSize: _sheetMaxSize,
+              // Niente snap: il pannello resta esattamente dove lo lasci.
+              // Con lo snap attivo, un trascinamento verso il basso non
+              // abbastanza deciso tornava indietro al punto di partenza
+              // invece di ridursi — sembrava "bloccato".
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.surface,
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 16, offset: Offset(0, -4))],
+                  ),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.divider, borderRadius: BorderRadius.circular(4))),
+                      const SizedBox(height: 6),
+                      Expanded(child: _buildCircleListBody(people, scrollController: scrollController)),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Layout desktop/largo: pannello "La tua cerchia" sempre visibile a
+  /// fianco della mappa, invece che sopra come un foglio da trascinare —
+  /// su un monitor non ha senso dover "tirare su" qualcosa che ci sta già
+  /// comodamente accanto.
+  Widget _buildWideLayout(BuildContext context, AppState state, List<Person> people) {
+    return Row(
+      children: [
+        Expanded(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              _buildMap(state, people),
+              if (!_webNoticeDismissed)
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: _WebCompanionNotice(onDismiss: _dismissWebNotice),
+                  ),
+                ),
+              SafeArea(
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 12, 16, 0),
+                    child: _buildEmergencyActions(state),
+                  ),
+                ),
+              ),
+              if (_hasAnyBanner(state))
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 130, 16, 0),
+                    child: SizedBox(width: 360, child: _buildBanners(state)),
+                  ),
+                ),
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 220, 0),
+                  child: _buildCircleChipsRow(state),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          width: 360,
+          child: Material(
+            color: AppTheme.surface,
+            elevation: 4,
+            child: SafeArea(
+              left: false,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: _buildCircleListBody(people),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
@@ -492,296 +876,10 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       builder: (context, _) {
         final state = AppState.instance;
         final people = state.visiblePeople();
+        final isWide = MediaQuery.sizeOf(context).width >= _wideLayoutBreakpoint;
 
         return Scaffold(
-          body: LayoutBuilder(
-            builder: (context, constraints) {
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  KinlyMap(
-                    people: [state.me, ...people.where((p) => p.isSharingWithMe)],
-                    safeZones: state.visibleSafeZones(),
-                    meetingPoints: state.visibleMeetingPoints(),
-                    onPersonTap: (personId) => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: personId)),
-                    ),
-                    onMapReady: (controller) => _mapController = controller,
-                    onMeetingPointTap: (id) => _openMeetingPointInfo(id),
-                    onSafeZoneTap: (id) => _openSafeZoneInfo(id),
-                  ),
-                  // Sfoca la mappa man mano che trascini su il pannello "La
-                  // tua cerchia" oltre la sua altezza di riposo: l'attenzione
-                  // si sposta sulla lista senza uno scatto netto. IgnorePointer
-                  // evita che questo livello (trasparente, sopra la mappa)
-                  // rubi i gesti di pan/zoom quando non sta sfocando nulla.
-                  AnimatedBuilder(
-                    animation: _sheetController,
-                    builder: (context, child) {
-                      final extent = _sheetController.isAttached ? _sheetController.size : _sheetInitialSize;
-                      final t = ((extent - _sheetInitialSize) / (_sheetMaxSize - _sheetInitialSize)).clamp(0.0, 1.0);
-                      if (t <= 0) return const SizedBox.shrink();
-                      return IgnorePointer(
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 6 * t, sigmaY: 6 * t),
-                          child: Container(color: Colors.transparent),
-                        ),
-                      );
-                    },
-                  ),
-                  if (!_webNoticeDismissed)
-                    SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                        child: _WebCompanionNotice(onDismiss: _dismissWebNotice),
-                      ),
-                    ),
-                  SafeArea(
-                    child: Align(
-                      alignment: Alignment.topRight,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 12, 16, 0),
-                        child: _EmergencyActionsGroup(
-                          sosActive: state.myActiveSos != null,
-                          helpActive: state.myActiveHelpRequest != null,
-                          walkActive: WalkMeHomeService.instance.isActive,
-                          onWalkTap: _onWalkMeHomeTap,
-                          onSosTap: () {
-                            final mySos = state.myActiveSos;
-                            if (mySos != null) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => SosAlertScreen(alert: mySos, person: state.me)),
-                              );
-                            } else {
-                              _confirmAndTriggerSos();
-                            }
-                          },
-                          onHelpTap: () {
-                            final mine = state.myActiveHelpRequest;
-                            if (mine != null) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => HelpRequestScreen(request: mine, person: state.me)),
-                              );
-                            } else {
-                              _openHelpRequestSheet();
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (_hasAnyBanner(state))
-                    SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 130, 16, 0),
-                        child: Column(
-                          children: [
-                            if (WalkMeHomeService.instance.isActive)
-                              _WalkMeHomeBanner(
-                                remaining: WalkMeHomeService.instance.remaining,
-                                onArrived: () => WalkMeHomeService.instance.confirmArrival(),
-                              ),
-                            for (final alert in state.activeSosAlerts.where((a) => a.profileId != state.me.id))
-                              _SosBanner(
-                                personName: state.personById(alert.profileId)?.name ?? 'Qualcuno',
-                                onTap: () {
-                                  final person = state.personById(alert.profileId);
-                                  if (person != null) {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(builder: (_) => SosAlertScreen(alert: alert, person: person)),
-                                    );
-                                  }
-                                },
-                              ),
-                            for (final request in state.activeHelpRequests.where((h) => h.profileId != state.me.id))
-                              _HelpBanner(
-                                personName: state.personById(request.profileId)?.name ?? 'Qualcuno',
-                                reasonLabel: request.reason.label,
-                                onTap: () {
-                                  final person = state.personById(request.profileId);
-                                  if (person != null) {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(builder: (_) => HelpRequestScreen(request: request, person: person)),
-                                    );
-                                  }
-                                },
-                              ),
-                            for (final encounter in state.recentEncounters)
-                              _EncounterBanner(
-                                personName: state.personById(encounter.otherPersonId(state.me.id))?.name ?? 'Qualcuno',
-                                onHighFive: () {
-                                  state.sendPing(toId: encounter.otherPersonId(state.me.id), kind: PingKind.highFive);
-                                  state.dismissEncounter(encounter.id);
-                                },
-                                onDismiss: () => state.dismissEncounter(encounter.id),
-                              ),
-                            for (final ping in state.incomingPings)
-                              _PingBanner(
-                                personName: state.personById(ping.fromId)?.name ?? 'Qualcuno',
-                                kind: ping.kind,
-                                onDismiss: () => state.dismissPing(ping.id),
-                              ),
-                            for (final stop in state.othersActiveShoppingStops)
-                              _ShoppingStopBanner(
-                                personName: state.personById(stop.profileId)?.name ?? 'Qualcuno',
-                                stop: stop,
-                                onSend: (note) => state.sendShoppingRequest(stopId: stop.id, note: note),
-                              ),
-                            if (state.myActiveShoppingStop != null && state.requestsForStop(state.myActiveShoppingStop!.id).isNotEmpty)
-                              _MyShoppingRequestsBanner(
-                                requests: state.requestsForStop(state.myActiveShoppingStop!.id),
-                                nameFor: (id) => state.personById(id)?.name ?? 'Qualcuno',
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  // La barra delle cerchie e il pulsante GPS seguono insieme
-                  // il bordo superiore del pannello, alla stessa altezza:
-                  // quando lo trascini giù, scendono anche loro, invece di
-                  // restare fermi in mezzo alla mappa.
-                  AnimatedBuilder(
-                    animation: _sheetController,
-                    builder: (context, child) {
-                      final extent = _sheetController.isAttached ? _sheetController.size : _sheetInitialSize;
-                      final sheetTop = constraints.maxHeight * (1 - extent);
-                      return Positioned(
-                        left: 0,
-                        right: 0,
-                        top: sheetTop - 52,
-                        child: child!,
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 16),
-                      child: SizedBox(
-                        height: 40,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: ListView(
-                                scrollDirection: Axis.horizontal,
-                                children: [
-                                  CircleChip(
-                                    label: 'Tutte',
-                                    isSelected: state.activeCircleId == null,
-                                    onTap: () => state.setActiveCircle(null),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  for (final c in state.circles) ...[
-                                    CircleChip(
-                                      label: c.name,
-                                      icon: c.icon,
-                                      color: c.color,
-                                      isSelected: state.activeCircleId == c.id,
-                                      onTap: () => state.setActiveCircle(c.id),
-                                    ),
-                                    const SizedBox(width: 8),
-                                  ],
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(right: 16),
-                              child: _CenterOnMeButton(loading: _centering, onTap: _centerOnMyLocation),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  DraggableScrollableSheet(
-                    controller: _sheetController,
-                    initialChildSize: _sheetInitialSize,
-                    minChildSize: _sheetMinSize,
-                    maxChildSize: _sheetMaxSize,
-                    // Niente snap: il pannello resta esattamente dove lo
-                    // lasci. Con lo snap attivo, un trascinamento verso il
-                    // basso non abbastanza deciso tornava indietro al punto
-                    // di partenza invece di ridursi — sembrava "bloccato".
-                    builder: (context, scrollController) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: AppTheme.surface,
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 16, offset: Offset(0, -4))],
-                        ),
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 10),
-                            Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.divider, borderRadius: BorderRadius.circular(4))),
-                            const SizedBox(height: 6),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                              child: Row(
-                                children: [
-                                  Text('La tua cerchia', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
-                                  const Spacer(),
-                                  Text('${people.length} persone', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
-                                  IconButton(
-                                    icon: const Icon(Icons.add_location_alt_outlined, size: 20),
-                                    tooltip: 'Nuovo punto d\'incontro',
-                                    visualDensity: VisualDensity.compact,
-                                    onPressed: _openMeetingPointEntry,
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.link_rounded, size: 20),
-                                    tooltip: 'Condividi posizione con un link',
-                                    visualDensity: VisualDensity.compact,
-                                    onPressed: _openLiveShareSheet,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: people.isEmpty
-                                  // Anche vuoto, deve restare un ListView con lo stesso
-                                  // scrollController del DraggableScrollableSheet: è da lì
-                                  // che il foglio capisce il gesto di trascinamento su/giù.
-                                  // Un Center al posto della lista lo disconnetterebbe.
-                                  ? ListView(
-                                      controller: scrollController,
-                                      physics: const AlwaysScrollableScrollPhysics(),
-                                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-                                      children: [
-                                        Column(
-                                          children: [
-                                            Icon(Icons.person_add_alt_1_rounded, size: 32, color: AppTheme.textSecondary),
-                                            const SizedBox(height: 10),
-                                            Text(
-                                              'Nessuno da vedere qui ancora.\nInvita una persona nella cerchia per vederla sulla mappa.',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5, height: 1.4),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    )
-                                  : ListView.separated(
-                                      controller: scrollController,
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                                      itemCount: people.length,
-                                      separatorBuilder: (_, __) => const Divider(height: 1),
-                                      itemBuilder: (context, i) {
-                                        final p = people[i];
-                                        return PersonListTile(
-                                          person: p,
-                                          onTap: () => Navigator.of(context).push(
-                                            MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: p.id)),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              );
-            },
-          ),
+          body: isWide ? _buildWideLayout(context, state, people) : _buildNarrowLayout(context, state, people),
         );
       },
     );

@@ -31,6 +31,12 @@
 
   <title>Kinly</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Richiesti da maplibre_gl sul web (la mappa nativa Android/iOS non ne
+       ha bisogno, per questo mancavano): motore JS di MapLibre GL, versione
+       allineata a quella richiesta dal pacchetto maplibre_gl installato. -->
+  <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet"/>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
