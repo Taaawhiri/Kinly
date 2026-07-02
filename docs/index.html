@@ -63,17 +63,6 @@
     animation: fadeInUp 0.6s ease 0.1s both;
   }
 
-  .phone-mockup {
-    width: 220px;
-    margin: 32px auto 0;
-    border-radius: 32px;
-    border: 8px solid var(--text);
-    overflow: hidden;
-    box-shadow: 0 20px 44px rgba(28, 34, 51, 0.28);
-    animation: fadeInUp 0.6s ease 0.2s both;
-  }
-  .phone-mockup img { display: block; width: 100%; }
-
   section {
     padding: 32px 0;
   }
@@ -210,6 +199,50 @@
   .battery-mock svg { width: 18px; height: 18px; color: #2E9E5B; }
   .battery-mock .bar { width: 56px; margin: 0; }
 
+  /* Registrazione (skeleton): logo, tab "Crea account/Accedi", 3 campi, bottone. */
+  .reg-mock { position: absolute; inset: 0; padding: 20% 12% 0; }
+  .reg-logo {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    margin: 0 auto 16px;
+    animation: shimmer 2.4s ease-in-out infinite;
+  }
+  .reg-tabs { display: flex; gap: 4px; background: var(--surface-alt); border-radius: 9px; padding: 3px; margin-bottom: 16px; }
+  .reg-tab { flex: 1; height: 16px; border-radius: 7px; background: transparent; }
+  .reg-tab.active { background: var(--surface); box-shadow: 0 1px 3px rgba(28,34,51,0.12); }
+  .reg-field { height: 20px; border-radius: 8px; background: var(--surface); box-shadow: 0 1px 2px rgba(28,34,51,0.08); margin-bottom: 8px; }
+  .reg-button {
+    height: 22px; border-radius: 8px; margin-top: 8px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+    animation: shimmer 2.4s ease-in-out infinite;
+  }
+
+  /* Impostazioni (skeleton): righe icona + testo + interruttore. */
+  .settings-mock { position: absolute; inset: 0; padding: 16% 10% 0; }
+  .settings-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .settings-icon { width: 22px; height: 22px; border-radius: 7px; background: var(--surface-alt); flex: none; }
+  .settings-row .sheet-bars { flex: 1; }
+  .toggle { width: 26px; height: 14px; border-radius: 7px; background: var(--divider); position: relative; flex: none; }
+  .toggle.on { background: var(--primary); }
+  .toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 10px; height: 10px; border-radius: 50%; background: white;
+  }
+  .toggle.on::after { left: 14px; }
+
+  /* Gestione cerchie e autorizzazioni (skeleton): card cerchia con avatar
+     multipli + opzioni di modalita' di condivisione (radio). */
+  .groups-mock { position: absolute; inset: 0; padding: 12% 10% 0; }
+  .group-card { background: var(--surface); border-radius: 14px; padding: 12px; box-shadow: 0 3px 10px rgba(28,34,51,0.08); margin-bottom: 14px; }
+  .group-card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .group-icon { width: 20px; height: 20px; border-radius: 6px; flex: none; }
+  .mini-avatars { display: flex; }
+  .mini-avatar { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--surface); margin-left: -5px; }
+  .mini-avatar:first-child { margin-left: 0; }
+  .perm-option { display: flex; align-items: center; gap: 7px; margin-top: 8px; }
+  .perm-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--divider); flex: none; }
+  .perm-dot.selected { border-color: var(--primary); background: var(--primary); }
+
   .plans {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -299,9 +332,6 @@
   <img class="logo" src="icon.png" alt="Kinly">
   <h1>Kinly</h1>
   <p class="tagline">Condividi la posizione con chi conta, solo su invito. Famiglia, amici e colleghi: sempre tranquilli, mai controllati.</p>
-  <div class="phone-mockup">
-    <img src="screenshot-app.png" alt="Schermata di registrazione di Kinly">
-  </div>
 </header>
 
 <div class="wrap">
@@ -403,6 +433,22 @@
     <div class="preview-grid">
       <div class="preview-phone">
         <div class="phone-frame">
+          <div class="reg-mock">
+            <div class="reg-logo"></div>
+            <div class="reg-tabs">
+              <div class="reg-tab active"></div>
+              <div class="reg-tab"></div>
+            </div>
+            <div class="reg-field"></div>
+            <div class="reg-field"></div>
+            <div class="reg-field"></div>
+            <div class="reg-button"></div>
+          </div>
+        </div>
+        <p class="preview-caption">Registrazione in pochi secondi</p>
+      </div>
+      <div class="preview-phone">
+        <div class="phone-frame">
           <div class="map-bg"></div>
           <div class="skel-dot" style="background: var(--primary); top: 22%; left: 32%;"></div>
           <div class="skel-dot" style="background: var(--coral); top: 34%; left: 62%; animation-delay: 0.4s;"></div>
@@ -441,6 +487,53 @@
           </div>
         </div>
         <p class="preview-caption">Stato e batteria di chi ami</p>
+      </div>
+      <div class="preview-phone">
+        <div class="phone-frame">
+          <div class="groups-mock">
+            <div class="group-card">
+              <div class="group-card-head">
+                <div class="group-icon" style="background: var(--coral);"></div>
+                <div class="bar" style="width: 45%;"></div>
+              </div>
+              <div class="mini-avatars">
+                <div class="mini-avatar" style="background: var(--primary);"></div>
+                <div class="mini-avatar" style="background: var(--amber);"></div>
+                <div class="mini-avatar" style="background: var(--coral);"></div>
+              </div>
+            </div>
+            <div class="perm-option"><div class="perm-dot selected"></div><div class="bar" style="width: 55%;"></div></div>
+            <div class="perm-option"><div class="perm-dot"></div><div class="bar light" style="width: 40%;"></div></div>
+            <div class="perm-option"><div class="perm-dot"></div><div class="bar light" style="width: 48%;"></div></div>
+          </div>
+        </div>
+        <p class="preview-caption">Cerchie e autorizzazioni sotto controllo</p>
+      </div>
+      <div class="preview-phone">
+        <div class="phone-frame">
+          <div class="settings-mock">
+            <div class="settings-row">
+              <div class="settings-icon"></div>
+              <div class="sheet-bars"><div class="bar" style="width: 70%;"></div><div class="bar light" style="width: 45%;"></div></div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-icon"></div>
+              <div class="sheet-bars"><div class="bar" style="width: 55%;"></div></div>
+              <div class="toggle on"></div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-icon"></div>
+              <div class="sheet-bars"><div class="bar" style="width: 60%;"></div></div>
+              <div class="toggle"></div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-icon"></div>
+              <div class="sheet-bars"><div class="bar" style="width: 50%;"></div></div>
+              <div class="toggle on"></div>
+            </div>
+          </div>
+        </div>
+        <p class="preview-caption">Privacy e impostazioni a portata di mano</p>
       </div>
     </div>
     <p class="preview-note">Anteprima in stile Kinly, non uno screenshot: arrivera' con i primi utenti registrati.</p>
