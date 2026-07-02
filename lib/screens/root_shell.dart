@@ -27,6 +27,14 @@ class _RootShellState extends State<RootShell> {
     ProfileScreen(),
   ];
 
+  /// Un Navigator indipendente per ciascuna scheda, usato solo nel layout
+  /// largo (desktop/tablet): senza, aprire un dettaglio dentro una scheda
+  /// (es. "Aree sicure" o "Punto d'incontro" da Cerchie) sostituiva l'intera
+  /// pagina con Navigator.push, facendo sparire anche la barra laterale.
+  /// Con un Navigator a parte per scheda, quel push resta confinato dentro
+  /// il proprio riquadro e la barra laterale resta sempre visibile.
+  late final _tabNavigatorKeys = List.generate(_screens.length, (_) => GlobalKey<NavigatorState>());
+
   @override
   Widget build(BuildContext context) {
     final isWide = MediaQuery.sizeOf(context).width >= _wideLayoutBreakpoint;
@@ -75,7 +83,16 @@ class _RootShellState extends State<RootShell> {
           children: [
             NavigationRail(
               selectedIndex: _index,
-              onDestinationSelected: (i) => setState(() => _index = i),
+              onDestinationSelected: (i) {
+                if (i == _index) {
+                  // Ritoccare la scheda già attiva torna alla sua pagina
+                  // principale: utile visto che la barra resta sempre lì,
+                  // diventa un modo naturale per "risalire" da un dettaglio.
+                  _tabNavigatorKeys[i].currentState?.popUntil((r) => r.isFirst);
+                } else {
+                  setState(() => _index = i);
+                }
+              },
               labelType: NavigationRailLabelType.all,
               destinations: [
                 const NavigationRailDestination(icon: Icon(Icons.map_outlined), selectedIcon: Icon(Icons.map_rounded), label: Text('Mappa')),
@@ -89,7 +106,18 @@ class _RootShellState extends State<RootShell> {
               ],
             ),
             const VerticalDivider(width: 1, thickness: 1),
-            Expanded(child: IndexedStack(index: _index, children: _screens)),
+            Expanded(
+              child: IndexedStack(
+                index: _index,
+                children: [
+                  for (var i = 0; i < _screens.length; i++)
+                    Navigator(
+                      key: _tabNavigatorKeys[i],
+                      onGenerateRoute: (settings) => MaterialPageRoute(builder: (_) => _screens[i]),
+                    ),
+                ],
+              ),
+            ),
           ],
         );
       },
