@@ -10,6 +10,7 @@ import '../../services/place_search_service.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/address_formatter.dart';
+import '../../widgets/empty_state.dart';
 import '../../widgets/person_avatar.dart';
 
 /// Punto d'incontro condiviso: chiunque nella cerchia può proporne uno (non
@@ -57,28 +58,10 @@ class MeetingPointScreen extends StatelessWidget {
   }
 
   Widget _buildEmpty(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: AppTheme.primary.withOpacity(0.12)),
-            alignment: Alignment.center,
-            child: const Icon(Icons.share_location_rounded, color: AppTheme.primary, size: 32),
-          ),
-          const SizedBox(height: 20),
-          Text('Nessun punto d\'incontro', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
-          const SizedBox(height: 8),
-          Text(
-            'Proponi un luogo dove ritrovarvi: tutti vedranno la propria distanza in tempo reale, senza scriversi "dove sei?".',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5, height: 1.4),
-          ),
-        ],
-      ),
+    return const EmptyStateView(
+      icon: Icons.share_location_rounded,
+      title: 'Nessun punto d\'incontro',
+      message: 'Proponi un luogo dove ritrovarvi: tutti vedranno la propria distanza in tempo reale, senza scriversi "dove sei?".',
     );
   }
 

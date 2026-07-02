@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:share_plus/share_plus.dart';
@@ -22,6 +23,7 @@ import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/blurred_bottom_sheet.dart';
 import '../../widgets/circle_chip.dart';
+import '../../widgets/empty_state.dart';
 import '../../widgets/kinly_map.dart';
 import '../../widgets/person_list_tile.dart';
 import '../circles/meeting_point_screen.dart';
@@ -60,10 +62,16 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   // Ricerca indirizzo/luogo sulla mappa (es. "Esselunga via Roma 5"): stesso
   // servizio Nominatim gia' usato per i punti d'incontro (place_search_service.dart).
   final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
   List<PlaceResult> _searchResults = [];
   PlaceResult? _selectedPlace;
   bool _searching = false;
   Timer? _searchDebounce;
+
+  /// Aggiornato ad ogni build: serve fuori da build() (nell'handler globale
+  /// della tastiera, che non ha un BuildContext comodo da cui leggere
+  /// MediaQuery) per sapere se siamo nel layout largo da desktop.
+  bool _isWideLayout = false;
 
   @override
   void initState() {
@@ -74,6 +82,32 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     CrashDetectionService.instance.onPossibleCrash = _showCrashCountdown;
     if (kIsWeb) unawaited(_loadWebNoticeState());
     _searchController.addListener(_onSearchChanged);
+    // Scorciatoia "/" per la ricerca, come su molti siti (Gmail, GitHub…):
+    // ha senso solo su web con una tastiera fisica a disposizione, non su
+    // app nativa mobile. HardwareKeyboard invece di uno Shortcuts/Actions
+    // legato al focus: così funziona anche quando, appena aperta la pagina,
+    // nessun widget ha ancora il focus.
+    if (kIsWeb) HardwareKeyboard.instance.addHandler(_handleGlobalKey);
+  }
+
+  bool _handleGlobalKey(KeyEvent event) {
+    if (!_isWideLayout || event is! KeyDownEvent) return false;
+    if (event.logicalKey == LogicalKeyboardKey.escape) {
+      if (!_searchFocusNode.hasFocus && _searchController.text.isEmpty && _selectedPlace == null) return false;
+      _clearSearch();
+      _searchFocusNode.unfocus();
+      return true;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.slash && !_searchFocusNode.hasFocus) {
+      // Non rubare "/" se si sta già scrivendo in un altro campo di testo
+      // (per ora non ce ne sono altri in questa pagina, ma è una guardia
+      // economica da avere).
+      final primary = FocusManager.instance.primaryFocus;
+      if (primary != null && primary.context?.widget is EditableText) return false;
+      _searchFocusNode.requestFocus();
+      return true;
+    }
+    return false;
   }
 
   Future<void> _loadWebNoticeState() async {
@@ -93,9 +127,11 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     if (CrashDetectionService.instance.onPossibleCrash == _showCrashCountdown) {
       CrashDetectionService.instance.onPossibleCrash = null;
     }
+    if (kIsWeb) HardwareKeyboard.instance.removeHandler(_handleGlobalKey);
     _sheetController.dispose();
     _searchDebounce?.cancel();
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -186,6 +222,19 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     }
   }
 
+  Widget _buildShortcutHintPill() {
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: Container(
+        width: 22,
+        height: 22,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(6)),
+        child: Text('/', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textSecondary)),
+      ),
+    );
+  }
+
   Widget _buildSearchBar() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -194,25 +243,36 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
           elevation: 3,
           borderRadius: BorderRadius.circular(14),
           color: AppTheme.surface,
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Cerca un indirizzo o un negozio…',
-              hintStyle: TextStyle(fontSize: 13.5, color: AppTheme.textSecondary),
-              prefixIcon: Icon(Icons.search_rounded, color: AppTheme.textSecondary, size: 20),
-              suffixIcon: _searching
-                  ? const Padding(
-                      padding: EdgeInsets.all(14),
-                      child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-                    )
-                  : (_searchController.text.isNotEmpty
-                      ? IconButton(icon: const Icon(Icons.close_rounded, size: 18), onPressed: _clearSearch)
-                      : null),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-              filled: true,
-              fillColor: AppTheme.surface,
-              contentPadding: const EdgeInsets.symmetric(vertical: 14),
-            ),
+          child: ListenableBuilder(
+            listenable: _searchFocusNode,
+            builder: (context, _) {
+              // Pillola "/" per far scoprire la scorciatoia da tastiera:
+              // solo su desktop web, e solo quando non c'è già altro nel
+              // campo suggerimento (spinner, "x" per pulire, o il fuoco).
+              final showShortcutHint =
+                  kIsWeb && _isWideLayout && !_searchFocusNode.hasFocus && !_searching && _searchController.text.isEmpty;
+              return TextField(
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                decoration: InputDecoration(
+                  hintText: 'Cerca un indirizzo o un negozio…',
+                  hintStyle: TextStyle(fontSize: 13.5, color: AppTheme.textSecondary),
+                  prefixIcon: Icon(Icons.search_rounded, color: AppTheme.textSecondary, size: 20),
+                  suffixIcon: _searching
+                      ? const Padding(
+                          padding: EdgeInsets.all(14),
+                          child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                        )
+                      : (_searchController.text.isNotEmpty
+                          ? IconButton(icon: const Icon(Icons.close_rounded, size: 18), onPressed: _clearSearch)
+                          : (showShortcutHint ? _buildShortcutHintPill() : null)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  filled: true,
+                  fillColor: AppTheme.surface,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              );
+            },
           ),
         ),
         if (_searchResults.isNotEmpty)
@@ -857,18 +917,12 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               ? ListView(
                   controller: scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-                  children: [
-                    Column(
-                      children: [
-                        Icon(Icons.person_add_alt_1_rounded, size: 32, color: AppTheme.textSecondary),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Nessuno da vedere qui ancora.\nInvita una persona nella cerchia per vederla sulla mappa.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5, height: 1.4),
-                        ),
-                      ],
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  children: const [
+                    EmptyStateView(
+                      icon: Icons.person_add_alt_1_rounded,
+                      title: 'Nessuno da vedere qui ancora',
+                      message: 'Invita una persona nella cerchia per vederla sulla mappa.',
                     ),
                   ],
                 )
@@ -1134,6 +1188,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
         final state = AppState.instance;
         final people = state.visiblePeople();
         final isWide = MediaQuery.sizeOf(context).width >= _wideLayoutBreakpoint;
+        _isWideLayout = isWide;
 
         return Scaffold(
           body: isWide ? _buildWideLayout(context, state, people) : _buildNarrowLayout(context, state, people),

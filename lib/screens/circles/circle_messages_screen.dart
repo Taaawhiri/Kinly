@@ -5,6 +5,7 @@ import '../../services/kinly_repository.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/quick_message_catalog.dart';
+import '../../widgets/empty_state.dart';
 import '../../widgets/person_avatar.dart';
 import '../premium/paywall_screen.dart';
 
@@ -109,12 +110,10 @@ class _CircleMessagesScreenState extends State<CircleMessagesScreen> {
                 ),
                 Expanded(
                   child: messages.isEmpty
-                      ? Center(
-                          child: Text(
-                            'Nessun messaggio ancora.\nManda il primo avviso qui sotto.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5, height: 1.4),
-                          ),
+                      ? const EmptyStateView(
+                          icon: Icons.forum_outlined,
+                          title: 'Nessun messaggio ancora',
+                          message: 'Manda il primo avviso qui sotto.',
                         )
                       : ListView.separated(
                           reverse: true,

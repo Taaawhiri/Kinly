@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/location_request.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/empty_state.dart';
 import '../../widgets/person_avatar.dart';
 
 class RequestsScreen extends StatelessWidget {
@@ -201,24 +202,10 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.mail_outline_rounded, size: 48, color: AppTheme.textSecondary.withOpacity(0.5)),
-            const SizedBox(height: 14),
-            Text('Nessuna richiesta', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
-            const SizedBox(height: 6),
-            Text(
-              'Quando qualcuno vorrà vedere la tua posizione, o tu quella di qualcun altro, la richiesta apparirà qui.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-            ),
-          ],
-        ),
-      ),
+    return const EmptyStateView(
+      icon: Icons.mail_outline_rounded,
+      title: 'Nessuna richiesta',
+      message: 'Quando qualcuno vorrà vedere la tua posizione, o tu quella di qualcun altro, la richiesta apparirà qui.',
     );
   }
 }
