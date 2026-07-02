@@ -18,6 +18,16 @@ class Trip {
   String get endLabel => points.last.address ?? '${points.last.lat.toStringAsFixed(3)}, ${points.last.lng.toStringAsFixed(3)}';
 }
 
+/// Una posizione la cui velocità implicita rispetto al punto precedente
+/// supera questa soglia (circa 220 km/h, oltre il ragionevole anche in
+/// autostrada) viene trattata come un errore GPS momentaneo — es. un fix
+/// impreciso per scarsa ricezione, che "salta" lontano e poi torna quello
+/// giusto — e scartata. Senza questo controllo un singolo salto del genere
+/// veniva sommato come se fosse un vero spostamento, creando un "itinerario"
+/// mai realmente percorso (tipicamente andata-e-ritorno verso il punto
+/// sbagliato, con partenza e arrivo che infatti coincidono).
+const double _maxPlausibleSpeedMetersPerSecond = 61;
+
 /// Raggruppa lo storico posizioni (in qualsiasi ordine) in tragitti: un
 /// varco di più di [gap] tra due punti consecutivi chiude il tragitto
 /// corrente. Tragitti più corti di [minDistanceMeters] vengono scartati
@@ -42,9 +52,19 @@ List<Trip> buildTrips(
   }
 
   for (final p in points) {
-    if (current.isNotEmpty && p.recordedAt.difference(current.last.recordedAt) > gap) {
-      finishCurrent();
-      current = [];
+    if (current.isNotEmpty) {
+      final last = current.last;
+      final elapsedSeconds = p.recordedAt.difference(last.recordedAt).inSeconds;
+      if (elapsedSeconds > 0) {
+        final segmentMeters = Geolocator.distanceBetween(last.lat, last.lng, p.lat, p.lng);
+        if (segmentMeters / elapsedSeconds > _maxPlausibleSpeedMetersPerSecond) {
+          continue; // scarta solo questo fix, non l'intero tragitto in corso
+        }
+      }
+      if (p.recordedAt.difference(last.recordedAt) > gap) {
+        finishCurrent();
+        current = [];
+      }
     }
     current.add(p);
   }
