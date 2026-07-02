@@ -3,55 +3,189 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kinly</title>
+<title>Kinly - condividi la posizione con chi conta</title>
+<link rel="icon" href="icon.png">
 <style>
+  :root {
+    --primary: #4A63E7;
+    --primary-dark: #2F3FAE;
+    --coral: #FF6B6B;
+    --amber: #FFB020;
+    --bg: #F4F6FB;
+    --surface: #FFFFFF;
+    --surface-alt: #EEF1FA;
+    --text: #1C2233;
+    --text-secondary: #5B6478;
+    --divider: #E1E5F0;
+  }
+  * { box-sizing: border-box; }
   body {
     margin: 0;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: system-ui, sans-serif;
-    background: #F4F6FB;
-    color: #1C2233;
-    text-align: center;
-    padding: 24px;
-    box-sizing: border-box;
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
   }
-  .card {
-    max-width: 420px;
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 20px; }
+
+  header.hero {
+    text-align: center;
+    padding: 56px 20px 40px;
   }
   .logo {
-    width: 64px;
-    height: 64px;
-    border-radius: 18px;
-    background: #4A63E7;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 30px;
-    font-weight: 800;
-    margin: 0 auto 20px;
+    width: 84px;
+    height: 84px;
+    border-radius: 22px;
+    display: block;
+    margin: 0 auto 18px;
+    box-shadow: 0 8px 24px rgba(74, 99, 231, 0.25);
   }
   h1 {
-    font-size: 22px;
+    font-size: 30px;
     margin: 0 0 10px;
+    font-weight: 800;
   }
-  p {
-    font-size: 14.5px;
+  .tagline {
+    font-size: 16px;
+    color: var(--text-secondary);
+    max-width: 480px;
+    margin: 0 auto;
     line-height: 1.5;
-    color: #5B6478;
-    margin: 0;
+  }
+
+  section {
+    padding: 32px 0;
+  }
+  h2 {
+    font-size: 20px;
+    font-weight: 800;
+    text-align: center;
+    margin: 0 0 24px;
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+  }
+  .feature {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 18px 16px;
+    text-align: center;
+  }
+  .feature .emoji { font-size: 26px; margin-bottom: 8px; }
+  .feature b { display: block; font-size: 14px; margin-bottom: 4px; }
+  .feature span { font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; }
+
+  .plans {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .plan {
+    background: var(--surface);
+    border-radius: 18px;
+    padding: 24px 20px;
+    text-align: center;
+    border: 2px solid transparent;
+  }
+  .plan.highlight { border-color: var(--primary); }
+  .plan .badge {
+    display: inline-block;
+    background: var(--primary);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .plan-name { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
+  .plan-price { font-size: 26px; font-weight: 900; margin-bottom: 2px; }
+  .plan-price small { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+  .plan-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-top: 10px; }
+
+  footer {
+    text-align: center;
+    padding: 32px 20px 48px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
   }
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="logo">K</div>
+
+<header class="hero">
+  <img class="logo" src="icon.png" alt="Kinly">
   <h1>Kinly</h1>
-  <p>Questa pagina serve solo per aprire i link "segui la mia posizione" condivisi da chi usa l'app Kinly.</p>
-  <p style="margin-top: 10px;">Se qualcuno te ne ha mandato uno, aprilo direttamente: da qui non c'e' nient'altro da vedere.</p>
+  <p class="tagline">Condividi la posizione con chi conta, solo su invito. Famiglia, amici e colleghi: sempre tranquilli, mai controllati.</p>
+</header>
+
+<div class="wrap">
+
+  <section>
+    <h2>Cosa fa Kinly</h2>
+    <div class="features">
+      <div class="feature">
+        <div class="emoji">👨‍👩‍👧‍👦</div>
+        <b>Cerchie private</b>
+        <span>Solo chi inviti vede dove sei, mai un elenco pubblico.</span>
+      </div>
+      <div class="feature">
+        <div class="emoji">🆘</div>
+        <b>SOS e richieste di aiuto</b>
+        <span>Un tocco per avvisare la tua cerchia con la posizione esatta.</span>
+      </div>
+      <div class="feature">
+        <div class="emoji">🛟</div>
+        <b>Aree sicure</b>
+        <span>Sai subito quando chi ami arriva o esce da casa, scuola, lavoro.</span>
+      </div>
+      <div class="feature">
+        <div class="emoji">📍</div>
+        <b>Punti d'incontro</b>
+        <span>Organizza dove trovarvi e vedete tutti la distanza in tempo reale.</span>
+      </div>
+      <div class="feature">
+        <div class="emoji">🔗</div>
+        <b>Link "seguimi"</b>
+        <span>Condividi la posizione anche con chi non ha l'app, per un tempo limitato.</span>
+      </div>
+      <div class="feature">
+        <div class="emoji">🌫️</div>
+        <b>Modalita' sfumata</b>
+        <span>Scegli tu quanto essere precisi: zona invece che indirizzo esatto.</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Piani</h2>
+    <div class="plans">
+      <div class="plan">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">Gratis</div>
+        <div class="plan-desc">Fino a 2 cerchie (6 persone ciascuna), 5 messaggi/ping/spese al giorno, tutte le funzioni di base per stare in contatto.</div>
+      </div>
+      <div class="plan">
+        <div class="plan-name">Kinly+ Individual</div>
+        <div class="plan-price">3,90 &euro;<small>/mese</small></div>
+        <div class="plan-desc">Cerchie e messaggi illimitati, cronologia posizioni, aree sicure, statistiche, tracciamento in background e assistenza prioritaria &mdash; solo per te.</div>
+      </div>
+      <div class="plan highlight">
+        <div class="badge">Consigliato per famiglie</div>
+        <div class="plan-name">Kinly+ Family</div>
+        <div class="plan-price">9,90 &euro;<small>/mese</small></div>
+        <div class="plan-desc">Tutti i vantaggi di Individual, estesi gratis a chi entra nelle tue cerchie (fino a 6 persone). Un solo abbonamento per tutta la famiglia.</div>
+      </div>
+    </div>
+  </section>
+
 </div>
+
+<footer>
+  Kinly &middot; questa pagina serve anche ad aprire i link "segui la mia posizione" condivisi dall'app.
+</footer>
+
 </body>
 </html>
