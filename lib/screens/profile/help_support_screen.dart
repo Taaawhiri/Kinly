@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/support_message.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
@@ -13,24 +14,12 @@ class HelpSupportScreen extends StatefulWidget {
   State<HelpSupportScreen> createState() => _HelpSupportScreenState();
 }
 
-const _faqs = [
-  (
-    'Chi vede la mia posizione?',
-    'Solo chi fa parte di una tua cerchia, e solo se la tua modalità di condivisione lo permette (automatica, su richiesta o sospesa). Puoi cambiarla in ogni momento dal tuo profilo.',
-  ),
-  (
-    'Come invito qualcuno in una cerchia?',
-    'Crea una cerchia dalla scheda "Cerchie" e condividi il codice invito che ti viene mostrato: chi lo inserisce entra subito a farne parte.',
-  ),
-  (
-    'Cosa cambia con Kinly+?',
-    'Il piano gratuito ha un limite di 2 cerchie e 6 persone per cerchia. Kinly+ toglie i limiti e sblocca cronologia posizioni, aree sicure e avvisi di guida.',
-  ),
-  (
-    'Come cancello un\'area sicura o esco da una cerchia?',
-    'Le aree sicure si eliminano dalla schermata "Aree sicure" di una cerchia (icona del cestino). Per uscire da una cerchia scrivici da qui: te ne aiutiamo a occupare a mano finché non aggiungiamo il pulsante in app.',
-  ),
-];
+List<(String, String)> _faqs(AppLocalizations l10n) => [
+      (l10n.helpFaq1Q, l10n.helpFaq1A),
+      (l10n.helpFaq2Q, l10n.helpFaq2A),
+      (l10n.helpFaq3Q, l10n.helpFaq3A),
+      (l10n.helpFaq4Q, l10n.helpFaq4A),
+    ];
 
 class _HelpSupportScreenState extends State<HelpSupportScreen> {
   final _messageController = TextEditingController();
@@ -58,10 +47,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       if (!mounted) return;
       _messageController.clear();
       setState(() => _pastMessages = AppState.instance.fetchMySupportMessages());
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Messaggio inviato: lo trovi qui sotto tra le tue richieste.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.helpSentSnackbar)));
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a inviare il messaggio. Riprova.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.helpSendError)));
       }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -71,32 +60,31 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
   @override
   Widget build(BuildContext context) {
     final isPremium = AppState.instance.isPremium;
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Aiuto e assistenza')),
+      appBar: AppBar(title: Text(l10n.profileHelpSupport)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
-            Text('Domande frequenti', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
+            Text(l10n.helpFaqsTitle, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
             const SizedBox(height: 10),
-            for (final faq in _faqs) _FaqTile(question: faq.$1, answer: faq.$2),
+            for (final faq in _faqs(l10n)) _FaqTile(question: faq.$1, answer: faq.$2),
             const SizedBox(height: 24),
             Row(
               children: [
-                Expanded(child: Text('Scrivici', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary))),
+                Expanded(child: Text(l10n.helpWriteToUs, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary))),
                 if (isPremium)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(color: AppTheme.accentAmber.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
-                    child: const Text('Priorità Kinly+', style: TextStyle(color: AppTheme.accentAmber, fontWeight: FontWeight.w700, fontSize: 11)),
+                    child: Text(l10n.helpPriorityBadge, style: const TextStyle(color: AppTheme.accentAmber, fontWeight: FontWeight.w700, fontSize: 11)),
                   ),
               ],
             ),
             const SizedBox(height: 6),
             Text(
-              isPremium
-                  ? 'Come abbonato Kinly+ la tua richiesta viene messa in coda prioritaria.'
-                  : 'La tua richiesta resta qui, la leggiamo appena possibile.',
+              isPremium ? l10n.helpPriorityHint : l10n.helpNormalHint,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
             ),
             const SizedBox(height: 12),
@@ -104,7 +92,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               controller: _messageController,
               maxLines: 4,
               decoration: InputDecoration(
-                hintText: 'Descrivi il problema o la domanda...',
+                hintText: l10n.helpDescribeHint,
                 filled: true,
                 fillColor: AppTheme.surface,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -117,10 +105,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
               child: _sending
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
-                  : const Text('Invia'),
+                  : Text(l10n.helpSend),
             ),
             const SizedBox(height: 28),
-            Text('Le tue richieste', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
+            Text(l10n.helpYourRequests, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
             const SizedBox(height: 10),
             FutureBuilder<List<SupportMessage>>(
               future: _pastMessages,
@@ -130,7 +118,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 }
                 final messages = snapshot.data ?? const [];
                 if (messages.isEmpty) {
-                  return Text('Non hai ancora inviato nessuna richiesta.', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13));
+                  return Text(l10n.helpNoRequestsYet, style: TextStyle(color: AppTheme.textSecondary, fontSize: 13));
                 }
                 return Column(children: [for (final m in messages) _SupportMessageTile(message: m)]);
               },
@@ -219,10 +207,11 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final label = switch (status) {
-      'answered' => 'Risposto',
-      'closed' => 'Chiuso',
-      _ => 'In corso',
+      'answered' => l10n.helpStatusAnswered,
+      'closed' => l10n.helpStatusClosed,
+      _ => l10n.helpStatusInProgress,
     };
     final color = switch (status) {
       'answered' => AppTheme.accentGreen,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../l10n/app_localizations.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/avatar_catalog.dart';
@@ -28,7 +29,7 @@ class _AvatarPickerScreenState extends State<AvatarPickerScreen> {
       await AppState.instance.setProfilePhoto(resized);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a caricare la foto. Riprova.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.avatarUploadError)));
       }
     } finally {
       if (mounted) setState(() => _uploading = false);
@@ -36,6 +37,7 @@ class _AvatarPickerScreenState extends State<AvatarPickerScreen> {
   }
 
   void _showPhotoOptions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.surface,
@@ -46,7 +48,7 @@ class _AvatarPickerScreenState extends State<AvatarPickerScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Scegli dalla galleria'),
+              title: Text(l10n.avatarChooseFromGallery),
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 _pickAndUpload(ImageSource.gallery);
@@ -54,7 +56,7 @@ class _AvatarPickerScreenState extends State<AvatarPickerScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Scatta una foto'),
+              title: Text(l10n.avatarTakePhoto),
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 _pickAndUpload(ImageSource.camera);
@@ -63,7 +65,7 @@ class _AvatarPickerScreenState extends State<AvatarPickerScreen> {
             if (AppState.instance.me.photoUrl != null)
               ListTile(
                 leading: Icon(Icons.delete_outline_rounded, color: AppTheme.accentCoral),
-                title: Text('Rimuovi foto', style: TextStyle(color: AppTheme.accentCoral)),
+                title: Text(l10n.avatarRemovePhoto, style: TextStyle(color: AppTheme.accentCoral)),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   AppState.instance.removeProfilePhoto();
@@ -83,8 +85,9 @@ class _AvatarPickerScreenState extends State<AvatarPickerScreen> {
       builder: (context, _) {
         final state = AppState.instance;
         final selectedKey = state.me.avatarKey;
+        final l10n = AppLocalizations.of(context)!;
         return Scaffold(
-          appBar: AppBar(title: const Text('Scegli il tuo avatar')),
+          appBar: AppBar(title: Text(l10n.avatarPickerTitle)),
           body: SafeArea(
             child: ListView(
               padding: const EdgeInsets.all(20),
@@ -128,14 +131,14 @@ class _AvatarPickerScreenState extends State<AvatarPickerScreen> {
                 Center(
                   child: TextButton(
                     onPressed: _uploading ? null : () => _showPhotoOptions(context),
-                    child: Text(state.me.photoUrl != null ? 'Cambia foto' : 'Carica una foto'),
+                    child: Text(state.me.photoUrl != null ? l10n.avatarChangePhoto : l10n.avatarUploadPhoto),
                   ),
                 ),
                 const SizedBox(height: 14),
-                Text('Avatar a tema', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                Text(l10n.avatarThemedTitle, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                 const SizedBox(height: 4),
                 Text(
-                  'Usati quando non hai caricato una foto.',
+                  l10n.avatarThemedHint,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
                 ),
                 const SizedBox(height: 12),
@@ -158,7 +161,7 @@ class _AvatarPickerScreenState extends State<AvatarPickerScreen> {
                 OutlinedButton.icon(
                   onPressed: selectedKey == null ? null : () => state.setAvatar(null),
                   icon: const Icon(Icons.text_fields_rounded, size: 18),
-                  label: const Text('Usa le iniziali'),
+                  label: Text(l10n.avatarUseInitials),
                   style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
                 ),
               ],

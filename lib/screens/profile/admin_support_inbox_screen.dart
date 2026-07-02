@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/support_message.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
@@ -41,8 +42,9 @@ class _AdminSupportInboxScreenState extends State<AdminSupportInboxScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Assistenza · admin')),
+      appBar: AppBar(title: Text(l10n.profileAdminSupport)),
       body: SafeArea(
         child: FutureBuilder<List<SupportMessage>>(
           future: _messages,
@@ -52,7 +54,7 @@ class _AdminSupportInboxScreenState extends State<AdminSupportInboxScreen> {
             }
             final messages = snapshot.data ?? const [];
             if (messages.isEmpty) {
-              return Center(child: Text('Nessun messaggio.', style: TextStyle(color: AppTheme.textSecondary)));
+              return Center(child: Text(l10n.adminSupportNoMessages, style: TextStyle(color: AppTheme.textSecondary)));
             }
             return ListView.separated(
               padding: const EdgeInsets.all(16),
@@ -74,6 +76,7 @@ class _MessageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -90,7 +93,7 @@ class _MessageCard extends StatelessWidget {
                     margin: const EdgeInsets.only(right: 8),
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(color: AppTheme.accentAmber.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
-                    child: const Text('Priorità', style: TextStyle(color: AppTheme.accentAmber, fontWeight: FontWeight.w700, fontSize: 10.5)),
+                    child: Text(l10n.adminSupportPriority, style: const TextStyle(color: AppTheme.accentAmber, fontWeight: FontWeight.w700, fontSize: 10.5)),
                   ),
                 Expanded(child: Text(_formatDate(message.createdAt), style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5))),
                 Icon(
@@ -107,7 +110,7 @@ class _MessageCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(10)),
-                child: Text('Risposto: ${message.adminReply}', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                child: Text(l10n.adminSupportRepliedWith(message.adminReply!), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
               ),
             ],
           ],
@@ -140,7 +143,7 @@ class _ReplySheetState extends State<_ReplySheet> {
       if (mounted) Navigator.of(context).pop(true);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a inviare la risposta. Riprova.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.adminSupportReplyError)));
       }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -149,13 +152,14 @@ class _ReplySheetState extends State<_ReplySheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Rispondi', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+          Text(l10n.adminSupportReplyTitle, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
           const SizedBox(height: 6),
           Text(widget.message.message, style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
           const SizedBox(height: 16),
@@ -164,7 +168,7 @@ class _ReplySheetState extends State<_ReplySheet> {
             autofocus: true,
             maxLines: 4,
             decoration: InputDecoration(
-              hintText: 'Scrivi la risposta...',
+              hintText: l10n.adminSupportReplyHint,
               filled: true,
               fillColor: AppTheme.surfaceAlt,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -177,7 +181,7 @@ class _ReplySheetState extends State<_ReplySheet> {
             style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
             child: _sending
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
-                : const Text('Invia risposta'),
+                : Text(l10n.adminSupportSendReply),
           ),
         ],
       ),

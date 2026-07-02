@@ -62,7 +62,8 @@ import 'app_localizations_it.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -70,7 +71,8 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -82,7 +84,8 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
@@ -2056,9 +2059,244 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Conferma password'**
   String get changePasswordConfirmHint;
+
+  /// No description provided for @helpFaqsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Domande frequenti'**
+  String get helpFaqsTitle;
+
+  /// No description provided for @helpFaq1Q.
+  ///
+  /// In it, this message translates to:
+  /// **'Chi vede la mia posizione?'**
+  String get helpFaq1Q;
+
+  /// No description provided for @helpFaq1A.
+  ///
+  /// In it, this message translates to:
+  /// **'Solo chi fa parte di una tua cerchia, e solo se la tua modalità di condivisione lo permette (automatica, su richiesta o sospesa). Puoi cambiarla in ogni momento dal tuo profilo.'**
+  String get helpFaq1A;
+
+  /// No description provided for @helpFaq2Q.
+  ///
+  /// In it, this message translates to:
+  /// **'Come invito qualcuno in una cerchia?'**
+  String get helpFaq2Q;
+
+  /// No description provided for @helpFaq2A.
+  ///
+  /// In it, this message translates to:
+  /// **'Crea una cerchia dalla scheda \"Cerchie\" e condividi il codice invito che ti viene mostrato: chi lo inserisce entra subito a farne parte.'**
+  String get helpFaq2A;
+
+  /// No description provided for @helpFaq3Q.
+  ///
+  /// In it, this message translates to:
+  /// **'Cosa cambia con Kinly+?'**
+  String get helpFaq3Q;
+
+  /// No description provided for @helpFaq3A.
+  ///
+  /// In it, this message translates to:
+  /// **'Il piano gratuito ha un limite di 2 cerchie e 6 persone per cerchia. Kinly+ toglie i limiti e sblocca cronologia posizioni, aree sicure e avvisi di guida.'**
+  String get helpFaq3A;
+
+  /// No description provided for @helpFaq4Q.
+  ///
+  /// In it, this message translates to:
+  /// **'Come cancello un\'area sicura o esco da una cerchia?'**
+  String get helpFaq4Q;
+
+  /// No description provided for @helpFaq4A.
+  ///
+  /// In it, this message translates to:
+  /// **'Le aree sicure si eliminano dalla schermata \"Aree sicure\" di una cerchia (icona del cestino). Per uscire da una cerchia scrivici da qui: te ne aiutiamo a occupare a mano finché non aggiungiamo il pulsante in app.'**
+  String get helpFaq4A;
+
+  /// No description provided for @helpWriteToUs.
+  ///
+  /// In it, this message translates to:
+  /// **'Scrivici'**
+  String get helpWriteToUs;
+
+  /// No description provided for @helpPriorityBadge.
+  ///
+  /// In it, this message translates to:
+  /// **'Priorità Kinly+'**
+  String get helpPriorityBadge;
+
+  /// No description provided for @helpPriorityHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Come abbonato Kinly+ la tua richiesta viene messa in coda prioritaria.'**
+  String get helpPriorityHint;
+
+  /// No description provided for @helpNormalHint.
+  ///
+  /// In it, this message translates to:
+  /// **'La tua richiesta resta qui, la leggiamo appena possibile.'**
+  String get helpNormalHint;
+
+  /// No description provided for @helpDescribeHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Descrivi il problema o la domanda...'**
+  String get helpDescribeHint;
+
+  /// No description provided for @helpSend.
+  ///
+  /// In it, this message translates to:
+  /// **'Invia'**
+  String get helpSend;
+
+  /// No description provided for @helpSentSnackbar.
+  ///
+  /// In it, this message translates to:
+  /// **'Messaggio inviato: lo trovi qui sotto tra le tue richieste.'**
+  String get helpSentSnackbar;
+
+  /// No description provided for @helpSendError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a inviare il messaggio. Riprova.'**
+  String get helpSendError;
+
+  /// No description provided for @helpYourRequests.
+  ///
+  /// In it, this message translates to:
+  /// **'Le tue richieste'**
+  String get helpYourRequests;
+
+  /// No description provided for @helpNoRequestsYet.
+  ///
+  /// In it, this message translates to:
+  /// **'Non hai ancora inviato nessuna richiesta.'**
+  String get helpNoRequestsYet;
+
+  /// No description provided for @helpStatusAnswered.
+  ///
+  /// In it, this message translates to:
+  /// **'Risposto'**
+  String get helpStatusAnswered;
+
+  /// No description provided for @helpStatusClosed.
+  ///
+  /// In it, this message translates to:
+  /// **'Chiuso'**
+  String get helpStatusClosed;
+
+  /// No description provided for @helpStatusInProgress.
+  ///
+  /// In it, this message translates to:
+  /// **'In corso'**
+  String get helpStatusInProgress;
+
+  /// No description provided for @adminSupportNoMessages.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun messaggio.'**
+  String get adminSupportNoMessages;
+
+  /// No description provided for @adminSupportPriority.
+  ///
+  /// In it, this message translates to:
+  /// **'Priorità'**
+  String get adminSupportPriority;
+
+  /// No description provided for @adminSupportRepliedWith.
+  ///
+  /// In it, this message translates to:
+  /// **'Risposto: {reply}'**
+  String adminSupportRepliedWith(String reply);
+
+  /// No description provided for @adminSupportReplyError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a inviare la risposta. Riprova.'**
+  String get adminSupportReplyError;
+
+  /// No description provided for @adminSupportReplyTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Rispondi'**
+  String get adminSupportReplyTitle;
+
+  /// No description provided for @adminSupportReplyHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Scrivi la risposta...'**
+  String get adminSupportReplyHint;
+
+  /// No description provided for @adminSupportSendReply.
+  ///
+  /// In it, this message translates to:
+  /// **'Invia risposta'**
+  String get adminSupportSendReply;
+
+  /// No description provided for @avatarUploadError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a caricare la foto. Riprova.'**
+  String get avatarUploadError;
+
+  /// No description provided for @avatarChooseFromGallery.
+  ///
+  /// In it, this message translates to:
+  /// **'Scegli dalla galleria'**
+  String get avatarChooseFromGallery;
+
+  /// No description provided for @avatarTakePhoto.
+  ///
+  /// In it, this message translates to:
+  /// **'Scatta una foto'**
+  String get avatarTakePhoto;
+
+  /// No description provided for @avatarRemovePhoto.
+  ///
+  /// In it, this message translates to:
+  /// **'Rimuovi foto'**
+  String get avatarRemovePhoto;
+
+  /// No description provided for @avatarPickerTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Scegli il tuo avatar'**
+  String get avatarPickerTitle;
+
+  /// No description provided for @avatarChangePhoto.
+  ///
+  /// In it, this message translates to:
+  /// **'Cambia foto'**
+  String get avatarChangePhoto;
+
+  /// No description provided for @avatarUploadPhoto.
+  ///
+  /// In it, this message translates to:
+  /// **'Carica una foto'**
+  String get avatarUploadPhoto;
+
+  /// No description provided for @avatarThemedTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Avatar a tema'**
+  String get avatarThemedTitle;
+
+  /// No description provided for @avatarThemedHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Usati quando non hai caricato una foto.'**
+  String get avatarThemedHint;
+
+  /// No description provided for @avatarUseInitials.
+  ///
+  /// In it, this message translates to:
+  /// **'Usa le iniziali'**
+  String get avatarUseInitials;
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -2067,25 +2305,25 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'it'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      <String>['en', 'it'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en': return AppLocalizationsEn();
-    case 'it': return AppLocalizationsIt();
+    case 'en':
+      return AppLocalizationsEn();
+    case 'it':
+      return AppLocalizationsIt();
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

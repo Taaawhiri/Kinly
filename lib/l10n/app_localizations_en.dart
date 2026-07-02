@@ -1,5 +1,5 @@
+// ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -9,7 +9,8 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTagline => 'Your location, only with the people who really matter.';
+  String get appTagline =>
+      'Your location, only with the people who really matter.';
 
   @override
   String get authModeSignUp => 'Create account';
@@ -33,7 +34,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authPasswordTooShort => 'Password must be at least 6 characters.';
 
   @override
-  String get authAccountCreated => 'Account created: check your email to confirm it before signing in.';
+  String get authAccountCreated =>
+      'Account created: check your email to confirm it before signing in.';
 
   @override
   String authGenericError(String error) {
@@ -41,7 +43,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get authPrivacyHint => 'No one sees your location without your permission.';
+  String get authPrivacyHint =>
+      'No one sees your location without your permission.';
 
   @override
   String get authBackToWebsite => 'Back to the Kinly website';
@@ -53,7 +56,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeJoinCircle => 'I have an invite code';
 
   @override
-  String get welcomeInviteOnlyHint => 'Invite-only access. No one sees your location without your permission.';
+  String get welcomeInviteOnlyHint =>
+      'Invite-only access. No one sees your location without your permission.';
 
   @override
   String get navMap => 'Map';
@@ -130,16 +134,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapSosConfirmTitle => 'Activate SOS?';
 
   @override
-  String get mapSosConfirmBody => 'Your exact location will be shared immediately with all your circles, even if you have a reduced sharing mode. No audio recording: location only.';
+  String get mapSosConfirmBody =>
+      'Your exact location will be shared immediately with all your circles, even if you have a reduced sharing mode. No audio recording: location only.';
 
   @override
   String get mapActivateSos => 'Activate SOS';
 
   @override
-  String get mapLocationUnavailableForSos => 'We couldn\'t detect your location for the SOS.';
+  String get mapLocationUnavailableForSos =>
+      'We couldn\'t detect your location for the SOS.';
 
   @override
-  String get mapSosNotSentOffline => 'SOS not sent (are you offline?). Set an SOS SMS number in Privacy and safety to have a backup plan.';
+  String get mapSosNotSentOffline =>
+      'SOS not sent (are you offline?). Set an SOS SMS number in Privacy and safety to have a backup plan.';
 
   @override
   String get mapNoInternetSosSmsTitle => 'No internet: SOS via SMS?';
@@ -167,7 +174,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapWalkMeHomeTitle => 'Walk me home';
 
   @override
-  String get mapWalkMeHomeDescription => 'Choose how long you expect to take: if you don\'t confirm within that time (or don\'t enter a Home area), your circle automatically receives an alert with your location.';
+  String get mapWalkMeHomeDescription =>
+      'Choose how long you expect to take: if you don\'t confirm within that time (or don\'t enter a Home area), your circle automatically receives an alert with your location.';
 
   @override
   String mapWalkMeHomeMinutes(int minutes) {
@@ -175,7 +183,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get mapWalkMeHomeNote => 'Note: if the phone fully closes the app before the deadline, the automatic alert might not fire.';
+  String get mapWalkMeHomeNote =>
+      'Note: if the phone fully closes the app before the deadline, the automatic alert might not fire.';
 
   @override
   String get mapCrashDetectedTitle => 'Possible crash detected';
@@ -192,7 +201,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapShareLocationLinkTitle => 'Share your location with a link';
 
   @override
-  String get mapShareLocationLinkBody => 'Whoever receives the link sees your live location from the browser, even without the app. The link expires on its own.';
+  String get mapShareLocationLinkBody =>
+      'Whoever receives the link sees your live location from the browser, even without the app. The link expires on its own.';
 
   @override
   String get mapDuration1h => '1 hour';
@@ -209,7 +219,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get mapLinkCreateError => 'We couldn\'t create the link. Please try again.';
+  String get mapLinkCreateError =>
+      'We couldn\'t create the link. Please try again.';
 
   @override
   String get mapWhichCircleForMeetingPoint => 'For which circle?';
@@ -241,13 +252,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapEmptyCircleTitle => 'No one to see here yet';
 
   @override
-  String get mapEmptyCircleMessage => 'Invite someone to the circle to see them on the map.';
+  String get mapEmptyCircleMessage =>
+      'Invite someone to the circle to see them on the map.';
 
   @override
   String get mapAllCirclesChip => 'All';
 
   @override
-  String get mapWebNotice => 'You\'re using the web companion of Kinly: here your location only updates while this tab is open. For continuous tracking, push notifications and biometric lock, you need the app.';
+  String get mapWebNotice =>
+      'You\'re using the web companion of Kinly: here your location only updates while this tab is open. For continuous tracking, push notifications and biometric lock, you need the app.';
 
   @override
   String get mapSosActiveLabel => 'SOS active';
@@ -310,7 +323,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get mapHelpRequestDescription => 'Notify your circle with a reason and your current location. Unlike SOS, this doesn\'t change your sharing mode.';
+  String get mapHelpRequestDescription =>
+      'Notify your circle with a reason and your current location. Unlike SOS, this doesn\'t change your sharing mode.';
 
   @override
   String get mapCircleLabel => 'Circle';
@@ -325,10 +339,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapSendRequest => 'Send request';
 
   @override
-  String get mapNeedCircleForHelp => 'Create or join a circle before asking for help.';
+  String get mapNeedCircleForHelp =>
+      'Create or join a circle before asking for help.';
 
   @override
-  String get mapHelpRequestSendError => 'We couldn\'t send the request. Please try again.';
+  String get mapHelpRequestSendError =>
+      'We couldn\'t send the request. Please try again.';
 
   @override
   String mapSafeZoneLabelAndRadius(String kindLabel, int radius) {
@@ -358,7 +374,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get circlesModeOverrideHint => 'Only applies to this circle: other circles keep your general profile setting.';
+  String get circlesModeOverrideHint =>
+      'Only applies to this circle: other circles keep your general profile setting.';
 
   @override
   String get circlesUseGeneralMode => 'Use the general mode';
@@ -411,19 +428,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get circlesCoachStep1Title => 'Your circle';
 
   @override
-  String get circlesCoachStep1Body => 'Each circle has its own members, icon and settings: you can have more than one.';
+  String get circlesCoachStep1Body =>
+      'Each circle has its own members, icon and settings: you can have more than one.';
 
   @override
   String get circlesCoachStep2Title => 'Circle actions';
 
   @override
-  String get circlesCoachStep2Body => 'From here you manage safe zones, meeting point, messages, group expenses and the weekly summary.';
+  String get circlesCoachStep2Body =>
+      'From here you manage safe zones, meeting point, messages, group expenses and the weekly summary.';
 
   @override
   String get circlesCoachStep3Title => 'Invite code';
 
   @override
-  String get circlesCoachStep3Body => 'Tap to copy it: only whoever gets it from you can join this circle.';
+  String get circlesCoachStep3Body =>
+      'Tap to copy it: only whoever gets it from you can join this circle.';
 
   @override
   String get circlesCoachSkip => 'Skip';
@@ -447,7 +467,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get meetingPointEmptyTitle => 'No meeting point';
 
   @override
-  String get meetingPointEmptyMessage => 'Suggest a place to meet: everyone will see their own real-time distance, without texting \"where are you?\".';
+  String get meetingPointEmptyMessage =>
+      'Suggest a place to meet: everyone will see their own real-time distance, without texting \"where are you?\".';
 
   @override
   String get meetingPointMarkArrived => 'Mark my arrival';
@@ -501,13 +522,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get meetingPointSearchFailed => 'Search failed. Please try again.';
 
   @override
-  String get meetingPointLocationUnavailable => 'We couldn\'t detect your location.';
+  String get meetingPointLocationUnavailable =>
+      'We couldn\'t detect your location.';
 
   @override
-  String get meetingPointChooseNameAndLocation => 'Choose a name and a location.';
+  String get meetingPointChooseNameAndLocation =>
+      'Choose a name and a location.';
 
   @override
-  String get meetingPointCreateError => 'We couldn\'t create the meeting point. Please try again.';
+  String get meetingPointCreateError =>
+      'We couldn\'t create the meeting point. Please try again.';
 
   @override
   String circleMessagesTitle(String circleName) {
@@ -515,13 +539,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get circleMessagesSendError => 'We couldn\'t send the message. Please try again.';
+  String get circleMessagesSendError =>
+      'We couldn\'t send the message. Please try again.';
 
   @override
   String get circleMessagesDailyLimitTitle => 'Daily limit reached';
 
   @override
-  String get circleMessagesDailyLimitBody => 'You\'ve already sent 5 messages today: that\'s the free plan limit. With Kinly+ you can send as many as you want.';
+  String get circleMessagesDailyLimitBody =>
+      'You\'ve already sent 5 messages today: that\'s the free plan limit. With Kinly+ you can send as many as you want.';
 
   @override
   String get circleMessagesGotIt => 'Got it';
@@ -530,10 +556,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get circleMessagesDiscoverPlus => 'Discover Kinly+';
 
   @override
-  String get circleMessagesHintPremium => 'Only for short, important notices. For chatting, use WhatsApp or another messaging app.';
+  String get circleMessagesHintPremium =>
+      'Only for short, important notices. For chatting, use WhatsApp or another messaging app.';
 
   @override
-  String get circleMessagesHintFree => 'Only for short, important notices (max 5 per day on the free plan). For chatting, use WhatsApp or another messaging app.';
+  String get circleMessagesHintFree =>
+      'Only for short, important notices (max 5 per day on the free plan). For chatting, use WhatsApp or another messaging app.';
 
   @override
   String get circleMessagesEmptyTitle => 'No messages yet';
@@ -591,7 +619,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get expensesEmptyTitle => 'No expenses';
 
   @override
-  String get expensesEmptyMessage => 'Keep track of who paid what in the circle, without writing it down from memory.';
+  String get expensesEmptyMessage =>
+      'Keep track of who paid what in the circle, without writing it down from memory.';
 
   @override
   String get expensesBalancesTitle => 'Balances';
@@ -600,7 +629,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get expensesListTitle => 'Expenses';
 
   @override
-  String get expensesSetPaymentLinkHint => 'Set your payment link in Privacy and safety to make it easier for people to pay you.';
+  String get expensesSetPaymentLinkHint =>
+      'Set your payment link in Privacy and safety to make it easier for people to pay you.';
 
   @override
   String get expensesLinkCopied => 'Payment link copied: send it to them.';
@@ -635,19 +665,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get expensesFillFields => 'Fill in description, amount and at least one person.';
+  String get expensesFillFields =>
+      'Fill in description, amount and at least one person.';
 
   @override
-  String get expensesSaveError => 'We couldn\'t save the expense. Please try again.';
+  String get expensesSaveError =>
+      'We couldn\'t save the expense. Please try again.';
 
   @override
   String get expensesDailyLimitTitle => 'Daily limit reached';
 
   @override
-  String get expensesDailyLimitBody => 'You\'ve already logged 5 expenses today: that\'s the free plan limit. With Kinly+ you can log as many as you want.';
+  String get expensesDailyLimitBody =>
+      'You\'ve already logged 5 expenses today: that\'s the free plan limit. With Kinly+ you can log as many as you want.';
 
   @override
-  String get expensesSplitHint => 'You pay: it\'s split among the people you select below.';
+  String get expensesSplitHint =>
+      'You pay: it\'s split among the people you select below.';
 
   @override
   String get expensesDescriptionHint => 'Description (e.g. Dinner, gas)';
@@ -696,7 +730,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weeklySummarySpeedAlerts => 'Speed alerts';
 
   @override
-  String get weeklySummaryPushHint => 'You can also receive this summary via notification once a week: turn it on from Profile → Privacy and safety.';
+  String get weeklySummaryPushHint =>
+      'You can also receive this summary via notification once a week: turn it on from Profile → Privacy and safety.';
 
   @override
   String get requestsIncoming => 'Incoming';
@@ -724,7 +759,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get requestsNotifyOnReply => 'You\'ll get a notification when they reply';
+  String get requestsNotifyOnReply =>
+      'You\'ll get a notification when they reply';
 
   @override
   String requestsTheyAskedYou(String name) {
@@ -740,7 +776,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get requestsEmptyTitle => 'No requests';
 
   @override
-  String get requestsEmptyMessage => 'When someone wants to see your location, or you want to see theirs, the request will appear here.';
+  String get requestsEmptyMessage =>
+      'When someone wants to see your location, or you want to see theirs, the request will appear here.';
 
   @override
   String get profileStatusFriends => 'With friends';
@@ -758,7 +795,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileStatusPickerTitle => 'Your status today';
 
   @override
-  String get profileStatusPickerHint => 'Visible to your circle on the map until tonight.';
+  String get profileStatusPickerHint =>
+      'Visible to your circle on the map until tonight.';
 
   @override
   String get profileStatusCustomHint => 'Or write your own (with an emoji 🙂)';
@@ -840,49 +878,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileFeatureLocationHistoryTitle => 'Location history';
 
   @override
-  String get profileFeatureLocationHistoryDesc => 'Review where circle members have been over the past days.';
+  String get profileFeatureLocationHistoryDesc =>
+      'Review where circle members have been over the past days.';
 
   @override
   String get profileFeatureSafeZonesTitle => 'Safe zones';
 
   @override
-  String get profileFeatureSafeZonesDesc => 'Home, work, school: a custom notification on every arrival or departure.';
+  String get profileFeatureSafeZonesDesc =>
+      'Home, work, school: a custom notification on every arrival or departure.';
 
   @override
   String get profileFeatureDrivingAlertsTitle => 'Driving alerts';
 
   @override
-  String get profileFeatureDrivingAlertsDesc => 'Know when a driver exceeds a speed limit you set.';
+  String get profileFeatureDrivingAlertsDesc =>
+      'Know when a driver exceeds a speed limit you set.';
 
   @override
   String get profileFeatureBackgroundTrackingTitle => 'Background tracking';
 
   @override
-  String get profileFeatureBackgroundTrackingDesc => 'Location keeps updating even with the app closed.';
+  String get profileFeatureBackgroundTrackingDesc =>
+      'Location keeps updating even with the app closed.';
 
   @override
-  String get profileFeatureUnlimitedTitle => 'Unlimited messages, pings and expenses';
+  String get profileFeatureUnlimitedTitle =>
+      'Unlimited messages, pings and expenses';
 
   @override
-  String get profileFeatureUnlimitedDesc => 'Send as many messages, pings and expenses as you want, with no limits.';
+  String get profileFeatureUnlimitedDesc =>
+      'Send as many messages, pings and expenses as you want, with no limits.';
 
   @override
   String get profileFeatureShoppingTitle => 'Bring me something';
 
   @override
-  String get profileFeatureShoppingDesc => 'Let the circle know when you\'re at the supermarket or a bar.';
+  String get profileFeatureShoppingDesc =>
+      'Let the circle know when you\'re at the supermarket or a bar.';
 
   @override
   String get profileFeaturePrioritySupportTitle => 'Priority support';
 
   @override
-  String get profileFeaturePrioritySupportDesc => 'Dedicated support for your circle, 7 days a week.';
+  String get profileFeaturePrioritySupportDesc =>
+      'Dedicated support for your circle, 7 days a week.';
 
   @override
   String get privacyTitle => 'Privacy and safety';
 
   @override
-  String get privacyLocationVisibilityInfo => 'Your location is only visible to people in one of your circles, and only according to the sharing mode you choose from your profile (automatic, on request, or paused).';
+  String get privacyLocationVisibilityInfo =>
+      'Your location is only visible to people in one of your circles, and only according to the sharing mode you choose from your profile (automatic, on request, or paused).';
 
   @override
   String get privacySosSmsNumberTitle => 'SOS SMS number';
@@ -894,37 +941,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyPlusFeatureTitle => 'Kinly+ feature';
 
   @override
-  String get privacyCrashDetectionPlusBody => 'Crash detection (automatic SOS after a violent impact while driving) is a Kinly+ benefit.';
+  String get privacyCrashDetectionPlusBody =>
+      'Crash detection (automatic SOS after a violent impact while driving) is a Kinly+ benefit.';
 
   @override
-  String get privacyBackgroundTrackingPlusBody => 'Background tracking (location keeps updating even with the app closed) is a Kinly+ benefit.';
+  String get privacyBackgroundTrackingPlusBody =>
+      'Background tracking (location keeps updating even with the app closed) is a Kinly+ benefit.';
 
   @override
-  String get privacyEnableBackgroundTrackingTitle => 'Enable background tracking?';
+  String get privacyEnableBackgroundTrackingTitle =>
+      'Enable background tracking?';
 
   @override
-  String get privacyEnableBackgroundTrackingBody => 'Your location will keep updating even when Kinly isn\'t in the foreground. It uses more battery and always shows a persistent notification while active, as required by Android.';
+  String get privacyEnableBackgroundTrackingBody =>
+      'Your location will keep updating even when Kinly isn\'t in the foreground. It uses more battery and always shows a persistent notification while active, as required by Android.';
 
   @override
   String get privacyExtraStepTitle => 'One more step needed';
 
   @override
-  String get privacyExtraStepBody => 'Your Android requires manually enabling the \"Allow all the time\" location permission from system settings, then come back here and turn the switch back on.';
+  String get privacyExtraStepBody =>
+      'Your Android requires manually enabling the \"Allow all the time\" location permission from system settings, then come back here and turn the switch back on.';
 
   @override
   String get privacyOpenSettings => 'Open settings';
 
   @override
-  String get privacyGrantLocationFirst => 'You need to grant Kinly location permission first.';
+  String get privacyGrantLocationFirst =>
+      'You need to grant Kinly location permission first.';
 
   @override
   String get privacyBiometricAuthFailed => 'We couldn\'t verify your identity.';
 
   @override
-  String get privacyOtherDevicesSignedOut => 'All other devices have been signed out.';
+  String get privacyOtherDevicesSignedOut =>
+      'All other devices have been signed out.';
 
   @override
-  String get privacyOperationFailed => 'We couldn\'t complete the operation. Please try again.';
+  String get privacyOperationFailed =>
+      'We couldn\'t complete the operation. Please try again.';
 
   @override
   String get privacyBirthdayTitle => 'Date of birth';
@@ -978,7 +1033,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacySignOutOtherDevices => 'Sign out other devices';
 
   @override
-  String get privacyPersonalInfoHint => 'Optional: only used for a birthday icon among circle members, to open a direct payment from group expenses, and so whoever receives your SOS or help request can call you.';
+  String get privacyPersonalInfoHint =>
+      'Optional: only used for a birthday icon among circle members, to open a direct payment from group expenses, and so whoever receives your SOS or help request can call you.';
 
   @override
   String get privacyAddBirthday => 'Add date of birth';
@@ -1003,19 +1059,22 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get privacyBiometricHint => 'Require fingerprint, face or device code every time you open Kinly.';
+  String get privacyBiometricHint =>
+      'Require fingerprint, face or device code every time you open Kinly.';
 
   @override
   String get privacyBiometricUnlock => 'Biometric unlock';
 
   @override
-  String get privacyBackgroundTrackingHint => 'By default Kinly only updates your location while it\'s open. Turn this on to keep it updating in the background too: it uses more battery and always shows a persistent notification while active.';
+  String get privacyBackgroundTrackingHint =>
+      'By default Kinly only updates your location while it\'s open. Turn this on to keep it updating in the background too: it uses more battery and always shows a persistent notification while active.';
 
   @override
   String get privacyEnableInBackground => 'Enable in background';
 
   @override
-  String get privacyGhostScheduleHint => 'Useful for work: outside this time window no one sees your location, in any of your circles (automatic \"clock-out\").';
+  String get privacyGhostScheduleHint =>
+      'Useful for work: outside this time window no one sees your location, in any of your circles (automatic \"clock-out\").';
 
   @override
   String get privacyLimitHours => 'Limit hours';
@@ -1027,7 +1086,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyTo => 'To';
 
   @override
-  String get privacySosAllCircles => 'For now this notifies all your circles. You can choose only some people.';
+  String get privacySosAllCircles =>
+      'For now this notifies all your circles. You can choose only some people.';
 
   @override
   String privacySosSelectedCount(int count) {
@@ -1049,10 +1109,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyCrashDetectionTitle => 'Crash detection';
 
   @override
-  String get privacyCrashDetectionDesc => 'After a violent impact while driving, a countdown starts: if you don\'t cancel it, automatic SOS.';
+  String get privacyCrashDetectionDesc =>
+      'After a violent impact while driving, a countdown starts: if you don\'t cancel it, automatic SOS.';
 
   @override
-  String get privacySpeedAlertHint => 'Set your own threshold: circle members with Kinly+ get an alert if you exceed it while driving.';
+  String get privacySpeedAlertHint =>
+      'Set your own threshold: circle members with Kinly+ get an alert if you exceed it while driving.';
 
   @override
   String get privacyEnableAlert => 'Enable alert';
@@ -1066,7 +1128,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get privacyWeeklySummaryHint => 'A weekly notification with the circle\'s activity: SOS, help requests, safe zone entries, speed alerts.';
+  String get privacyWeeklySummaryHint =>
+      'A weekly notification with the circle\'s activity: SOS, help requests, safe zone entries, speed alerts.';
 
   @override
   String get privacyReceiveSummary => 'Receive the summary';
@@ -1078,13 +1141,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changePasswordMismatch => 'The two passwords don\'t match.';
 
   @override
-  String get changePasswordGenericError => 'We couldn\'t change the password. Please try again.';
+  String get changePasswordGenericError =>
+      'We couldn\'t change the password. Please try again.';
 
   @override
   String get changePasswordDoneTitle => 'Password updated';
 
   @override
-  String get changePasswordDoneBody => 'From now on, use the new password to sign in.';
+  String get changePasswordDoneBody =>
+      'From now on, use the new password to sign in.';
 
   @override
   String get changePasswordNew => 'New password';
@@ -1094,4 +1159,133 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get changePasswordConfirmHint => 'Confirm password';
+
+  @override
+  String get helpFaqsTitle => 'Frequently asked questions';
+
+  @override
+  String get helpFaq1Q => 'Who sees my location?';
+
+  @override
+  String get helpFaq1A =>
+      'Only people in one of your circles, and only if your sharing mode allows it (automatic, on request, or paused). You can change it anytime from your profile.';
+
+  @override
+  String get helpFaq2Q => 'How do I invite someone to a circle?';
+
+  @override
+  String get helpFaq2A =>
+      'Create a circle from the \"Circles\" tab and share the invite code shown to you: whoever enters it joins right away.';
+
+  @override
+  String get helpFaq3Q => 'What changes with Kinly+?';
+
+  @override
+  String get helpFaq3A =>
+      'The free plan has a limit of 2 circles and 6 people per circle. Kinly+ removes the limits and unlocks location history, safe zones and driving alerts.';
+
+  @override
+  String get helpFaq4Q => 'How do I delete a safe zone or leave a circle?';
+
+  @override
+  String get helpFaq4A =>
+      'Safe zones are deleted from a circle\'s \"Safe zones\" screen (trash icon). To leave a circle, write to us here: we\'ll help you do it manually until we add the button in the app.';
+
+  @override
+  String get helpWriteToUs => 'Write to us';
+
+  @override
+  String get helpPriorityBadge => 'Kinly+ priority';
+
+  @override
+  String get helpPriorityHint =>
+      'As a Kinly+ subscriber, your request is placed in the priority queue.';
+
+  @override
+  String get helpNormalHint =>
+      'Your request stays here, we\'ll read it as soon as possible.';
+
+  @override
+  String get helpDescribeHint => 'Describe the problem or question...';
+
+  @override
+  String get helpSend => 'Send';
+
+  @override
+  String get helpSentSnackbar =>
+      'Message sent: you\'ll find it below among your requests.';
+
+  @override
+  String get helpSendError =>
+      'We couldn\'t send the message. Please try again.';
+
+  @override
+  String get helpYourRequests => 'Your requests';
+
+  @override
+  String get helpNoRequestsYet => 'You haven\'t sent any requests yet.';
+
+  @override
+  String get helpStatusAnswered => 'Answered';
+
+  @override
+  String get helpStatusClosed => 'Closed';
+
+  @override
+  String get helpStatusInProgress => 'In progress';
+
+  @override
+  String get adminSupportNoMessages => 'No messages.';
+
+  @override
+  String get adminSupportPriority => 'Priority';
+
+  @override
+  String adminSupportRepliedWith(String reply) {
+    return 'Replied: $reply';
+  }
+
+  @override
+  String get adminSupportReplyError =>
+      'We couldn\'t send the reply. Please try again.';
+
+  @override
+  String get adminSupportReplyTitle => 'Reply';
+
+  @override
+  String get adminSupportReplyHint => 'Write your reply...';
+
+  @override
+  String get adminSupportSendReply => 'Send reply';
+
+  @override
+  String get avatarUploadError =>
+      'We couldn\'t upload the photo. Please try again.';
+
+  @override
+  String get avatarChooseFromGallery => 'Choose from gallery';
+
+  @override
+  String get avatarTakePhoto => 'Take a photo';
+
+  @override
+  String get avatarRemovePhoto => 'Remove photo';
+
+  @override
+  String get avatarPickerTitle => 'Choose your avatar';
+
+  @override
+  String get avatarChangePhoto => 'Change photo';
+
+  @override
+  String get avatarUploadPhoto => 'Upload a photo';
+
+  @override
+  String get avatarThemedTitle => 'Themed avatars';
+
+  @override
+  String get avatarThemedHint => 'Used when you haven\'t uploaded a photo.';
+
+  @override
+  String get avatarUseInitials => 'Use initials';
 }
