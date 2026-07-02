@@ -639,11 +639,12 @@ class KinlyRepository {
   /// da condividere: chiunque lo apre nel browser (anche senza l'app) vede
   /// la posizione live finché non scade.
   ///
-  /// La pagina vive su GitHub Pages (non su Supabase): il dominio condiviso
-  /// *.supabase.co riscrive sempre le pagine HTML in testo semplice, quindi
-  /// lì può vivere solo l'API che restituisce i dati (vedi
+  /// La pagina vive su Cloudflare Pages (non su Supabase): il dominio
+  /// condiviso *.supabase.co riscrive sempre le pagine HTML in testo
+  /// semplice, quindi lì può vivere solo l'API che restituisce i dati (vedi
   /// supabase/functions/live-share). La pagina statica con la mappa è in
-  /// docs/live-share.html in questo repository.
+  /// docs/live-share.html in questo repository, pubblicata su
+  /// kinlyapp.pages.dev.
   Future<String> createLiveShareLink(Duration duration) async {
     final rng = Random.secure();
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -653,7 +654,7 @@ class KinlyRepository {
       'token': token,
       'expires_at': DateTime.now().add(duration).toUtc().toIso8601String(),
     });
-    return 'https://taaawhiri.github.io/Kinly/live-share.html?t=$token';
+    return 'https://kinlyapp.pages.dev/live-share.html?t=$token';
   }
 
   // ---------------------------------------------------------------------
