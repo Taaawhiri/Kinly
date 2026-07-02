@@ -114,6 +114,102 @@
   .feature b { display: block; font-size: 14px; margin-bottom: 4px; }
   .feature span { font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; }
 
+  /* Anteprima "Dentro l'app": non sono screenshot veri (arriveranno con i
+     primi utenti registrati), ma illustrazioni in stile scheletro/skeleton
+     che riprendono i colori e le forme reali dell'app, cosi' e' chiaro che
+     sono un'anteprima e non una schermata fotografica. */
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 28px;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+  .preview-phone {
+    text-align: center;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .preview-phone.visible { opacity: 1; transform: translateY(0); }
+  .phone-frame {
+    width: 100%;
+    max-width: 190px;
+    aspect-ratio: 9 / 19.5;
+    margin: 0 auto;
+    border-radius: 28px;
+    border: 7px solid var(--text);
+    overflow: hidden;
+    box-shadow: 0 14px 32px rgba(28, 34, 51, 0.22);
+    position: relative;
+    background: var(--bg);
+  }
+  .preview-caption { margin-top: 12px; font-size: 13px; font-weight: 700; }
+  .preview-note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+    max-width: 420px;
+    margin: 20px auto 0;
+    line-height: 1.5;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+  .skel-dot {
+    position: absolute;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(28,34,51,0.25);
+    animation: shimmer 2.4s ease-in-out infinite;
+  }
+  .map-bg {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(var(--surface-alt) 1px, transparent 1px),
+      linear-gradient(90deg, var(--surface-alt) 1px, transparent 1px);
+    background-size: 26px 26px;
+  }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 42%;
+    background: var(--surface);
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -6px 16px rgba(28,34,51,0.1);
+    padding: 10px 14px 14px;
+  }
+  .sheet-handle { width: 32px; height: 4px; border-radius: 2px; background: var(--divider); margin: 0 auto 12px; }
+  .sheet-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .sheet-avatar { width: 22px; height: 22px; border-radius: 50%; flex: none; animation: shimmer 2.4s ease-in-out infinite; }
+  .sheet-bars { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+  .bar { height: 6px; border-radius: 3px; background: var(--divider); }
+  .bar.light { background: var(--surface-alt); }
+
+  .detail-card {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 22%;
+  }
+  .detail-avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    animation: shimmer 2.4s ease-in-out infinite;
+  }
+  .detail-card .bar { margin-top: 14px; width: 90px; }
+  .detail-card .bar.small { width: 60px; margin-top: 8px; }
+  .battery-mock {
+    margin-top: 22px;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border-radius: 12px;
+    padding: 10px 16px;
+    box-shadow: 0 4px 14px rgba(28,34,51,0.1);
+  }
+  .battery-mock svg { width: 18px; height: 18px; color: #2E9E5B; }
+  .battery-mock .bar { width: 56px; margin: 0; }
+
   .plans {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -303,6 +399,54 @@
   </section>
 
   <section>
+    <h2>Dentro l'app</h2>
+    <div class="preview-grid">
+      <div class="preview-phone">
+        <div class="phone-frame">
+          <div class="map-bg"></div>
+          <div class="skel-dot" style="background: var(--primary); top: 22%; left: 32%;"></div>
+          <div class="skel-dot" style="background: var(--coral); top: 34%; left: 62%; animation-delay: 0.4s;"></div>
+          <div class="skel-dot" style="background: var(--amber); top: 15%; left: 55%; animation-delay: 0.8s;"></div>
+          <div class="sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-row">
+              <div class="sheet-avatar" style="background: var(--primary);"></div>
+              <div class="sheet-bars"><div class="bar" style="width: 60%;"></div><div class="bar light" style="width: 40%;"></div></div>
+            </div>
+            <div class="sheet-row">
+              <div class="sheet-avatar" style="background: var(--coral);"></div>
+              <div class="sheet-bars"><div class="bar" style="width: 50%;"></div><div class="bar light" style="width: 35%;"></div></div>
+            </div>
+            <div class="sheet-row">
+              <div class="sheet-avatar" style="background: var(--amber);"></div>
+              <div class="sheet-bars"><div class="bar" style="width: 55%;"></div><div class="bar light" style="width: 30%;"></div></div>
+            </div>
+          </div>
+        </div>
+        <p class="preview-caption">La mappa live della tua cerchia</p>
+      </div>
+      <div class="preview-phone">
+        <div class="phone-frame">
+          <div class="detail-card">
+            <div class="detail-avatar"></div>
+            <div class="bar"></div>
+            <div class="bar small"></div>
+            <div class="battery-mock">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="17" height="10" rx="2"/>
+                <path d="M21 10v4"/>
+              </svg>
+              <div class="bar"></div>
+            </div>
+          </div>
+        </div>
+        <p class="preview-caption">Stato e batteria di chi ami</p>
+      </div>
+    </div>
+    <p class="preview-note">Anteprima in stile Kinly, non uno screenshot: arrivera' con i primi utenti registrati.</p>
+  </section>
+
+  <section>
     <h2>Piani</h2>
     <div class="plans">
       <div class="plan">
@@ -360,7 +504,7 @@
   // Le card di funzioni e piani compaiono una alla volta mentre si scorre,
   // invece di essere tutte visibili da subito: un tocco di movimento senza
   // dipendenze esterne.
-  var items = document.querySelectorAll('.feature, .plan, .faq-item');
+  var items = document.querySelectorAll('.feature, .plan, .faq-item, .preview-phone');
   items.forEach(function (el, i) {
     el.style.transitionDelay = (i % 4) * 0.08 + 's';
   });
