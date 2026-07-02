@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/person.dart';
 import '../../models/ping.dart';
 import '../../models/sharing_mode.dart';
@@ -26,6 +27,7 @@ class PersonDetailScreen extends StatelessWidget {
         final person = AppState.instance.personById(personId);
         if (person == null) return const SizedBox.shrink();
         final canSee = person.isMe || person.isSharingWithMe;
+        final l10n = AppLocalizations.of(context)!;
 
         return Scaffold(
           appBar: AppBar(title: Text(person.name)),
@@ -56,7 +58,7 @@ class PersonDetailScreen extends StatelessWidget {
                           children: [
                             Expanded(
                               child: Text(
-                                canSee ? person.address : 'Posizione non condivisa',
+                                canSee ? person.address : l10n.personLocationNotShared,
                                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
                               ),
                             ),
@@ -65,7 +67,7 @@ class PersonDetailScreen extends StatelessWidget {
                         ),
                         if (person.isBirthdayToday) ...[
                           const SizedBox(height: 8),
-                          Text('🎂 Oggi è il suo compleanno!', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary)),
+                          Text(l10n.personBirthdayToday, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary)),
                         ],
                         if (person.hasActiveStatus) ...[
                           const SizedBox(height: 8),
@@ -79,9 +81,9 @@ class PersonDetailScreen extends StatelessWidget {
                           _PingRow(person: person),
                         ],
                         const SizedBox(height: 14),
-                        if (canSee) _InfoRow(icon: Icons.access_time, label: 'Aggiornato ${person.lastUpdateLabel}'),
+                        if (canSee) _InfoRow(icon: Icons.access_time, label: l10n.personUpdatedAt(person.lastUpdateLabel)),
                         if (canSee) const SizedBox(height: 10),
-                        if (canSee) _InfoRow(icon: _batteryIcon(person.batteryPercent), label: 'Batteria ${person.batteryPercent}%'),
+                        if (canSee) _InfoRow(icon: _batteryIcon(person.batteryPercent), label: l10n.personBatteryPercent(person.batteryPercent)),
                         if (canSee && person.lat != null && person.lng != null) ...[
                           const SizedBox(height: 14),
                           WeatherCard(lat: person.lat!, lng: person.lng!),
@@ -90,7 +92,7 @@ class PersonDetailScreen extends StatelessWidget {
                         if (!person.isMe && canSee && person.lat != null)
                           _LinkTile(
                             icon: Icons.explore_rounded,
-                            label: 'Radar di prossimità',
+                            label: l10n.personRadarLink,
                             onTap: () => Navigator.of(context).push(
                               MaterialPageRoute(builder: (_) => RadarScreen(person: person)),
                             ),
@@ -98,7 +100,7 @@ class PersonDetailScreen extends StatelessWidget {
                         if (!person.isMe && canSee && person.lat != null) const SizedBox(height: 10),
                         _LinkTile(
                           icon: Icons.history_rounded,
-                          label: 'Cronologia posizioni',
+                          label: l10n.personLocationHistoryLink,
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => LocationHistoryScreen(person: person)),
                           ),
@@ -106,7 +108,7 @@ class PersonDetailScreen extends StatelessWidget {
                         const SizedBox(height: 10),
                         _LinkTile(
                           icon: Icons.route_rounded,
-                          label: 'Statistiche e itinerari',
+                          label: l10n.personStatisticsLink,
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => StatisticsScreen(person: person)),
                           ),
@@ -114,13 +116,13 @@ class PersonDetailScreen extends StatelessWidget {
                         const SizedBox(height: 10),
                         _LinkTile(
                           icon: Icons.speed_rounded,
-                          label: 'Avvisi di guida',
+                          label: l10n.personDrivingAlertsLink,
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => SpeedAlertsScreen(person: person)),
                           ),
                         ),
                         const SizedBox(height: 24),
-                        _buildAction(person),
+                        _buildAction(context, person),
                       ],
                     ),
                   ),
@@ -133,8 +135,9 @@ class PersonDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAction(Person person) {
+  Widget _buildAction(BuildContext context, Person person) {
     if (person.isMe) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context)!;
 
     if (person.isSharingWithMe) {
       return Container(
@@ -144,7 +147,7 @@ class PersonDetailScreen extends StatelessWidget {
           children: [
             Icon(Icons.check_circle, color: AppTheme.accentGreen, size: 18),
             SizedBox(width: 10),
-            Expanded(child: Text('Sta condividendo la posizione con te.', style: TextStyle(color: AppTheme.textPrimary, fontSize: 13))),
+            Expanded(child: Text(l10n.personSharingWithYou, style: TextStyle(color: AppTheme.textPrimary, fontSize: 13))),
           ],
         ),
       );
@@ -158,7 +161,7 @@ class PersonDetailScreen extends StatelessWidget {
           children: [
             Icon(Icons.visibility_off_outlined, color: AppTheme.textSecondary, size: 18),
             SizedBox(width: 10),
-            Expanded(child: Text('È in modalità fantasma: non può ricevere richieste in questo momento.', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13))),
+            Expanded(child: Text(l10n.personGhostMode, style: TextStyle(color: AppTheme.textSecondary, fontSize: 13))),
           ],
         ),
       );
@@ -168,7 +171,7 @@ class PersonDetailScreen extends StatelessWidget {
     return FilledButton.icon(
       onPressed: alreadyRequested ? null : () => AppState.instance.sendLocationRequest(person.id),
       icon: Icon(alreadyRequested ? Icons.hourglass_top_rounded : Icons.location_searching_rounded, size: 18),
-      label: Text(alreadyRequested ? 'Richiesta inviata' : 'Richiedi posizione'),
+      label: Text(alreadyRequested ? l10n.personRequestSent : l10n.personRequestLocation),
       style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
     );
   }
@@ -236,26 +239,30 @@ class _PingRowState extends State<_PingRow> {
   void _showDailyLimitReached() {
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Limite giornaliero raggiunto'),
-        content: const Text('Hai già mandato 5 ping oggi: è il limite del piano gratuito. Con Kinly+ puoi mandarne quanti vuoi.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Ho capito')),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen()));
-            },
-            child: const Text('Scopri Kinly+'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: Text(l10n.personPingDailyLimitTitle),
+          content: Text(l10n.personPingDailyLimitBody),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.circleMessagesGotIt)),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen()));
+              },
+              child: Text(l10n.circleMessagesDiscoverPlus),
+            ),
+          ],
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         for (final kind in [PingKind.coffee, PingKind.traffic])
@@ -264,7 +271,7 @@ class _PingRowState extends State<_PingRow> {
             child: OutlinedButton.icon(
               onPressed: _sent != null ? null : () => _send(kind),
               icon: Text(kind.emoji, style: const TextStyle(fontSize: 16)),
-              label: Text(_sent == kind ? 'Inviato' : kind.label),
+              label: Text(_sent == kind ? l10n.personPingSent : kind.label),
               style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
             ),
           ),

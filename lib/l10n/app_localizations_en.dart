@@ -1288,4 +1288,160 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get avatarUseInitials => 'Use initials';
+
+  @override
+  String get personLocationNotShared => 'Location not shared';
+
+  @override
+  String get personBirthdayToday => '🎂 Today is their birthday!';
+
+  @override
+  String personUpdatedAt(String label) {
+    return 'Updated $label';
+  }
+
+  @override
+  String personBatteryPercent(int percent) {
+    return 'Battery $percent%';
+  }
+
+  @override
+  String get personRadarLink => 'Proximity radar';
+
+  @override
+  String get personLocationHistoryLink => 'Location history';
+
+  @override
+  String get personStatisticsLink => 'Statistics and trips';
+
+  @override
+  String get personDrivingAlertsLink => 'Driving alerts';
+
+  @override
+  String get personSharingWithYou => 'Sharing their location with you.';
+
+  @override
+  String get personGhostMode =>
+      'They\'re in ghost mode: they can\'t receive requests right now.';
+
+  @override
+  String get personRequestSent => 'Request sent';
+
+  @override
+  String get personRequestLocation => 'Request location';
+
+  @override
+  String get personPingDailyLimitTitle => 'Daily limit reached';
+
+  @override
+  String get personPingDailyLimitBody =>
+      'You\'ve already sent 5 pings today: that\'s the free plan limit. With Kinly+ you can send as many as you want.';
+
+  @override
+  String get personPingSent => 'Sent';
+
+  @override
+  String sosAlertTitle(String name) {
+    return 'SOS · $name';
+  }
+
+  @override
+  String get sosAlertCancelError =>
+      'We couldn\'t cancel the SOS. Please try again.';
+
+  @override
+  String get sosYourAlertActive => 'Your SOS is active';
+
+  @override
+  String sosPersonActivated(String name) {
+    return '$name activated SOS';
+  }
+
+  @override
+  String sosActivatedAt(String time) {
+    return 'Activated at $time';
+  }
+
+  @override
+  String get sosWaitingAddress => 'Waiting for address...';
+
+  @override
+  String get sosEmergencyHint =>
+      'In a real emergency call 911. Kinly only shares location: no audio recording.';
+
+  @override
+  String sosCallPerson(String name) {
+    return 'Call $name';
+  }
+
+  @override
+  String get sosImSafeCancelSos => 'I\'m safe, cancel SOS';
+
+  @override
+  String helpRequestTitle(String name) {
+    return 'Help · $name';
+  }
+
+  @override
+  String get helpRequestCloseError =>
+      'We couldn\'t close the request. Please try again.';
+
+  @override
+  String helpRequestYouAsked(String reason) {
+    return 'You asked for help: $reason';
+  }
+
+  @override
+  String helpRequestPersonNeeds(String name, String reason) {
+    return '$name needs help: $reason';
+  }
+
+  @override
+  String helpRequestRequestedAt(String time) {
+    return 'Requested at $time';
+  }
+
+  @override
+  String get helpRequestCloseButton => 'Everything\'s fine, close request';
+
+  @override
+  String get sosContactsTitle => 'SOS contacts';
+
+  @override
+  String get sosContactsNoneSelected =>
+      'No one selected: SOS will notify everyone in your circles.';
+
+  @override
+  String sosContactsSelectedCount(int count) {
+    return 'SOS will notify only the $count selected people, not the whole circle.';
+  }
+
+  @override
+  String get sosContactsEmpty => 'You don\'t have anyone in your circles yet.';
+
+  @override
+  String radarTitle(String name) {
+    return 'Radar · $name';
+  }
+
+  @override
+  String get radarPermissionNeeded =>
+      'Location permission is needed to use the radar.';
+
+  @override
+  String radarPersonNotSharing(String name) {
+    return '$name isn\'t sharing their location right now.';
+  }
+
+  @override
+  String get radarCompassUnavailable =>
+      'Compass not available on this device. Use the map to orient yourself.';
+
+  @override
+  String get radarVeryClose => 'You\'re very close!';
+
+  @override
+  String radarFollowArrow(String name) {
+    return 'Follow the arrow to reach $name';
+  }
 }

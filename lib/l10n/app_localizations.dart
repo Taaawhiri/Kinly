@@ -2293,6 +2293,246 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Usa le iniziali'**
   String get avatarUseInitials;
+
+  /// No description provided for @personLocationNotShared.
+  ///
+  /// In it, this message translates to:
+  /// **'Posizione non condivisa'**
+  String get personLocationNotShared;
+
+  /// No description provided for @personBirthdayToday.
+  ///
+  /// In it, this message translates to:
+  /// **'🎂 Oggi è il suo compleanno!'**
+  String get personBirthdayToday;
+
+  /// No description provided for @personUpdatedAt.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiornato {label}'**
+  String personUpdatedAt(String label);
+
+  /// No description provided for @personBatteryPercent.
+  ///
+  /// In it, this message translates to:
+  /// **'Batteria {percent}%'**
+  String personBatteryPercent(int percent);
+
+  /// No description provided for @personRadarLink.
+  ///
+  /// In it, this message translates to:
+  /// **'Radar di prossimità'**
+  String get personRadarLink;
+
+  /// No description provided for @personLocationHistoryLink.
+  ///
+  /// In it, this message translates to:
+  /// **'Cronologia posizioni'**
+  String get personLocationHistoryLink;
+
+  /// No description provided for @personStatisticsLink.
+  ///
+  /// In it, this message translates to:
+  /// **'Statistiche e itinerari'**
+  String get personStatisticsLink;
+
+  /// No description provided for @personDrivingAlertsLink.
+  ///
+  /// In it, this message translates to:
+  /// **'Avvisi di guida'**
+  String get personDrivingAlertsLink;
+
+  /// No description provided for @personSharingWithYou.
+  ///
+  /// In it, this message translates to:
+  /// **'Sta condividendo la posizione con te.'**
+  String get personSharingWithYou;
+
+  /// No description provided for @personGhostMode.
+  ///
+  /// In it, this message translates to:
+  /// **'È in modalità fantasma: non può ricevere richieste in questo momento.'**
+  String get personGhostMode;
+
+  /// No description provided for @personRequestSent.
+  ///
+  /// In it, this message translates to:
+  /// **'Richiesta inviata'**
+  String get personRequestSent;
+
+  /// No description provided for @personRequestLocation.
+  ///
+  /// In it, this message translates to:
+  /// **'Richiedi posizione'**
+  String get personRequestLocation;
+
+  /// No description provided for @personPingDailyLimitTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Limite giornaliero raggiunto'**
+  String get personPingDailyLimitTitle;
+
+  /// No description provided for @personPingDailyLimitBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Hai già mandato 5 ping oggi: è il limite del piano gratuito. Con Kinly+ puoi mandarne quanti vuoi.'**
+  String get personPingDailyLimitBody;
+
+  /// No description provided for @personPingSent.
+  ///
+  /// In it, this message translates to:
+  /// **'Inviato'**
+  String get personPingSent;
+
+  /// No description provided for @sosAlertTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'SOS · {name}'**
+  String sosAlertTitle(String name);
+
+  /// No description provided for @sosAlertCancelError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti ad annullare l\'SOS. Riprova.'**
+  String get sosAlertCancelError;
+
+  /// No description provided for @sosYourAlertActive.
+  ///
+  /// In it, this message translates to:
+  /// **'Il tuo SOS è attivo'**
+  String get sosYourAlertActive;
+
+  /// No description provided for @sosPersonActivated.
+  ///
+  /// In it, this message translates to:
+  /// **'{name} ha attivato l\'SOS'**
+  String sosPersonActivated(String name);
+
+  /// No description provided for @sosActivatedAt.
+  ///
+  /// In it, this message translates to:
+  /// **'Attivato alle {time}'**
+  String sosActivatedAt(String time);
+
+  /// No description provided for @sosWaitingAddress.
+  ///
+  /// In it, this message translates to:
+  /// **'In attesa dell\'indirizzo...'**
+  String get sosWaitingAddress;
+
+  /// No description provided for @sosEmergencyHint.
+  ///
+  /// In it, this message translates to:
+  /// **'In caso di reale emergenza chiama il 112. Kinly condivide solo la posizione: nessuna registrazione audio.'**
+  String get sosEmergencyHint;
+
+  /// No description provided for @sosCallPerson.
+  ///
+  /// In it, this message translates to:
+  /// **'Chiama {name}'**
+  String sosCallPerson(String name);
+
+  /// No description provided for @sosImSafeCancelSos.
+  ///
+  /// In it, this message translates to:
+  /// **'Sono al sicuro, annulla SOS'**
+  String get sosImSafeCancelSos;
+
+  /// No description provided for @helpRequestTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Aiuto · {name}'**
+  String helpRequestTitle(String name);
+
+  /// No description provided for @helpRequestCloseError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a chiudere la richiesta. Riprova.'**
+  String get helpRequestCloseError;
+
+  /// No description provided for @helpRequestYouAsked.
+  ///
+  /// In it, this message translates to:
+  /// **'Hai chiesto aiuto: {reason}'**
+  String helpRequestYouAsked(String reason);
+
+  /// No description provided for @helpRequestPersonNeeds.
+  ///
+  /// In it, this message translates to:
+  /// **'{name} ha bisogno di aiuto: {reason}'**
+  String helpRequestPersonNeeds(String name, String reason);
+
+  /// No description provided for @helpRequestRequestedAt.
+  ///
+  /// In it, this message translates to:
+  /// **'Richiesto alle {time}'**
+  String helpRequestRequestedAt(String time);
+
+  /// No description provided for @helpRequestCloseButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Va tutto bene, chiudi richiesta'**
+  String get helpRequestCloseButton;
+
+  /// No description provided for @sosContactsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Contatti SOS'**
+  String get sosContactsTitle;
+
+  /// No description provided for @sosContactsNoneSelected.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuno selezionato: l\'SOS avviserà tutte le persone delle tue cerchie.'**
+  String get sosContactsNoneSelected;
+
+  /// No description provided for @sosContactsSelectedCount.
+  ///
+  /// In it, this message translates to:
+  /// **'L\'SOS avviserà solo le {count} persone selezionate, non tutta la cerchia.'**
+  String sosContactsSelectedCount(int count);
+
+  /// No description provided for @sosContactsEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Non hai ancora nessuno nelle tue cerchie.'**
+  String get sosContactsEmpty;
+
+  /// No description provided for @radarTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Radar · {name}'**
+  String radarTitle(String name);
+
+  /// No description provided for @radarPermissionNeeded.
+  ///
+  /// In it, this message translates to:
+  /// **'Serve il permesso di localizzazione per usare il radar.'**
+  String get radarPermissionNeeded;
+
+  /// No description provided for @radarPersonNotSharing.
+  ///
+  /// In it, this message translates to:
+  /// **'{name} non sta condividendo la posizione al momento.'**
+  String radarPersonNotSharing(String name);
+
+  /// No description provided for @radarCompassUnavailable.
+  ///
+  /// In it, this message translates to:
+  /// **'Bussola non disponibile su questo dispositivo. Usa la mappa per orientarti.'**
+  String get radarCompassUnavailable;
+
+  /// No description provided for @radarVeryClose.
+  ///
+  /// In it, this message translates to:
+  /// **'Sei vicinissimo!'**
+  String get radarVeryClose;
+
+  /// No description provided for @radarFollowArrow.
+  ///
+  /// In it, this message translates to:
+  /// **'Segui la freccia per raggiungere {name}'**
+  String radarFollowArrow(String name);
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/person_avatar.dart';
@@ -18,8 +19,9 @@ class SosContactsScreen extends StatelessWidget {
         final state = AppState.instance;
         final people = state.others;
         final selected = state.sosTrustedContactIds;
+        final l10n = AppLocalizations.of(context)!;
         return Scaffold(
-          appBar: AppBar(title: const Text('Contatti SOS')),
+          appBar: AppBar(title: Text(l10n.sosContactsTitle)),
           body: SafeArea(
             child: ListView(
               padding: const EdgeInsets.all(20),
@@ -34,9 +36,7 @@ class SosContactsScreen extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          selected.isEmpty
-                              ? 'Nessuno selezionato: l\'SOS avviserà tutte le persone delle tue cerchie.'
-                              : 'L\'SOS avviserà solo le ${selected.length} persone selezionate, non tutta la cerchia.',
+                          selected.isEmpty ? l10n.sosContactsNoneSelected : l10n.sosContactsSelectedCount(selected.length),
                           style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                         ),
                       ),
@@ -48,7 +48,7 @@ class SosContactsScreen extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 24),
                     child: Text(
-                      'Non hai ancora nessuno nelle tue cerchie.',
+                      l10n.sosContactsEmpty,
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5),
                     ),

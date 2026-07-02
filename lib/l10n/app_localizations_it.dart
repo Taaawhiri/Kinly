@@ -1293,4 +1293,160 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get avatarUseInitials => 'Usa le iniziali';
+
+  @override
+  String get personLocationNotShared => 'Posizione non condivisa';
+
+  @override
+  String get personBirthdayToday => '🎂 Oggi è il suo compleanno!';
+
+  @override
+  String personUpdatedAt(String label) {
+    return 'Aggiornato $label';
+  }
+
+  @override
+  String personBatteryPercent(int percent) {
+    return 'Batteria $percent%';
+  }
+
+  @override
+  String get personRadarLink => 'Radar di prossimità';
+
+  @override
+  String get personLocationHistoryLink => 'Cronologia posizioni';
+
+  @override
+  String get personStatisticsLink => 'Statistiche e itinerari';
+
+  @override
+  String get personDrivingAlertsLink => 'Avvisi di guida';
+
+  @override
+  String get personSharingWithYou => 'Sta condividendo la posizione con te.';
+
+  @override
+  String get personGhostMode =>
+      'È in modalità fantasma: non può ricevere richieste in questo momento.';
+
+  @override
+  String get personRequestSent => 'Richiesta inviata';
+
+  @override
+  String get personRequestLocation => 'Richiedi posizione';
+
+  @override
+  String get personPingDailyLimitTitle => 'Limite giornaliero raggiunto';
+
+  @override
+  String get personPingDailyLimitBody =>
+      'Hai già mandato 5 ping oggi: è il limite del piano gratuito. Con Kinly+ puoi mandarne quanti vuoi.';
+
+  @override
+  String get personPingSent => 'Inviato';
+
+  @override
+  String sosAlertTitle(String name) {
+    return 'SOS · $name';
+  }
+
+  @override
+  String get sosAlertCancelError =>
+      'Non siamo riusciti ad annullare l\'SOS. Riprova.';
+
+  @override
+  String get sosYourAlertActive => 'Il tuo SOS è attivo';
+
+  @override
+  String sosPersonActivated(String name) {
+    return '$name ha attivato l\'SOS';
+  }
+
+  @override
+  String sosActivatedAt(String time) {
+    return 'Attivato alle $time';
+  }
+
+  @override
+  String get sosWaitingAddress => 'In attesa dell\'indirizzo...';
+
+  @override
+  String get sosEmergencyHint =>
+      'In caso di reale emergenza chiama il 112. Kinly condivide solo la posizione: nessuna registrazione audio.';
+
+  @override
+  String sosCallPerson(String name) {
+    return 'Chiama $name';
+  }
+
+  @override
+  String get sosImSafeCancelSos => 'Sono al sicuro, annulla SOS';
+
+  @override
+  String helpRequestTitle(String name) {
+    return 'Aiuto · $name';
+  }
+
+  @override
+  String get helpRequestCloseError =>
+      'Non siamo riusciti a chiudere la richiesta. Riprova.';
+
+  @override
+  String helpRequestYouAsked(String reason) {
+    return 'Hai chiesto aiuto: $reason';
+  }
+
+  @override
+  String helpRequestPersonNeeds(String name, String reason) {
+    return '$name ha bisogno di aiuto: $reason';
+  }
+
+  @override
+  String helpRequestRequestedAt(String time) {
+    return 'Richiesto alle $time';
+  }
+
+  @override
+  String get helpRequestCloseButton => 'Va tutto bene, chiudi richiesta';
+
+  @override
+  String get sosContactsTitle => 'Contatti SOS';
+
+  @override
+  String get sosContactsNoneSelected =>
+      'Nessuno selezionato: l\'SOS avviserà tutte le persone delle tue cerchie.';
+
+  @override
+  String sosContactsSelectedCount(int count) {
+    return 'L\'SOS avviserà solo le $count persone selezionate, non tutta la cerchia.';
+  }
+
+  @override
+  String get sosContactsEmpty => 'Non hai ancora nessuno nelle tue cerchie.';
+
+  @override
+  String radarTitle(String name) {
+    return 'Radar · $name';
+  }
+
+  @override
+  String get radarPermissionNeeded =>
+      'Serve il permesso di localizzazione per usare il radar.';
+
+  @override
+  String radarPersonNotSharing(String name) {
+    return '$name non sta condividendo la posizione al momento.';
+  }
+
+  @override
+  String get radarCompassUnavailable =>
+      'Bussola non disponibile su questo dispositivo. Usa la mappa per orientarti.';
+
+  @override
+  String get radarVeryClose => 'Sei vicinissimo!';
+
+  @override
+  String radarFollowArrow(String name) {
+    return 'Segui la freccia per raggiungere $name';
+  }
 }

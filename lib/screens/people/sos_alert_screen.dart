@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/person.dart';
 import '../../models/sos_alert.dart';
 import '../../state/app_state.dart';
@@ -53,7 +54,7 @@ class _SosAlertScreenState extends State<SosAlertScreen> {
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti ad annullare l\'SOS. Riprova.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.sosAlertCancelError)));
       }
     } finally {
       if (mounted) setState(() => _resolving = false);
@@ -62,6 +63,7 @@ class _SosAlertScreenState extends State<SosAlertScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isMine = widget.alert.profileId == AppState.instance.me.id;
     final markerPerson = Person(
       id: widget.person.id,
@@ -79,7 +81,7 @@ class _SosAlertScreenState extends State<SosAlertScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text('SOS · ${widget.person.name}')),
+      appBar: AppBar(title: Text(l10n.sosAlertTitle(widget.person.name))),
       body: SafeArea(
         child: Column(
           children: [
@@ -99,7 +101,7 @@ class _SosAlertScreenState extends State<SosAlertScreen> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              isMine ? 'Il tuo SOS è attivo' : '${widget.person.name} ha attivato l\'SOS',
+                              isMine ? l10n.sosYourAlertActive : l10n.sosPersonActivated(widget.person.name),
                               style: TextStyle(fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
                             ),
                           ),
@@ -107,9 +109,9 @@ class _SosAlertScreenState extends State<SosAlertScreen> {
                       ),
                     ),
                     const SizedBox(height: 18),
-                    _InfoRow(icon: Icons.access_time, label: 'Attivato alle ${_formatTime(widget.alert.createdAt)}'),
+                    _InfoRow(icon: Icons.access_time, label: l10n.sosActivatedAt(_formatTime(widget.alert.createdAt))),
                     const SizedBox(height: 10),
-                    _InfoRow(icon: Icons.place_outlined, label: _address ?? 'In attesa dell\'indirizzo...'),
+                    _InfoRow(icon: Icons.place_outlined, label: _address ?? l10n.sosWaitingAddress),
                     const SizedBox(height: 20),
                     Container(
                       padding: const EdgeInsets.all(14),
@@ -120,7 +122,7 @@ class _SosAlertScreenState extends State<SosAlertScreen> {
                           SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'In caso di reale emergenza chiama il 112. Kinly condivide solo la posizione: nessuna registrazione audio.',
+                              l10n.sosEmergencyHint,
                               style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                             ),
                           ),
@@ -132,7 +134,7 @@ class _SosAlertScreenState extends State<SosAlertScreen> {
                       FilledButton.icon(
                         onPressed: () => _call(widget.person.phoneNumber!),
                         icon: const Icon(Icons.call_rounded, size: 18),
-                        label: Text('Chiama ${widget.person.name}'),
+                        label: Text(l10n.sosCallPerson(widget.person.name)),
                         style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52), backgroundColor: AppTheme.accentCoral),
                       ),
                     ],
@@ -143,7 +145,7 @@ class _SosAlertScreenState extends State<SosAlertScreen> {
                         icon: _resolving
                             ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white))
                             : const Icon(Icons.check_circle_outline_rounded, size: 18),
-                        label: const Text('Sono al sicuro, annulla SOS'),
+                        label: Text(l10n.sosImSafeCancelSos),
                         style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52), backgroundColor: AppTheme.accentGreen),
                       ),
                     ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/help_request.dart';
 import '../../models/person.dart';
 import '../../state/app_state.dart';
@@ -54,7 +55,7 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non siamo riusciti a chiudere la richiesta. Riprova.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.helpRequestCloseError)));
       }
     } finally {
       if (mounted) setState(() => _resolving = false);
@@ -63,6 +64,7 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isMine = widget.request.profileId == AppState.instance.me.id;
     final reason = widget.request.reason;
     final markerPerson = Person(
@@ -81,7 +83,7 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text('Aiuto · ${widget.person.name}')),
+      appBar: AppBar(title: Text(l10n.helpRequestTitle(widget.person.name))),
       body: SafeArea(
         child: Column(
           children: [
@@ -101,7 +103,7 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              isMine ? 'Hai chiesto aiuto: ${reason.label}' : '${widget.person.name} ha bisogno di aiuto: ${reason.label}',
+                              isMine ? l10n.helpRequestYouAsked(reason.label) : l10n.helpRequestPersonNeeds(widget.person.name, reason.label),
                               style: TextStyle(fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
                             ),
                           ),
@@ -118,15 +120,15 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
                       ),
                     ],
                     const SizedBox(height: 18),
-                    _InfoRow(icon: Icons.access_time, label: 'Richiesto alle ${_formatTime(widget.request.createdAt)}'),
+                    _InfoRow(icon: Icons.access_time, label: l10n.helpRequestRequestedAt(_formatTime(widget.request.createdAt))),
                     const SizedBox(height: 10),
-                    _InfoRow(icon: Icons.place_outlined, label: _address ?? 'In attesa dell\'indirizzo...'),
+                    _InfoRow(icon: Icons.place_outlined, label: _address ?? l10n.sosWaitingAddress),
                     if (!isMine && (widget.person.phoneNumber ?? '').isNotEmpty) ...[
                       const SizedBox(height: 20),
                       FilledButton.icon(
                         onPressed: () => _call(widget.person.phoneNumber!),
                         icon: const Icon(Icons.call_rounded, size: 18),
-                        label: Text('Chiama ${widget.person.name}'),
+                        label: Text(l10n.sosCallPerson(widget.person.name)),
                         style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52), backgroundColor: AppTheme.accentAmber),
                       ),
                     ],
@@ -137,7 +139,7 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
                         icon: _resolving
                             ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white))
                             : const Icon(Icons.check_circle_outline_rounded, size: 18),
-                        label: const Text('Va tutto bene, chiudi richiesta'),
+                        label: Text(l10n.helpRequestCloseButton),
                         style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52), backgroundColor: AppTheme.accentGreen),
                       ),
                     ],

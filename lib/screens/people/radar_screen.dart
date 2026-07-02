@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/person.dart';
 import '../../services/location_tracker.dart';
 import '../../theme/app_theme.dart';
@@ -86,9 +87,10 @@ class _RadarScreenState extends State<RadarScreen> {
   Widget build(BuildContext context) {
     final targetLat = widget.person.lat;
     final targetLng = widget.person.lng;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Radar · ${widget.person.name}')),
+      appBar: AppBar(title: Text(l10n.radarTitle(widget.person.name))),
       backgroundColor: AppTheme.background,
       body: SafeArea(
         child: Builder(
@@ -96,13 +98,13 @@ class _RadarScreenState extends State<RadarScreen> {
             if (_permissionDenied) {
               return _buildMessage(
                 icon: Icons.location_off_outlined,
-                message: 'Serve il permesso di localizzazione per usare il radar.',
+                message: l10n.radarPermissionNeeded,
               );
             }
             if (targetLat == null || targetLng == null) {
               return _buildMessage(
                 icon: Icons.location_disabled_outlined,
-                message: '${widget.person.name} non sta condividendo la posizione al momento.',
+                message: l10n.radarPersonNotSharing(widget.person.name),
               );
             }
             if (_myPosition == null) {
@@ -121,7 +123,7 @@ class _RadarScreenState extends State<RadarScreen> {
             if (heading == null) {
               return _buildMessage(
                 icon: Icons.explore_off_outlined,
-                message: 'Bussola non disponibile su questo dispositivo. Usa la mappa per orientarti.',
+                message: l10n.radarCompassUnavailable,
               );
             }
 
@@ -173,7 +175,7 @@ class _RadarScreenState extends State<RadarScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  distance < 50 ? 'Sei vicinissimo!' : 'Segui la freccia per raggiungere ${widget.person.name}',
+                  distance < 50 ? l10n.radarVeryClose : l10n.radarFollowArrow(widget.person.name),
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5),
                 ),
               ],
