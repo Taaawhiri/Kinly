@@ -24,6 +24,7 @@ import '../../theme/app_theme.dart';
 import '../../utils/blurred_bottom_sheet.dart';
 import '../../widgets/circle_chip.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/entrance_fade.dart';
 import '../../widgets/kinly_map.dart';
 import '../../widgets/person_list_tile.dart';
 import '../circles/meeting_point_screen.dart';
@@ -798,29 +799,35 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             onArrived: () => WalkMeHomeService.instance.confirmArrival(),
           ),
         for (final alert in state.activeSosAlerts.where((a) => a.profileId != state.me.id))
-          _SosBanner(
-            personName: state.personById(alert.profileId)?.name ?? 'Qualcuno',
-            onTap: () {
-              final person = state.personById(alert.profileId);
-              if (person != null) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => SosAlertScreen(alert: alert, person: person)),
-                );
-              }
-            },
+          EntranceFade(
+            key: ValueKey('sos_${alert.id}'),
+            child: _SosBanner(
+              personName: state.personById(alert.profileId)?.name ?? 'Qualcuno',
+              onTap: () {
+                final person = state.personById(alert.profileId);
+                if (person != null) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => SosAlertScreen(alert: alert, person: person)),
+                  );
+                }
+              },
+            ),
           ),
         for (final request in state.activeHelpRequests.where((h) => h.profileId != state.me.id))
-          _HelpBanner(
-            personName: state.personById(request.profileId)?.name ?? 'Qualcuno',
-            reasonLabel: request.reason.label,
-            onTap: () {
-              final person = state.personById(request.profileId);
-              if (person != null) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => HelpRequestScreen(request: request, person: person)),
-                );
-              }
-            },
+          EntranceFade(
+            key: ValueKey('help_${request.id}'),
+            child: _HelpBanner(
+              personName: state.personById(request.profileId)?.name ?? 'Qualcuno',
+              reasonLabel: request.reason.label,
+              onTap: () {
+                final person = state.personById(request.profileId);
+                if (person != null) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => HelpRequestScreen(request: request, person: person)),
+                  );
+                }
+              },
+            ),
           ),
         for (final encounter in state.recentEncounters)
           _EncounterBanner(

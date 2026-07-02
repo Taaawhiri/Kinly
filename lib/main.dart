@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'l10n/app_localizations.dart';
 import 'screens/auth/biometric_lock_screen.dart';
 import 'screens/auth/sign_in_screen.dart';
 import 'screens/onboarding/join_circle_screen.dart';
@@ -17,6 +18,7 @@ import 'services/biometric_lock_service.dart';
 import 'services/onboarding_settings.dart';
 import 'services/supabase_client.dart';
 import 'state/app_state.dart';
+import 'state/locale_controller.dart';
 import 'state/theme_controller.dart';
 import 'theme/app_theme.dart';
 
@@ -72,6 +74,7 @@ Future<void> main() async {
       // in modo visibile, invece di morire silenziosamente all'avvio.
     }
     await ThemeController.instance.load();
+    await LocaleController.instance.load();
     runApp(const KinlyApp());
   }, (error, stack) {
     if (!kDebugMode) {
@@ -90,7 +93,7 @@ class KinlyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: ThemeController.instance,
+      listenable: Listenable.merge([ThemeController.instance, LocaleController.instance]),
       builder: (context, _) {
         return MaterialApp(
           title: 'Kinly',
@@ -100,6 +103,9 @@ class KinlyApp extends StatelessWidget {
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: ThemeController.instance.themeMode,
+          locale: LocaleController.instance.locale,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           // AppTheme.xxx sono colori statici usati ovunque nell'app (non
           // sempre tramite Theme.of(context)): li aggiorniamo qui in base al
           // tema effettivamente risolto, e forziamo la ricostruzione di

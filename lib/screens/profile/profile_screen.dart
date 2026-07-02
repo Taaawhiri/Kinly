@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/sharing_mode.dart';
 import '../../state/app_state.dart';
+import '../../state/locale_controller.dart';
 import '../../state/theme_controller.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/person_avatar.dart';
@@ -101,11 +103,11 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([AppState.instance, ThemeController.instance]),
+      listenable: Listenable.merge([AppState.instance, ThemeController.instance, LocaleController.instance]),
       builder: (context, _) {
         final state = AppState.instance;
         return Scaffold(
-          appBar: AppBar(title: const Text('Profilo')),
+          appBar: AppBar(title: Text(AppLocalizations.of(context)!.navProfile)),
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
@@ -152,6 +154,10 @@ class ProfileScreen extends StatelessWidget {
               const _Header('Aspetto'),
               const SizedBox(height: 10),
               _AppearancePicker(preference: ThemeController.instance.preference),
+              const SizedBox(height: 24),
+              _Header(AppLocalizations.of(context)!.languageSectionTitle),
+              const SizedBox(height: 10),
+              _LanguagePicker(locale: LocaleController.instance.locale),
               const SizedBox(height: 24),
               const _Header('Modalità di condivisione'),
               const SizedBox(height: 10),
@@ -307,6 +313,62 @@ class _AppearanceOption extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LanguagePicker extends StatelessWidget {
+  const _LanguagePicker({required this.locale});
+
+  /// null = segue la lingua di sistema.
+  final Locale? locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final options = [
+      (null, l10n.languageSystem),
+      (const Locale('it'), l10n.languageItalian),
+      (const Locale('en'), l10n.languageEnglish),
+    ];
+    return Row(
+      children: [
+        for (final option in options) ...[
+          Expanded(child: _LanguageOption(label: option.$2, selected: locale == option.$1, onTap: () => LocaleController.instance.setLocale(option.$1))),
+          if (option != options.last) const SizedBox(width: 10),
+        ],
+      ],
+    );
+  }
+}
+
+class _LanguageOption extends StatelessWidget {
+  const _LanguageOption({required this.label, required this.selected, required this.onTap});
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: selected ? AppTheme.primary : Colors.transparent, width: 1.6),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w700,
+            color: selected ? AppTheme.primary : AppTheme.textSecondary,
+          ),
         ),
       ),
     );

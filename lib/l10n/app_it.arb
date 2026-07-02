@@ -1,0 +1,33 @@
+{
+  "@@locale": "it",
+
+  "appTagline": "La tua posizione, solo con chi conta davvero.",
+  "@appTagline": {"description": "Frase sotto il logo Kinly, in accesso e nella schermata di benvenuto."},
+
+  "authModeSignUp": "Crea account",
+  "authModeSignIn": "Accedi",
+  "authNameHint": "Il tuo nome",
+  "authEmailHint": "La tua email",
+  "authPasswordHint": "Password",
+  "authInvalidEmail": "Inserisci un indirizzo email valido.",
+  "authPasswordTooShort": "La password deve avere almeno 6 caratteri.",
+  "authAccountCreated": "Account creato: controlla la tua email per confermarlo prima di accedere.",
+  "authGenericError": "Qualcosa è andato storto. Riprova.\n{error}",
+  "@authGenericError": {"placeholders": {"error": {"type": "String"}}},
+  "authPrivacyHint": "Nessuno vede la tua posizione senza il tuo permesso.",
+  "authBackToWebsite": "Torna al sito Kinly",
+
+  "welcomeCreateCircle": "Crea la tua cerchia",
+  "welcomeJoinCircle": "Ho un codice di invito",
+  "welcomeInviteOnlyHint": "Accesso solo su invito. Nessuno vede la tua posizione senza il tuo permesso.",
+
+  "navMap": "Mappa",
+  "navCircles": "Cerchie",
+  "navRequests": "Richieste",
+  "navProfile": "Profilo",
+
+  "languageSectionTitle": "Lingua",
+  "languageSystem": "Sistema",
+  "languageItalian": "Italiano",
+  "languageEnglish": "English"
+}

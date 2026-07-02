@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_logo.dart';
@@ -33,14 +34,15 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     if (!email.contains('@') || !email.contains('.')) {
-      setState(() => _error = 'Inserisci un indirizzo email valido.');
+      setState(() => _error = l10n.authInvalidEmail);
       return;
     }
     if (password.length < 6) {
-      setState(() => _error = 'La password deve avere almeno 6 caratteri.');
+      setState(() => _error = l10n.authPasswordTooShort);
       return;
     }
     setState(() {
@@ -52,7 +54,7 @@ class _SignInScreenState extends State<SignInScreen> {
       if (_isSignUp) {
         final response = await AuthService.instance.signUp(email: email, password: password, name: _nameController.text);
         if (response.session == null && mounted) {
-          setState(() => _info = 'Account creato: controlla la tua email per confermarlo prima di accedere.');
+          setState(() => _info = l10n.authAccountCreated);
         }
       } else {
         await AuthService.instance.signIn(email: email, password: password);
@@ -62,7 +64,7 @@ class _SignInScreenState extends State<SignInScreen> {
     } on AuthException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
-      setState(() => _error = 'Qualcosa è andato storto. Riprova.\n$e');
+      setState(() => _error = l10n.authGenericError(e.toString()));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -70,6 +72,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -85,7 +88,7 @@ class _SignInScreenState extends State<SignInScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                'La tua posizione, solo con chi conta davvero.',
+                l10n.appTagline,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 15.5, color: AppTheme.textSecondary, height: 1.4),
               ),
@@ -104,7 +107,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   controller: _nameController,
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
-                    hintText: 'Il tuo nome',
+                    hintText: l10n.authNameHint,
                     filled: true,
                     fillColor: AppTheme.surface,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -118,7 +121,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
                 decoration: InputDecoration(
-                  hintText: 'La tua email',
+                  hintText: l10n.authEmailHint,
                   filled: true,
                   fillColor: AppTheme.surface,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -132,7 +135,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 autofillHints: [_isSignUp ? AutofillHints.newPassword : AutofillHints.password],
                 onSubmitted: (_) => _submit(),
                 decoration: InputDecoration(
-                  hintText: 'Password',
+                  hintText: l10n.authPasswordHint,
                   filled: true,
                   fillColor: AppTheme.surface,
                   errorText: _error,
@@ -150,7 +153,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
                 child: _loading
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
-                    : Text(_isSignUp ? 'Crea account' : 'Accedi'),
+                    : Text(_isSignUp ? l10n.authModeSignUp : l10n.authModeSignIn),
               ),
               const SizedBox(height: 24),
               Row(
@@ -160,7 +163,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
-                      'Nessuno vede la tua posizione senza il tuo permesso.',
+                      l10n.authPrivacyHint,
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 12, color: AppTheme.textSecondary.withOpacity(0.85), height: 1.3),
                     ),
@@ -175,7 +178,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 TextButton.icon(
                   onPressed: () => launchUrl(Uri.parse('..'), webOnlyWindowName: '_self'),
                   icon: const Icon(Icons.arrow_back_rounded, size: 16),
-                  label: const Text('Torna al sito Kinly'),
+                  label: Text(l10n.authBackToWebsite),
                 ),
               ],
             ],
@@ -193,13 +196,14 @@ class _ModeToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(14)),
       child: Row(
         children: [
-          Expanded(child: _ToggleButton(label: 'Crea account', selected: isSignUp, onTap: () => onChanged(true))),
-          Expanded(child: _ToggleButton(label: 'Accedi', selected: !isSignUp, onTap: () => onChanged(false))),
+          Expanded(child: _ToggleButton(label: l10n.authModeSignUp, selected: isSignUp, onTap: () => onChanged(true))),
+          Expanded(child: _ToggleButton(label: l10n.authModeSignIn, selected: !isSignUp, onTap: () => onChanged(false))),
         ],
       ),
     );

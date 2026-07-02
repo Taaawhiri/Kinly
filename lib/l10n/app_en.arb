@@ -1,0 +1,31 @@
+{
+  "@@locale": "en",
+
+  "appTagline": "Your location, only with the people who really matter.",
+
+  "authModeSignUp": "Create account",
+  "authModeSignIn": "Sign in",
+  "authNameHint": "Your name",
+  "authEmailHint": "Your email",
+  "authPasswordHint": "Password",
+  "authInvalidEmail": "Enter a valid email address.",
+  "authPasswordTooShort": "Password must be at least 6 characters.",
+  "authAccountCreated": "Account created: check your email to confirm it before signing in.",
+  "authGenericError": "Something went wrong. Please try again.\n{error}",
+  "authPrivacyHint": "No one sees your location without your permission.",
+  "authBackToWebsite": "Back to the Kinly website",
+
+  "welcomeCreateCircle": "Create your circle",
+  "welcomeJoinCircle": "I have an invite code",
+  "welcomeInviteOnlyHint": "Invite-only access. No one sees your location without your permission.",
+
+  "navMap": "Map",
+  "navCircles": "Circles",
+  "navRequests": "Requests",
+  "navProfile": "Profile",
+
+  "languageSectionTitle": "Language",
+  "languageSystem": "System",
+  "languageItalian": "Italiano",
+  "languageEnglish": "English"
+}

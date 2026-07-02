@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_logo.dart';
 import 'create_circle_screen.dart';
@@ -11,6 +12,7 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -26,7 +28,7 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'La tua posizione, solo con chi conta davvero.',
+                l10n.appTagline,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 15.5, color: AppTheme.textSecondary, height: 1.4),
               ),
@@ -36,7 +38,7 @@ class WelcomeScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => const CreateCircleScreen()),
                 ),
                 style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
-                child: const Text('Crea la tua cerchia'),
+                child: Text(l10n.welcomeCreateCircle),
               ),
               const SizedBox(height: 12),
               OutlinedButton(
@@ -44,7 +46,7 @@ class WelcomeScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => const JoinCircleScreen()),
                 ),
                 style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(54)),
-                child: const Text('Ho un codice di invito'),
+                child: Text(l10n.welcomeJoinCircle),
               ),
               const SizedBox(height: 24),
               Row(
@@ -54,7 +56,7 @@ class WelcomeScreen extends StatelessWidget {
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
-                      'Accesso solo su invito. Nessuno vede la tua posizione senza il tuo permesso.',
+                      l10n.welcomeInviteOnlyHint,
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 12, color: AppTheme.textSecondary.withOpacity(0.85), height: 1.3),
                     ),

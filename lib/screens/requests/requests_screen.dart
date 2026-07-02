@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/location_request.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
@@ -20,7 +21,7 @@ class RequestsScreen extends StatelessWidget {
         final isEmpty = incoming.isEmpty && outgoing.isEmpty && history.isEmpty;
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Richieste')),
+          appBar: AppBar(title: Text(AppLocalizations.of(context)!.navRequests)),
           body: isEmpty
               ? const _EmptyState()
               : ListView(

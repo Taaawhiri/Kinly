@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../state/app_state.dart';
 import 'map/map_home_screen.dart';
 import 'circles/circles_screen.dart';
@@ -54,18 +55,19 @@ class _RootShellState extends State<RootShell> {
                 listenable: AppState.instance,
                 builder: (context, _) {
                   final pending = AppState.instance.pendingIncoming.length;
+                  final l10n = AppLocalizations.of(context)!;
                   return NavigationBar(
                     selectedIndex: _index,
                     onDestinationSelected: (i) => setState(() => _index = i),
                     destinations: [
-                      const NavigationDestination(icon: Icon(Icons.map_outlined), selectedIcon: Icon(Icons.map_rounded), label: 'Mappa'),
-                      const NavigationDestination(icon: Icon(Icons.groups_outlined), selectedIcon: Icon(Icons.groups_rounded), label: 'Cerchie'),
+                      NavigationDestination(icon: const Icon(Icons.map_outlined), selectedIcon: const Icon(Icons.map_rounded), label: l10n.navMap),
+                      NavigationDestination(icon: const Icon(Icons.groups_outlined), selectedIcon: const Icon(Icons.groups_rounded), label: l10n.navCircles),
                       NavigationDestination(
                         icon: pending > 0 ? Badge(label: Text('$pending'), child: const Icon(Icons.mail_outline_rounded)) : const Icon(Icons.mail_outline_rounded),
                         selectedIcon: pending > 0 ? Badge(label: Text('$pending'), child: const Icon(Icons.mail_rounded)) : const Icon(Icons.mail_rounded),
-                        label: 'Richieste',
+                        label: l10n.navRequests,
                       ),
-                      const NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded), label: 'Profilo'),
+                      NavigationDestination(icon: const Icon(Icons.person_outline_rounded), selectedIcon: const Icon(Icons.person_rounded), label: l10n.navProfile),
                     ],
                   );
                 },
@@ -79,6 +81,7 @@ class _RootShellState extends State<RootShell> {
       listenable: AppState.instance,
       builder: (context, _) {
         final pending = AppState.instance.pendingIncoming.length;
+        final l10n = AppLocalizations.of(context)!;
         return Row(
           children: [
             NavigationRail(
@@ -95,14 +98,14 @@ class _RootShellState extends State<RootShell> {
               },
               labelType: NavigationRailLabelType.all,
               destinations: [
-                const NavigationRailDestination(icon: Icon(Icons.map_outlined), selectedIcon: Icon(Icons.map_rounded), label: Text('Mappa')),
-                const NavigationRailDestination(icon: Icon(Icons.groups_outlined), selectedIcon: Icon(Icons.groups_rounded), label: Text('Cerchie')),
+                NavigationRailDestination(icon: const Icon(Icons.map_outlined), selectedIcon: const Icon(Icons.map_rounded), label: Text(l10n.navMap)),
+                NavigationRailDestination(icon: const Icon(Icons.groups_outlined), selectedIcon: const Icon(Icons.groups_rounded), label: Text(l10n.navCircles)),
                 NavigationRailDestination(
                   icon: pending > 0 ? Badge(label: Text('$pending'), child: const Icon(Icons.mail_outline_rounded)) : const Icon(Icons.mail_outline_rounded),
                   selectedIcon: pending > 0 ? Badge(label: Text('$pending'), child: const Icon(Icons.mail_rounded)) : const Icon(Icons.mail_rounded),
-                  label: const Text('Richieste'),
+                  label: Text(l10n.navRequests),
                 ),
-                const NavigationRailDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded), label: Text('Profilo')),
+                NavigationRailDestination(icon: const Icon(Icons.person_outline_rounded), selectedIcon: const Icon(Icons.person_rounded), label: Text(l10n.navProfile)),
               ],
             ),
             const VerticalDivider(width: 1, thickness: 1),
