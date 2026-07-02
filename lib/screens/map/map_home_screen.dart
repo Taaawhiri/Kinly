@@ -6,14 +6,12 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/help_request.dart';
-import '../../models/nearby_poi.dart';
 import '../../models/ping.dart';
 import '../../models/safe_zone.dart';
 import '../../models/shopping_stop.dart';
 import '../../services/crash_detection_service.dart';
 import '../../services/emergency_sms_settings.dart';
 import '../../services/kinly_repository.dart';
-import '../../services/nearby_poi_service.dart';
 import '../../services/walk_me_home_service.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
@@ -43,11 +41,6 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   MapLibreMapController? _mapController;
   bool _centering = false;
 
-  List<NearbyPoi> _nearbyPois = [];
-  DateTime? _lastPoiFetchAt;
-  double? _lastPoiFetchLat;
-  double? _lastPoiFetchLng;
-
   @override
   void initState() {
     super.initState();
@@ -64,33 +57,6 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     }
     _sheetController.dispose();
     super.dispose();
-  }
-
-  /// Aggiorna i punti di interesse vicini solo se ti sei spostato/a
-  /// abbastanza o è passato un po' di tempo, per non interrogare Overpass
-  /// ad ogni singolo aggiornamento di posizione.
-  void _maybeFetchNearbyPois(double lat, double lng) {
-    final now = DateTime.now();
-    if (_lastPoiFetchAt != null && now.difference(_lastPoiFetchAt!) < const Duration(minutes: 2)) return;
-    final movedEnough = _lastPoiFetchLat == null || Geolocator.distanceBetween(_lastPoiFetchLat!, _lastPoiFetchLng!, lat, lng) > 400;
-    final staleEnough = _lastPoiFetchAt == null || now.difference(_lastPoiFetchAt!) > const Duration(minutes: 15);
-    if (!movedEnough && !staleEnough) return;
-    _lastPoiFetchAt = now;
-    _lastPoiFetchLat = lat;
-    _lastPoiFetchLng = lng;
-    unawaited(_fetchNearbyPois(lat, lng));
-  }
-
-  Future<void> _fetchNearbyPois(double lat, double lng) async {
-    try {
-      final pois = await NearbyPoiService.instance.nearby(lat, lng);
-      if (mounted) setState(() => _nearbyPois = pois);
-    } catch (e) {
-      // Solo un livello informativo: se fallisce non deve rompere la mappa.
-      // Il debugPrint aiuta solo chi guarda i log (flutter run/logcat), non
-      // è mai visibile all'utente finale.
-      debugPrint('Punti di interesse vicini non disponibili: $e');
-    }
   }
 
   Future<void> _centerOnMyLocation() async {
@@ -504,9 +470,6 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       builder: (context, _) {
         final state = AppState.instance;
         final people = state.visiblePeople();
-        if (state.me.lat != null && state.me.lng != null) {
-          _maybeFetchNearbyPois(state.me.lat!, state.me.lng!);
-        }
 
         return Scaffold(
           body: LayoutBuilder(
@@ -518,7 +481,6 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                     people: [state.me, ...people.where((p) => p.isSharingWithMe)],
                     safeZones: state.visibleSafeZones(),
                     meetingPoints: state.visibleMeetingPoints(),
-                    nearbyPois: _nearbyPois,
                     onPersonTap: (personId) => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: personId)),
                     ),

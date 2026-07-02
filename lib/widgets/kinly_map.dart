@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import '../models/meeting_point.dart';
-import '../models/nearby_poi.dart';
 import '../models/person.dart';
 import '../models/safe_zone.dart';
 import '../theme/app_theme.dart';
@@ -26,7 +25,6 @@ class KinlyMap extends StatefulWidget {
     this.onMapReady,
     this.safeZones = const [],
     this.meetingPoints = const [],
-    this.nearbyPois = const [],
     this.onMeetingPointTap,
     this.onSafeZoneTap,
   });
@@ -41,10 +39,6 @@ class KinlyMap extends StatefulWidget {
 
   /// Punti d'incontro attivi da mostrare come marcatori a bandiera.
   final List<MeetingPoint> meetingPoints;
-
-  /// Punti di interesse vicini (ristoranti, bar, farmacie...) da mostrare
-  /// come piccoli marcatori di sfondo, solo a scopo informativo.
-  final List<NearbyPoi> nearbyPois;
 
   /// Chiamato quando si tocca il marcatore di un punto d'incontro.
   final ValueChanged<String>? onMeetingPointTap;
@@ -90,9 +84,7 @@ class _KinlyMapState extends State<KinlyMap> {
   void didUpdateWidget(covariant KinlyMap oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_styleLoaded) return;
-    if (!_samePeople(oldWidget.people, widget.people) ||
-        !_sameMeetingPoints(oldWidget.meetingPoints, widget.meetingPoints) ||
-        !_sameNearbyPois(oldWidget.nearbyPois, widget.nearbyPois)) {
+    if (!_samePeople(oldWidget.people, widget.people) || !_sameMeetingPoints(oldWidget.meetingPoints, widget.meetingPoints)) {
       unawaited(_syncSymbols(fitCamera: false));
     }
     if (!_sameSafeZones(oldWidget.safeZones, widget.safeZones)) {
@@ -129,14 +121,6 @@ class _KinlyMapState extends State<KinlyMap> {
           a[i].kind != b[i].kind) {
         return false;
       }
-    }
-    return true;
-  }
-
-  bool _sameNearbyPois(List<NearbyPoi> a, List<NearbyPoi> b) {
-    if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i].id != b[i].id) return false;
     }
     return true;
   }
@@ -247,14 +231,6 @@ class _KinlyMapState extends State<KinlyMap> {
       }
     }
 
-    for (final poi in widget.nearbyPois) {
-      final imageName = await _ensurePoiImage(controller, poi.category);
-      await controller.addSymbol(
-        SymbolOptions(geometry: LatLng(poi.lat, poi.lng), iconImage: imageName, iconSize: 0.8, iconAnchor: 'bottom'),
-        {'poiId': poi.id},
-      );
-    }
-
     if (fitCamera) await _fitCamera(controller, people);
   }
 
@@ -330,16 +306,6 @@ class _KinlyMapState extends State<KinlyMap> {
       _registeredImages.add(_meetingPointImageName);
     }
     return _meetingPointImageName;
-  }
-
-  Future<String> _ensurePoiImage(MapLibreMapController controller, NearbyPoiCategory category) async {
-    final name = 'kinly_poi_${category.name}';
-    if (!_registeredImages.contains(name)) {
-      final bytes = await _renderSmallEmojiPin(category.emoji);
-      await controller.addImage(name, bytes);
-      _registeredImages.add(name);
-    }
-    return name;
   }
 
   @override
@@ -418,39 +384,6 @@ Future<Uint8List> _renderFlagPin() async {
 
   final textPainter = TextPainter(
     text: const TextSpan(text: '🚩', style: TextStyle(fontSize: radius * 0.85)),
-    textDirection: TextDirection.ltr,
-  )..layout();
-  textPainter.paint(canvas, center - Offset(textPainter.width / 2, textPainter.height / 2));
-
-  final picture = recorder.endRecording();
-  final image = await picture.toImage(width.round(), height.round());
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  return byteData!.buffer.asUint8List();
-}
-
-/// Marcatore piccolo e neutro per un punto di interesse vicino (ristorante,
-/// bar, farmacia...): solo un cerchio bianco con l'emoji della categoria,
-/// più discreto dei pin di persone/punti d'incontro, che sono il contenuto
-/// principale della mappa.
-Future<Uint8List> _renderSmallEmojiPin(String emoji) async {
-  const double circleSize = 44;
-  const double pixelRatio = 2.0;
-  const width = circleSize * pixelRatio;
-  const height = circleSize * pixelRatio;
-
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder);
-  const center = Offset(width / 2, height / 2);
-  const radius = (circleSize / 2) * pixelRatio;
-
-  canvas.drawCircle(center, radius, Paint()..color = Colors.white);
-  canvas.drawCircle(center, radius, Paint()
-    ..color = Colors.black12
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.4);
-
-  final textPainter = TextPainter(
-    text: TextSpan(text: emoji, style: TextStyle(fontSize: radius * 0.95)),
     textDirection: TextDirection.ltr,
   )..layout();
   textPainter.paint(canvas, center - Offset(textPainter.width / 2, textPainter.height / 2));
