@@ -59,6 +59,16 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   /// diventa rilevante solo se kIsWeb e non e' gia' stato chiuso una volta.
   bool _webNoticeDismissed = !kIsWeb;
 
+  /// Vero mentre un dito tocca il pannello "La tua cerchia" (per
+  /// trascinarlo o scorrere la lista). Su app nativa la mappa sotto resta
+  /// ferma da sola durante quel gesto; su web invece la mappa e' un
+  /// elemento nativo del browser (canvas di maplibre-gl-js) che riceve i
+  /// tocchi direttamente dal DOM, scavalcando l'arbitraggio dei gesti di
+  /// Flutter — quindi si muove anche se visivamente e' coperta dal
+  /// pannello. Qui disabilitiamo i suoi gesti finche' il pannello e' sotto
+  /// al dito, invece di affidarci al solo ordine degli elementi nello Stack.
+  bool _sheetPointerDown = false;
+
   // Ricerca indirizzo/luogo sulla mappa (es. "Esselunga via Roma 5"): stesso
   // servizio Nominatim gia' usato per i punti d'incontro (place_search_service.dart).
   final _searchController = TextEditingController();
@@ -946,11 +956,12 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     );
   }
 
-  Widget _buildMap(AppState state, List<Person> people) {
+  Widget _buildMap(AppState state, List<Person> people, {bool interactive = true}) {
     return KinlyMap(
       people: [state.me, ...people.where((p) => p.isSharingWithMe)],
       safeZones: state.visibleSafeZones(),
       meetingPoints: state.visibleMeetingPoints(),
+      interactive: interactive,
       onPersonTap: (personId) => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: personId)),
       ),
@@ -969,7 +980,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
         return Stack(
           fit: StackFit.expand,
           children: [
-            _buildMap(state, people),
+            _buildMap(state, people, interactive: !(kIsWeb && _sheetPointerDown)),
             // Sfoca la mappa man mano che trascini su il pannello "La tua
             // cerchia" oltre la sua altezza di riposo: l'attenzione si
             // sposta sulla lista senza uno scatto netto. IgnorePointer evita
@@ -1062,19 +1073,31 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               // abbastanza deciso tornava indietro al punto di partenza
               // invece di ridursi — sembrava "bloccato".
               builder: (context, scrollController) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 16, offset: Offset(0, -4))],
-                  ),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 10),
-                      Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.divider, borderRadius: BorderRadius.circular(4))),
-                      const SizedBox(height: 6),
-                      Expanded(child: _buildCircleListBody(people, scrollController: scrollController)),
-                    ],
+                // Solo su web: mentre un dito e' sopra al pannello (per
+                // trascinarlo o scorrere la lista), spegniamo i gesti della
+                // mappa sotto — vedi il commento su _sheetPointerDown.
+                // Listener e non GestureDetector: osserva i tocchi senza
+                // "reclamarli", quindi non interferisce con lo scroll della
+                // lista o col trascinamento del foglio.
+                return Listener(
+                  behavior: HitTestBehavior.translucent,
+                  onPointerDown: kIsWeb ? (_) => setState(() => _sheetPointerDown = true) : null,
+                  onPointerUp: kIsWeb ? (_) => setState(() => _sheetPointerDown = false) : null,
+                  onPointerCancel: kIsWeb ? (_) => setState(() => _sheetPointerDown = false) : null,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                      boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 16, offset: Offset(0, -4))],
+                    ),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 10),
+                        Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.divider, borderRadius: BorderRadius.circular(4))),
+                        const SizedBox(height: 6),
+                        Expanded(child: _buildCircleListBody(people, scrollController: scrollController)),
+                      ],
+                    ),
                   ),
                 );
               },
