@@ -937,11 +937,16 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             ),
             if (!_webNoticeDismissed)
               SafeArea(
+                // Sotto la barra di ricerca, non sopra: alla stessa altezza
+                // finivano incollati uno sull'altro, illeggibili entrambi.
                 child: Align(
                   alignment: Alignment.topCenter,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: _WebCompanionNotice(onDismiss: _dismissWebNotice),
+                    padding: const EdgeInsets.fromLTRB(16, 78, 16, 0),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      child: _WebCompanionNotice(onDismiss: _dismissWebNotice),
+                    ),
                   ),
                 ),
               ),
@@ -1036,11 +1041,17 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               _buildMap(state, people),
               if (!_webNoticeDismissed)
                 SafeArea(
+                  // Sotto la barra di ricerca, non sopra: alla stessa
+                  // altezza finivano incollati uno sull'altro, illeggibili
+                  // entrambi.
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                      child: _WebCompanionNotice(onDismiss: _dismissWebNotice),
+                      padding: const EdgeInsets.fromLTRB(16, 78, 16, 0),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 420),
+                        child: _WebCompanionNotice(onDismiss: _dismissWebNotice),
+                      ),
                     ),
                   ),
                 ),
