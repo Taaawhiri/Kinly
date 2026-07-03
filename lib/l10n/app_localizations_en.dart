@@ -2045,6 +2045,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingSkip => 'Skip';
 
   @override
+  String get onboardingLocationTitle => 'Share your location';
+
+  @override
+  String get onboardingLocationDesc =>
+      'Kinly needs the location permission to show you on the map and share it with your circle. You can change your mind anytime from settings.';
+
+  @override
+  String get onboardingLocationGrant => 'Turn on location';
+
+  @override
+  String get onboardingLocationGranted => 'Location turned on';
+
+  @override
   String get onboardingBiometricTitle => 'Protect your access';
 
   @override

@@ -74,6 +74,7 @@ class AppState extends ChangeNotifier {
 
   RealtimeChannel? _channel;
   Timer? _refreshDebounce;
+  Timer? _pollTimer;
 
   bool get isSignedIn => AuthService.instance.isSignedIn;
   bool get hasCircles => _circles.isNotEmpty;
@@ -166,6 +167,18 @@ class AppState extends ChangeNotifier {
     unawaited(PushNotificationService.instance.initialize(onArrivalConfirmed: sendArrivalPing));
     unawaited(WalkMeHomeService.instance.restore());
     if (isPremium) unawaited(CrashDetectionService.instance.start());
+
+    // Rete di sicurezza oltre al realtime: alcuni cambiamenti (es. qualcuno
+    // che entra in una cerchia) dipendono da policy RLS che si
+    // "auto-controllano" (circle_members verifica l'appartenenza leggendo
+    // se stessa) — Supabase Realtime non garantisce la consegna in questi
+    // casi, quindi senza questo timer l'unico modo per vedere l'aggiunta
+    // sarebbe riaprire l'app. Un refresh silenzioso ogni 45s copre anche
+    // qualunque altra disconnessione realtime passeggera, non solo questa;
+    // l'intervallo resta comunque prudente per non moltiplicare le
+    // chiamate al piano gratuito di Supabase (vedi LocationTracker).
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(const Duration(seconds: 45), (_) => _scheduleRefresh());
   }
 
   Future<void> _refreshData() async {
@@ -459,6 +472,8 @@ class AppState extends ChangeNotifier {
     await _channel?.unsubscribe();
     _channel = null;
     _refreshDebounce?.cancel();
+    _pollTimer?.cancel();
+    _pollTimer = null;
     await AuthService.instance.signOut();
     _me = null;
     _others = [];

@@ -615,6 +615,10 @@
   "onboardingContactDesc": "Quick messages, a shared meeting point, and local weather: all in one place, without having to ask \"where are you?\".",
   "onboardingStart": "Get started",
   "onboardingSkip": "Skip",
+  "onboardingLocationTitle": "Share your location",
+  "onboardingLocationDesc": "Kinly needs the location permission to show you on the map and share it with your circle. You can change your mind anytime from settings.",
+  "onboardingLocationGrant": "Turn on location",
+  "onboardingLocationGranted": "Location turned on",
   "onboardingBiometricTitle": "Protect your access",
   "onboardingBiometricDesc": "Turn on unlock with fingerprint, face or device passcode right away: one more layer beyond your password, verified by the system (Kinly never sees your biometric data).",
 

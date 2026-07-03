@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/biometric_lock_service.dart';
+import '../../services/location_tracker.dart';
 import '../../services/onboarding_settings.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_logo.dart';
@@ -24,11 +26,15 @@ class _OnboardingIntroScreenState extends State<OnboardingIntroScreen> {
   bool _biometricSupported = false;
   bool _biometricEnabled = false;
   bool _biometricChecked = false;
+  bool _locationGranted = false;
+  bool _locationChecked = false;
+  bool _locationRequesting = false;
 
   @override
   void initState() {
     super.initState();
     unawaited(_checkBiometric());
+    unawaited(_checkLocationPermission());
   }
 
   Future<void> _checkBiometric() async {
@@ -50,7 +56,32 @@ class _OnboardingIntroScreenState extends State<OnboardingIntroScreen> {
     if (mounted) setState(() => _biometricEnabled = value);
   }
 
-  int get _pageCount => _biometricSupported ? 4 : 3;
+  /// Solo un controllo, non una richiesta: evita di mostrare il dialogo di
+  /// sistema prima ancora che l'utente veda perché serve (vedi
+  /// _requestLocation, chiamata invece dal pulsante di questa pagina).
+  Future<void> _checkLocationPermission() async {
+    try {
+      final permission = await Geolocator.checkPermission();
+      final granted = permission == LocationPermission.always || permission == LocationPermission.whileInUse;
+      if (mounted) setState(() { _locationGranted = granted; _locationChecked = true; });
+    } catch (_) {
+      if (mounted) setState(() => _locationChecked = true);
+    }
+  }
+
+  Future<void> _requestLocation() async {
+    setState(() => _locationRequesting = true);
+    try {
+      final granted = await LocationTracker.instance.requestPermission();
+      if (granted) unawaited(LocationTracker.instance.start());
+      if (mounted) setState(() => _locationGranted = granted);
+    } catch (_) {
+      // Mai bloccare l'onboarding per un errore nel controllo del permesso.
+    }
+    if (mounted) setState(() => _locationRequesting = false);
+  }
+
+  int get _pageCount => 4 + (_biometricSupported ? 1 : 0);
 
   Future<void> _finish() async {
     await OnboardingSettings.instance.markIntroSeen();
@@ -67,7 +98,7 @@ class _OnboardingIntroScreenState extends State<OnboardingIntroScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_biometricChecked) {
+    if (!_biometricChecked || !_locationChecked) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final l10n = AppLocalizations.of(context)!;
@@ -95,6 +126,11 @@ class _OnboardingIntroScreenState extends State<OnboardingIntroScreen> {
                     icon: Icons.forum_rounded,
                     title: l10n.onboardingContactTitle,
                     description: l10n.onboardingContactDesc,
+                  ),
+                  _LocationPermissionPage(
+                    granted: _locationGranted,
+                    requesting: _locationRequesting,
+                    onRequest: _requestLocation,
                   ),
                   if (_biometricSupported)
                     _BiometricPage(enabled: _biometricEnabled, onChanged: _toggleBiometric),
@@ -168,6 +204,63 @@ class _IntroPage extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 14.5, color: AppTheme.textSecondary, height: 1.5),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LocationPermissionPage extends StatelessWidget {
+  const _LocationPermissionPage({required this.granted, required this.requesting, required this.onRequest});
+  final bool granted;
+  final bool requesting;
+  final VoidCallback onRequest;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(shape: BoxShape.circle, color: AppTheme.primary.withOpacity(0.12)),
+            alignment: Alignment.center,
+            child: Icon(Icons.location_on_rounded, color: AppTheme.primary, size: 42),
+          ),
+          const SizedBox(height: 28),
+          Text(l10n.onboardingLocationTitle, textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppTheme.textPrimary)),
+          const SizedBox(height: 12),
+          Text(
+            l10n.onboardingLocationDesc,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14.5, color: AppTheme.textSecondary, height: 1.5),
+          ),
+          const SizedBox(height: 24),
+          if (granted)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(16)),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.check_circle_rounded, color: AppTheme.accentGreen, size: 20),
+                  const SizedBox(width: 10),
+                  Text(l10n.onboardingLocationGranted, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                ],
+              ),
+            )
+          else
+            OutlinedButton(
+              onPressed: requesting ? null : onRequest,
+              style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+              child: requesting
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
+                  : Text(l10n.onboardingLocationGrant),
+            ),
         ],
       ),
     );

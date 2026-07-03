@@ -3554,6 +3554,30 @@ abstract class AppLocalizations {
   /// **'Salta'**
   String get onboardingSkip;
 
+  /// No description provided for @onboardingLocationTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Condividi la tua posizione'**
+  String get onboardingLocationTitle;
+
+  /// No description provided for @onboardingLocationDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Kinly ha bisogno del permesso di posizione per mostrarti sulla mappa e condividerla con la tua cerchia. Puoi cambiare idea in qualsiasi momento dalle impostazioni.'**
+  String get onboardingLocationDesc;
+
+  /// No description provided for @onboardingLocationGrant.
+  ///
+  /// In it, this message translates to:
+  /// **'Attiva la posizione'**
+  String get onboardingLocationGrant;
+
+  /// No description provided for @onboardingLocationGranted.
+  ///
+  /// In it, this message translates to:
+  /// **'Posizione attivata'**
+  String get onboardingLocationGranted;
+
   /// No description provided for @onboardingBiometricTitle.
   ///
   /// In it, this message translates to:

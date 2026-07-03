@@ -2049,6 +2049,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get onboardingSkip => 'Salta';
 
   @override
+  String get onboardingLocationTitle => 'Condividi la tua posizione';
+
+  @override
+  String get onboardingLocationDesc =>
+      'Kinly ha bisogno del permesso di posizione per mostrarti sulla mappa e condividerla con la tua cerchia. Puoi cambiare idea in qualsiasi momento dalle impostazioni.';
+
+  @override
+  String get onboardingLocationGrant => 'Attiva la posizione';
+
+  @override
+  String get onboardingLocationGranted => 'Posizione attivata';
+
+  @override
   String get onboardingBiometricTitle => 'Proteggi l\'accesso';
 
   @override
