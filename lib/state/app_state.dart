@@ -315,12 +315,14 @@ class AppState extends ChangeNotifier {
     return '${utc.hour.toString().padLeft(2, '0')}:${utc.minute.toString().padLeft(2, '0')}:00';
   }
 
-  // Un cambiamento realtime su una qualsiasi delle tabelle sottoscritte
-  // rifà un caricamento completo (una decina di query). Con più persone
-  // che si muovono nella stessa cerchia, un debounce troppo corto fa
-  // ripartire questo carico ad ogni singolo aggiornamento di posizione:
-  // una finestra più larga raggruppa più eventi vicini in un solo refresh.
-  static const _refreshDebounceWindow = Duration(seconds: 2, milliseconds: 500);
+  // Un cambiamento realtime su una tabella NON-posizione (richieste, spese,
+  // messaggi, cerchie...) rifà un caricamento completo (una decina di
+  // query). Gli spostamenti veri passano invece per _handleLocationChange
+  // (aggiornamento mirato), quindi qui gli eventi sono discreti e poco
+  // frequenti: una finestra breve raggruppa comunque due-tre eventi quasi
+  // simultanei, ma fa apparire una richiesta in arrivo o l'esito di
+  // un'azione quasi subito, invece dei ~2,5 secondi di prima.
+  static const _refreshDebounceWindow = Duration(milliseconds: 600);
 
   void _scheduleRefresh() {
     _refreshDebounce?.cancel();
@@ -624,9 +626,29 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> respondToIncoming(String requestId, bool accept) async {
-    await _repo.respondToRequest(requestId, accept);
-    await _refreshData();
-    notifyListeners();
+    // Aggiorna subito lo stato locale: la richiesta esce dai "in attesa"
+    // all'istante, invece di aspettare la scrittura sul server + un refresh
+    // completo (~una decina di query) prima che la UI reagisca.
+    final index = _requests.indexWhere((r) => r.id == requestId);
+    if (index != -1) {
+      _requests[index] = _requests[index].copyWith(
+        status: accept ? RequestStatus.accepted : RequestStatus.declined,
+      );
+      notifyListeners();
+    }
+    try {
+      await _repo.respondToRequest(requestId, accept);
+    } catch (_) {
+      // Se la scrittura fallisce, un refresh completo rimette lo stato
+      // coerente col server invece di lasciarlo ottimista sbagliato.
+      await _refreshData();
+      notifyListeners();
+      return;
+    }
+    // Riallineo in background per catturare gli effetti a valle (es. la
+    // persona che ora compare come "sta condividendo"), senza far
+    // aspettare l'utente.
+    unawaited(_refreshData().then((_) => notifyListeners()));
   }
 
   Future<CircleGroup> createCircle(String name, IconData icon, Color color) async {
