@@ -68,6 +68,10 @@ class LocationTracker with WidgetsBindingObserver {
   int _restartAttempts = 0;
   static const _maxRestartAttempts = 5;
   bool _observingLifecycle = false;
+  // Evita che due percorsi (il timer di riavvio e il guardiano nel battito)
+  // creino due stream di posizione in parallelo, con doppie scritture e un
+  // listener che resta appeso senza mai essere cancellato.
+  bool _subscribing = false;
 
   /// Ultimo stato noto (dentro/fuori) per ogni area sicura, per capire
   /// quando avviene un ingresso o un'uscita senza avvisare al primo
@@ -179,9 +183,22 @@ class LocationTracker with WidgetsBindingObserver {
   }
 
   Future<void> _subscribe() async {
-    _positionSub = Geolocator.getPositionStream(
-      locationSettings: await _buildLocationSettings(),
-    ).listen(_onPosition, onError: (_) => _handleStreamDown(), onDone: _handleStreamDown);
+    // Un solo abbonamento alla volta: se un'altra chiamata è già in corso
+    // esco, e cancello sempre quello vecchio (e l'eventuale riavvio in
+    // sospeso) prima di crearne uno nuovo, così non restano stream doppi.
+    if (_subscribing) return;
+    _subscribing = true;
+    try {
+      _restartTimer?.cancel();
+      _restartTimer = null;
+      await _positionSub?.cancel();
+      _positionSub = null;
+      final settings = await _buildLocationSettings();
+      _positionSub = Geolocator.getPositionStream(locationSettings: settings)
+          .listen(_onPosition, onError: (_) => _handleStreamDown(), onDone: _handleStreamDown);
+    } finally {
+      _subscribing = false;
+    }
   }
 
   /// Lo stream di posizione può interrompersi da solo senza un errore Dart
@@ -277,6 +294,7 @@ class LocationTracker with WidgetsBindingObserver {
   Future<void> stop() async {
     await _positionSub?.cancel();
     _positionSub = null;
+    _subscribing = false;
     _batteryTimer?.cancel();
     _batteryTimer = null;
     _restartTimer?.cancel();
