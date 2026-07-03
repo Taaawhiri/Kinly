@@ -1054,12 +1054,13 @@ create policy "device_tokens_delete_own" on public.device_tokens
 -- =========================================================================
 
 -- Un tocco rapido su una persona sulla mappa, senza scrivere: un'emoji con
--- un significato preciso (caffè, traffico, high five) invece di un messaggio.
+-- un significato preciso (caffè, traffico, high five, tutto bene?/sto bene)
+-- invece di un messaggio.
 create table if not exists public.pings (
   id uuid primary key default gen_random_uuid(),
   from_id uuid not null references public.profiles (id) on delete cascade,
   to_id uuid not null references public.profiles (id) on delete cascade,
-  kind text not null check (kind in ('coffee', 'traffic', 'high_five')),
+  kind text not null check (kind in ('coffee', 'traffic', 'high_five', 'check_in', 'all_good')),
   created_at timestamptz not null default now(),
   check (from_id <> to_id)
 );
