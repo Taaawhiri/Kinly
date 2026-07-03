@@ -383,6 +383,16 @@ class KinlyRepository {
     });
   }
 
+  /// Avvisa la cerchia che il telefono sta per scaricarsi (gratuita, non
+  /// serve essere premium): il trigger send_push_trigger su battery_alerts
+  /// fa partire la notifica.
+  Future<void> recordBatteryAlert(int percent) async {
+    await supabase.from('battery_alerts').insert({
+      'profile_id': _myId,
+      'battery_percent': percent,
+    });
+  }
+
   // ---------------------------------------------------------------------
   // Punto d'incontro condiviso (non è una funzione Kinly+)
   // ---------------------------------------------------------------------

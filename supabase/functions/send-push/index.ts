@@ -119,6 +119,21 @@ async function weeklySummaryRecipients(supabase: SupabaseClient, circleId: strin
   return (data ?? []).map((r: { profile_id: string }) => r.profile_id);
 }
 
+/// Tutti i membri di TUTTE le cerchie di profileId, senza il filtro dei
+/// contatti di fiducia (quello è specifico dell'SOS): usato per avvisi che
+/// riguardano l'intera cerchia indipendentemente da quale sia, come la
+/// batteria scarica.
+async function allCircleMatesRecipients(supabase: SupabaseClient, profileId: string): Promise<string[]> {
+  const { data: circles } = await supabase.from('circle_members').select('circle_id').eq('profile_id', profileId);
+  const circleIds = (circles ?? []).map((c: { circle_id: string }) => c.circle_id);
+  if (circleIds.length === 0) return [];
+
+  const { data: members } = await supabase.from('circle_members').select('profile_id').in('circle_id', circleIds);
+  const allMembers = new Set((members ?? []).map((m: { profile_id: string }) => m.profile_id));
+  allMembers.delete(profileId);
+  return [...allMembers];
+}
+
 /// Replica la logica della policy RLS sos_alerts_select: tutta la cerchia,
 /// a meno che non siano stati configurati dei contatti di fiducia.
 async function sosRecipients(supabase: SupabaseClient, profileId: string): Promise<string[]> {
@@ -298,6 +313,17 @@ async function buildNotification(supabase: SupabaseClient, table: string, record
       ]);
       const amount = Number(record.amount).toFixed(2).replace('.', ',');
       return { recipients, title: '💶 Nuova spesa di gruppo', body: `${name} ha aggiunto "${record.description}" · ${amount} €` };
+    }
+    case 'battery_alerts': {
+      const [name, recipients] = await Promise.all([
+        fetchName(supabase, record.profile_id),
+        allCircleMatesRecipients(supabase, record.profile_id),
+      ]);
+      return {
+        recipients,
+        title: '🔋 Batteria scarica',
+        body: `Il telefono di ${name} è sotto il ${record.battery_percent}%: potrebbe scollegarsi dalla mappa a breve.`,
+      };
     }
     default:
       return null;

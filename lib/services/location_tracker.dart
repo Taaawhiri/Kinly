@@ -397,10 +397,24 @@ class LocationTracker {
     return PlaceSearchService.instance.reverseGeocode(lat, lng);
   }
 
+  /// Sotto questa soglia avviso la cerchia una volta sola per "carica":
+  /// niente notifiche ripetute ad ogni controllo (ogni 5 minuti) finché
+  /// resto sotto soglia. Il margine tra le due soglie evita di riavvisare
+  /// per un rimbalzo di un punto percentuale intorno al 10%.
+  static const _lowBatteryThreshold = 10;
+  static const _lowBatteryResetThreshold = 20;
+  bool _lowBatteryAlerted = false;
+
   Future<void> _updateBattery() async {
     try {
       final level = await _battery.batteryLevel;
       await KinlyRepository.instance.updateBatteryPercent(level);
+      if (level <= _lowBatteryThreshold && !_lowBatteryAlerted) {
+        _lowBatteryAlerted = true;
+        unawaited(KinlyRepository.instance.recordBatteryAlert(level));
+      } else if (level > _lowBatteryResetThreshold) {
+        _lowBatteryAlerted = false;
+      }
     } catch (_) {
       // Ignorato: la batteria non è essenziale al funzionamento dell'app.
     }

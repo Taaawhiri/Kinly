@@ -205,6 +205,18 @@ create table if not exists public.speed_events (
   occurred_at timestamptz not null default now()
 );
 
+-- Avviso batteria scarica alla cerchia: un evento quando il telefono di
+-- qualcuno scende sotto una soglia bassa (10%, decisa lato client in
+-- LocationTracker), passando da sopra a sotto soglia (non un evento ad
+-- ogni aggiornamento batteria). Evita l'ansia del "non risponde/è sparito
+-- dalla mappa" quando in realtà si sta solo per scaricare.
+create table if not exists public.battery_alerts (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  battery_percent int not null,
+  occurred_at timestamptz not null default now()
+);
+
 -- Richieste di assistenza: chi è Kinly+ ha la priorità (colonna decisa dal
 -- server in base all'abbonamento al momento dell'invio, non dal client).
 create table if not exists public.support_messages (
@@ -336,6 +348,7 @@ create index if not exists location_history_profile_idx on public.location_histo
 create index if not exists safe_zones_circle_idx on public.safe_zones (circle_id);
 create index if not exists safe_zone_events_zone_idx on public.safe_zone_events (zone_id, occurred_at desc);
 create index if not exists speed_events_profile_idx on public.speed_events (profile_id, occurred_at desc);
+create index if not exists battery_alerts_profile_idx on public.battery_alerts (profile_id, occurred_at desc);
 create index if not exists support_messages_profile_idx on public.support_messages (profile_id, created_at desc);
 create index if not exists meeting_points_circle_idx on public.meeting_points (circle_id);
 create index if not exists meeting_point_arrivals_point_idx on public.meeting_point_arrivals (meeting_point_id);
@@ -710,6 +723,7 @@ alter table public.location_history enable row level security;
 alter table public.safe_zones enable row level security;
 alter table public.safe_zone_events enable row level security;
 alter table public.speed_events enable row level security;
+alter table public.battery_alerts enable row level security;
 alter table public.support_messages enable row level security;
 alter table public.meeting_points enable row level security;
 alter table public.meeting_point_arrivals enable row level security;
@@ -860,6 +874,17 @@ create policy "speed_events_select" on public.speed_events
 
 drop policy if exists "speed_events_insert_self" on public.speed_events;
 create policy "speed_events_insert_self" on public.speed_events
+  for insert with check (profile_id = auth.uid());
+
+-- battery_alerts: gratuita per tutti (non serve essere premium né per
+-- vederla né per generarla), stessa regola di visibilità di
+-- safe_zone_events — la vedo se condividiamo una cerchia.
+drop policy if exists "battery_alerts_select" on public.battery_alerts;
+create policy "battery_alerts_select" on public.battery_alerts
+  for select using (public.can_view_location(profile_id));
+
+drop policy if exists "battery_alerts_insert_self" on public.battery_alerts;
+create policy "battery_alerts_insert_self" on public.battery_alerts
   for insert with check (profile_id = auth.uid());
 
 -- support_messages: ognuno vede e scrive solo i propri messaggi.
@@ -1433,6 +1458,11 @@ create trigger send_push_trigger
 drop trigger if exists send_push_trigger on public.circle_expenses;
 create trigger send_push_trigger
   after insert on public.circle_expenses
+  for each row execute function public.notify_send_push();
+
+drop trigger if exists send_push_trigger on public.battery_alerts;
+create trigger send_push_trigger
+  after insert on public.battery_alerts
   for each row execute function public.notify_send_push();
 
 drop trigger if exists send_push_trigger on public.weekly_summary_events;
