@@ -35,6 +35,12 @@
   "homeWidgetTitle": "La tua cerchia",
   "homeWidgetEmpty": "Nessuno sta condividendo ora",
 
+  "arrivalPromptTitle": "Sei arrivato a {zone}?",
+  "@arrivalPromptTitle": {"placeholders": {"zone": {"type": "String"}}},
+  "arrivalPromptAction": "Sono arrivato",
+  "arrivalPingMessage": "🏠 Sono arrivato a {zone}!",
+  "@arrivalPingMessage": {"placeholders": {"zone": {"type": "String"}}},
+
   "commonCancel": "Annulla",
   "commonClose": "Chiudi",
   "commonNo": "No",

@@ -254,6 +254,24 @@ abstract class AppLocalizations {
   /// **'Nessuno sta condividendo ora'**
   String get homeWidgetEmpty;
 
+  /// No description provided for @arrivalPromptTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Sei arrivato a {zone}?'**
+  String arrivalPromptTitle(String zone);
+
+  /// No description provided for @arrivalPromptAction.
+  ///
+  /// In it, this message translates to:
+  /// **'Sono arrivato'**
+  String get arrivalPromptAction;
+
+  /// No description provided for @arrivalPingMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'🏠 Sono arrivato a {zone}!'**
+  String arrivalPingMessage(String zone);
+
   /// No description provided for @commonCancel.
   ///
   /// In it, this message translates to:

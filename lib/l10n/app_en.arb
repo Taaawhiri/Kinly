@@ -33,6 +33,10 @@
   "homeWidgetTitle": "Your circle",
   "homeWidgetEmpty": "No one is sharing right now",
 
+  "arrivalPromptTitle": "Did you arrive at {zone}?",
+  "arrivalPromptAction": "I've arrived",
+  "arrivalPingMessage": "🏠 I've arrived at {zone}!",
+
   "commonCancel": "Cancel",
   "commonClose": "Close",
   "commonNo": "No",

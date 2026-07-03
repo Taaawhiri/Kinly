@@ -93,6 +93,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get homeWidgetEmpty => 'Nessuno sta condividendo ora';
 
   @override
+  String arrivalPromptTitle(String zone) {
+    return 'Sei arrivato a $zone?';
+  }
+
+  @override
+  String get arrivalPromptAction => 'Sono arrivato';
+
+  @override
+  String arrivalPingMessage(String zone) {
+    return '🏠 Sono arrivato a $zone!';
+  }
+
+  @override
   String get commonCancel => 'Annulla';
 
   @override

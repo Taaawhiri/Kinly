@@ -6,12 +6,15 @@ import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import '../l10n/app_localizations.dart';
 import '../models/safe_zone.dart';
 import '../state/app_state.dart';
+import '../state/locale_controller.dart';
 import '../utils/address_formatter.dart';
 import 'background_tracking_settings.dart';
 import 'kinly_repository.dart';
 import 'place_search_service.dart';
+import 'push_notification_service.dart';
 import 'walk_me_home_service.dart';
 
 /// Esito del tentativo di attivare il tracciamento in background: usato
@@ -349,6 +352,17 @@ class LocationTracker {
           await KinlyRepository.instance.recordSafeZoneEvent(zoneId: zone.id, entering: isInside);
         } catch (_) {
           // Non bloccare il tracciamento se la registrazione dell'evento fallisce.
+        }
+        // "Ping d'arrivo": oltre all'evento automatico sopra (silenzioso),
+        // una notifica con un pulsante per avvisare subito la cerchia con
+        // un messaggio, senza dover aprire l'app. Solo Android per ora.
+        if (isInside) {
+          final l10n = lookupAppLocalizations(LocaleController.instance.locale);
+          unawaited(PushNotificationService.instance.showArrivalPrompt(
+            zoneId: zone.id,
+            zoneLabel: l10n.arrivalPromptTitle(zone.name),
+            actionLabel: l10n.arrivalPromptAction,
+          ));
         }
       }
       // "Accompagnami": entrare in un'area Casa conferma automaticamente

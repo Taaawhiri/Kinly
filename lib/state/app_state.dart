@@ -163,7 +163,7 @@ class AppState extends ChangeNotifier {
 
     _channel ??= _repo.subscribeToChanges(_scheduleRefresh, _handleLocationChange);
     unawaited(LocationTracker.instance.start());
-    unawaited(PushNotificationService.instance.initialize());
+    unawaited(PushNotificationService.instance.initialize(onArrivalConfirmed: sendArrivalPing));
     unawaited(WalkMeHomeService.instance.restore());
     if (isPremium) unawaited(CrashDetectionService.instance.start());
   }
@@ -915,6 +915,22 @@ class AppState extends ChangeNotifier {
     await _repo.sendCircleMessage(circleId: circleId, body: body);
     await _refreshData();
     notifyListeners();
+  }
+
+  /// "Sono arrivato" toccato sulla notifica del ping d'arrivo (vedi
+  /// PushNotificationService.showArrivalPrompt): invia un messaggio alla
+  /// cerchia dell'area sicura senza bisogno di aprire/navigare nell'app.
+  Future<void> sendArrivalPing(String zoneId) async {
+    SafeZone? zone;
+    for (final z in _safeZones) {
+      if (z.id == zoneId) {
+        zone = z;
+        break;
+      }
+    }
+    if (zone == null) return;
+    final l10n = lookupAppLocalizations(LocaleController.instance.locale);
+    await sendCircleMessage(circleId: zone.circleId, body: l10n.arrivalPingMessage(zone.name));
   }
 
   // ---------------------------------------------------------------------
