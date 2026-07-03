@@ -667,6 +667,31 @@ class KinlyRepository {
   }
 
   // ---------------------------------------------------------------------
+  // Lista della spesa condivisa (voci fisse, non legate a una sosta)
+  // ---------------------------------------------------------------------
+
+  Future<List<Map<String, dynamic>>> fetchShoppingListItems() async {
+    return supabase.from('shopping_list_items').select().order('created_at', ascending: false).limit(200);
+  }
+
+  Future<void> addShoppingListItem({required String circleId, required String label}) async {
+    await supabase.from('shopping_list_items').insert({'circle_id': circleId, 'label': label, 'created_by': _myId});
+  }
+
+  /// Passa null a claim per liberare la voce (l'ha già presa qualcun altro
+  /// o serve rimetterla in coda).
+  Future<void> claimShoppingListItem({required String itemId, required bool claim}) async {
+    await supabase.from('shopping_list_items').update({
+      'claimed_by': claim ? _myId : null,
+      'claimed_at': claim ? DateTime.now().toIso8601String() : null,
+    }).eq('id', itemId);
+  }
+
+  Future<void> deleteShoppingListItem(String itemId) async {
+    await supabase.from('shopping_list_items').delete().eq('id', itemId);
+  }
+
+  // ---------------------------------------------------------------------
   // Spese di gruppo (Splitwise)
   // ---------------------------------------------------------------------
 

@@ -280,7 +280,24 @@ async function buildNotification(supabase: SupabaseClient, table: string, record
         circleRecipients(supabase, record.circle_id, record.profile_id),
       ]);
       const place = record.place_name ? ` (${record.place_name})` : '';
-      return { recipients, title: `🛒 ${name} è al negozio${place}`, body: 'Hai bisogno di qualcosa? Rispondi nell\'app.' };
+      // Se è un supermercato e ci sono voci non ancora prese in carico
+      // nella lista della spesa della cerchia, la notifica le elenca
+      // direttamente invece del generico "hai bisogno di qualcosa?".
+      let body = 'Hai bisogno di qualcosa? Rispondi nell\'app.';
+      if (record.category === 'supermarket') {
+        const { data: items } = await supabase
+          .from('shopping_list_items')
+          .select('label')
+          .eq('circle_id', record.circle_id)
+          .is('claimed_by', null)
+          .order('created_at', { ascending: true })
+          .limit(5);
+        if (items && items.length > 0) {
+          const labels = items.map((i: { label: string }) => i.label).join(', ');
+          body = `Serve: ${labels}. Ci pensi tu?`;
+        }
+      }
+      return { recipients, title: `🛒 ${name} è al negozio${place}`, body };
     }
     case 'shopping_requests': {
       const { data: stop } = await supabase.from('shopping_stops').select('profile_id').eq('id', record.stop_id).single();

@@ -423,6 +423,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get circlesActionExpenses => 'Spese';
 
   @override
+  String get circlesActionShoppingList => 'Lista spesa';
+
+  @override
   String get circlesActionSummary => 'Riepilogo';
 
   @override
@@ -612,6 +615,33 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get quickMessage8 => 'Grazie! ❤️';
+
+  @override
+  String get shoppingListTitle => 'Lista della spesa';
+
+  @override
+  String get shoppingListEmptyTitle => 'Lista vuota';
+
+  @override
+  String get shoppingListEmptyMessage =>
+      'Aggiungi qualcosa che serve: se qualcuno della cerchia passa vicino a un supermercato salvato, riceve un promemoria automatico.';
+
+  @override
+  String get shoppingListAddButton => 'Aggiungi';
+
+  @override
+  String get shoppingListAddHint => 'Es. Latte, Pane…';
+
+  @override
+  String get shoppingListClaimButton => 'Ci penso io';
+
+  @override
+  String shoppingListClaimedBy(String name) {
+    return 'Ci pensa $name';
+  }
+
+  @override
+  String get shoppingListUnclaim => 'Annulla';
 
   @override
   String get expensesTitle => 'Spese di gruppo';

@@ -422,6 +422,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get circlesActionExpenses => 'Expenses';
 
   @override
+  String get circlesActionShoppingList => 'Shopping list';
+
+  @override
   String get circlesActionSummary => 'Summary';
 
   @override
@@ -611,6 +614,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quickMessage8 => 'Thank you! ❤️';
+
+  @override
+  String get shoppingListTitle => 'Shopping list';
+
+  @override
+  String get shoppingListEmptyTitle => 'Empty list';
+
+  @override
+  String get shoppingListEmptyMessage =>
+      'Add something you need: if someone in the circle passes near a saved supermarket, they\'ll get an automatic reminder.';
+
+  @override
+  String get shoppingListAddButton => 'Add';
+
+  @override
+  String get shoppingListAddHint => 'E.g. Milk, Bread…';
+
+  @override
+  String get shoppingListClaimButton => 'I\'ll get it';
+
+  @override
+  String shoppingListClaimedBy(String name) {
+    return '$name is getting it';
+  }
+
+  @override
+  String get shoppingListUnclaim => 'Undo';
 
   @override
   String get expensesTitle => 'Group expenses';

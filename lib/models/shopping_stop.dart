@@ -59,3 +59,40 @@ class ShoppingRequest {
   final String note;
   final DateTime createdAt;
 }
+
+/// Voce fissa della lista della spesa di una cerchia (es. "Latte", "Pane"):
+/// a differenza di [ShoppingStop] non è legata a una sosta estemporanea,
+/// resta finché non viene rimossa. "Ci penso io" la marca presa in carico.
+class ShoppingListItem {
+  const ShoppingListItem({
+    required this.id,
+    required this.circleId,
+    required this.label,
+    required this.createdBy,
+    required this.createdAt,
+    this.claimedBy,
+    this.claimedAt,
+  });
+
+  factory ShoppingListItem.fromRow(Map<String, dynamic> row) {
+    return ShoppingListItem(
+      id: row['id'] as String,
+      circleId: row['circle_id'] as String,
+      label: row['label'] as String,
+      createdBy: row['created_by'] as String,
+      createdAt: DateTime.parse(row['created_at'] as String),
+      claimedBy: row['claimed_by'] as String?,
+      claimedAt: row['claimed_at'] == null ? null : DateTime.parse(row['claimed_at'] as String),
+    );
+  }
+
+  final String id;
+  final String circleId;
+  final String label;
+  final String createdBy;
+  final DateTime createdAt;
+  final String? claimedBy;
+  final DateTime? claimedAt;
+
+  bool get isClaimed => claimedBy != null;
+}

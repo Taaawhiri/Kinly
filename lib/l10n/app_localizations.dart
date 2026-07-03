@@ -794,6 +794,12 @@ abstract class AppLocalizations {
   /// **'Spese'**
   String get circlesActionExpenses;
 
+  /// No description provided for @circlesActionShoppingList.
+  ///
+  /// In it, this message translates to:
+  /// **'Lista spesa'**
+  String get circlesActionShoppingList;
+
   /// No description provided for @circlesActionSummary.
   ///
   /// In it, this message translates to:
@@ -1129,6 +1135,54 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Grazie! ❤️'**
   String get quickMessage8;
+
+  /// No description provided for @shoppingListTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Lista della spesa'**
+  String get shoppingListTitle;
+
+  /// No description provided for @shoppingListEmptyTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Lista vuota'**
+  String get shoppingListEmptyTitle;
+
+  /// No description provided for @shoppingListEmptyMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi qualcosa che serve: se qualcuno della cerchia passa vicino a un supermercato salvato, riceve un promemoria automatico.'**
+  String get shoppingListEmptyMessage;
+
+  /// No description provided for @shoppingListAddButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi'**
+  String get shoppingListAddButton;
+
+  /// No description provided for @shoppingListAddHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Es. Latte, Pane…'**
+  String get shoppingListAddHint;
+
+  /// No description provided for @shoppingListClaimButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Ci penso io'**
+  String get shoppingListClaimButton;
+
+  /// No description provided for @shoppingListClaimedBy.
+  ///
+  /// In it, this message translates to:
+  /// **'Ci pensa {name}'**
+  String shoppingListClaimedBy(String name);
+
+  /// No description provided for @shoppingListUnclaim.
+  ///
+  /// In it, this message translates to:
+  /// **'Annulla'**
+  String get shoppingListUnclaim;
 
   /// No description provided for @expensesTitle.
   ///

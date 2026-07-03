@@ -124,6 +124,7 @@
   "circlesActionMeetingPoint": "Meeting point",
   "circlesActionMessages": "Messages",
   "circlesActionExpenses": "Expenses",
+  "circlesActionShoppingList": "Shopping list",
   "circlesActionSummary": "Summary",
   "circlesActionYourMode": "Your mode",
   "circlesCoachStep1Title": "Your circle",
@@ -182,6 +183,15 @@
   "quickMessage6": "Good morning ☀️",
   "quickMessage7": "Good night 🌙",
   "quickMessage8": "Thank you! ❤️",
+
+  "shoppingListTitle": "Shopping list",
+  "shoppingListEmptyTitle": "Empty list",
+  "shoppingListEmptyMessage": "Add something you need: if someone in the circle passes near a saved supermarket, they'll get an automatic reminder.",
+  "shoppingListAddButton": "Add",
+  "shoppingListAddHint": "E.g. Milk, Bread…",
+  "shoppingListClaimButton": "I'll get it",
+  "shoppingListClaimedBy": "{name} is getting it",
+  "shoppingListUnclaim": "Undo",
 
   "expensesTitle": "Group expenses",
   "expensesNewButton": "New expense",

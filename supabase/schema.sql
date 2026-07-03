@@ -1327,6 +1327,49 @@ create policy "expense_shares_insert" on public.expense_shares
   );
 
 -- =========================================================================
+-- Lista della spesa condivisa (con promemoria geolocalizzato)
+-- =========================================================================
+
+-- Voci fisse per cerchia (es. "Latte", "Pane"), a differenza di
+-- shopping_stops/shopping_requests che sono legate a una sosta estemporanea.
+-- Quando qualcuno entra in un supermercato (stesso rilevamento di
+-- "Portami qualcosa", vedi LocationTracker._checkPoi) e ci sono voci non
+-- ancora prese in carico, la notifica "sei al supermercato" le elenca.
+create table if not exists public.shopping_list_items (
+  id uuid primary key default gen_random_uuid(),
+  circle_id uuid not null references public.circles (id) on delete cascade,
+  label text not null,
+  created_by uuid not null references public.profiles (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  claimed_by uuid references public.profiles (id) on delete set null,
+  claimed_at timestamptz
+);
+
+create index if not exists shopping_list_items_circle_idx on public.shopping_list_items (circle_id, created_at desc);
+
+alter table public.shopping_list_items enable row level security;
+
+drop policy if exists "shopping_list_items_select" on public.shopping_list_items;
+create policy "shopping_list_items_select" on public.shopping_list_items
+  for select using (circle_id in (select public.my_circle_ids()));
+
+drop policy if exists "shopping_list_items_insert" on public.shopping_list_items;
+create policy "shopping_list_items_insert" on public.shopping_list_items
+  for insert with check (created_by = auth.uid() and circle_id in (select public.my_circle_ids()));
+
+-- "Ci penso io": chiunque nella cerchia può prendere in carico una voce
+-- (claimed_by = se stesso) o liberarla di nuovo (claimed_by = null), ma non
+-- può assegnarla a qualcun altro.
+drop policy if exists "shopping_list_items_update" on public.shopping_list_items;
+create policy "shopping_list_items_update" on public.shopping_list_items
+  for update using (circle_id in (select public.my_circle_ids()))
+  with check (circle_id in (select public.my_circle_ids()) and (claimed_by is null or claimed_by = auth.uid()));
+
+drop policy if exists "shopping_list_items_delete" on public.shopping_list_items;
+create policy "shopping_list_items_delete" on public.shopping_list_items
+  for delete using (circle_id in (select public.my_circle_ids()));
+
+-- =========================================================================
 -- Storage: foto profilo
 -- =========================================================================
 

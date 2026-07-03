@@ -59,6 +59,7 @@ class AppState extends ChangeNotifier {
   List<Encounter> _encounters = [];
   List<ShoppingStop> _shoppingStops = [];
   List<ShoppingRequest> _shoppingRequests = [];
+  List<ShoppingListItem> _shoppingListItems = [];
   List<CircleExpense> _circleExpenses = [];
   List<ExpenseShare> _expenseShares = [];
   final Set<String> _dismissedPingIds = {};
@@ -254,6 +255,9 @@ class AppState extends ChangeNotifier {
 
       final shoppingRequestRows = await _repo.fetchShoppingRequests();
       _shoppingRequests = shoppingRequestRows.map(ShoppingRequest.fromRow).toList();
+
+      final shoppingListItemRows = await _repo.fetchShoppingListItems();
+      _shoppingListItems = shoppingListItemRows.map(ShoppingListItem.fromRow).toList();
 
       final expenseRows = await _repo.fetchCircleExpenses();
       _circleExpenses = expenseRows.map(CircleExpense.fromRow).toList();
@@ -468,6 +472,7 @@ class AppState extends ChangeNotifier {
     _encounters = [];
     _shoppingStops = [];
     _shoppingRequests = [];
+    _shoppingListItems = [];
     _circleExpenses = [];
     _expenseShares = [];
     _circleSharingOverrides = {};
@@ -1035,6 +1040,32 @@ class AppState extends ChangeNotifier {
 
   Future<void> sendShoppingRequest({required String stopId, required String note}) async {
     await _repo.sendShoppingRequest(stopId: stopId, note: note);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  // ---------------------------------------------------------------------
+  // Lista della spesa condivisa (voci fisse per cerchia)
+  // ---------------------------------------------------------------------
+
+  List<ShoppingListItem> shoppingListItemsForCircle(String circleId) =>
+      _shoppingListItems.where((i) => i.circleId == circleId).toList()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+  Future<void> addShoppingListItem({required String circleId, required String label}) async {
+    await _repo.addShoppingListItem(circleId: circleId, label: label);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  Future<void> claimShoppingListItem(String itemId, {required bool claim}) async {
+    await _repo.claimShoppingListItem(itemId: itemId, claim: claim);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  Future<void> deleteShoppingListItem(String itemId) async {
+    await _repo.deleteShoppingListItem(itemId);
     await _refreshData();
     notifyListeners();
   }

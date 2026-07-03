@@ -17,6 +17,7 @@ import '../onboarding/join_circle_screen.dart';
 import '../people/person_detail_screen.dart';
 import '../premium/safe_zones_screen.dart';
 import 'circle_expenses_screen.dart';
+import 'shopping_list_screen.dart';
 import 'circle_messages_screen.dart';
 import 'meeting_point_screen.dart';
 import 'weekly_summary_screen.dart';
@@ -469,6 +470,11 @@ class _CircleCard extends StatelessWidget {
                   icon: Icons.receipt_long_outlined,
                   label: l10n.circlesActionExpenses,
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleExpensesScreen(circle: circle))),
+                ),
+                _ActionChip(
+                  icon: Icons.local_grocery_store_outlined,
+                  label: l10n.circlesActionShoppingList,
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ShoppingListScreen(circle: circle))),
                 ),
                 _ActionChip(
                   icon: Icons.insights_rounded,
