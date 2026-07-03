@@ -28,6 +28,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/entrance_fade.dart';
 import '../../widgets/kinly_map.dart';
 import '../../widgets/person_list_tile.dart';
+import '../../widgets/pwa_install_banner.dart';
 import '../circles/meeting_point_screen.dart';
 import '../people/help_request_screen.dart';
 import '../people/person_detail_screen.dart';
@@ -866,6 +867,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             requests: state.requestsForStop(state.myActiveShoppingStop!.id),
             nameFor: (id) => state.personById(id)?.name ?? someone,
           ),
+        const PwaInstallBanner(),
       ],
     );
   }

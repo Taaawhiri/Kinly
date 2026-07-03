@@ -2159,4 +2159,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapWaitingForLocation => 'Waiting for location…';
+
+  @override
+  String get pwaInstallTitle => 'Install Kinly';
+
+  @override
+  String get pwaInstallAndroidBody =>
+      'Add it to your Home Screen: it opens faster and takes no extra space.';
+
+  @override
+  String get pwaInstallButton => 'Install';
+
+  @override
+  String get pwaInstallIosBody => 'Tap Share, then \"Add to Home Screen\".';
 }

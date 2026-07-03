@@ -656,5 +656,10 @@
   "tripReplayPause": "Pause",
   "tripReplayWatch": "Watch the trip",
 
-  "mapWaitingForLocation": "Waiting for location…"
+  "mapWaitingForLocation": "Waiting for location…",
+
+  "pwaInstallTitle": "Install Kinly",
+  "pwaInstallAndroidBody": "Add it to your Home Screen: it opens faster and takes no extra space.",
+  "pwaInstallButton": "Install",
+  "pwaInstallIosBody": "Tap Share, then \"Add to Home Screen\"."
 }

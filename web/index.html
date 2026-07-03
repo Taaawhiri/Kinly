@@ -38,6 +38,53 @@
        allineata a quella richiesta dal pacchetto maplibre_gl installato. -->
   <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
   <link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet"/>
+
+  <!-- Ponte per il banner "Installa Kinly" (vedi lib/services/pwa_install_service_web.dart):
+       cattura qui l'evento beforeinstallprompt, non standard e non tipizzato
+       da package:web, ed espone delle funzioni globali semplici che il
+       codice Dart può chiamare senza dover manipolare l'evento nativo. -->
+  <script>
+    (function () {
+      var deferredPrompt = null;
+
+      window.kinlyPwaCanInstall = function () {
+        return !!deferredPrompt;
+      };
+
+      window.kinlyPwaIsStandalone = function () {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      };
+
+      window.kinlyPwaIsIOS = function () {
+        var ua = window.navigator.userAgent;
+        var isIosUa = /iPad|iPhone|iPod/.test(ua);
+        var isIpadOS13 = ua.indexOf('Macintosh') !== -1 && navigator.maxTouchPoints > 1;
+        return isIosUa || isIpadOS13;
+      };
+
+      window.kinlyPwaPromptInstall = function () {
+        if (!deferredPrompt) return Promise.resolve(false);
+        var promptEvent = deferredPrompt;
+        deferredPrompt = null;
+        promptEvent.prompt();
+        return promptEvent.userChoice.then(function (choice) {
+          window.dispatchEvent(new CustomEvent('kinly-pwa-can-install-changed'));
+          return choice.outcome === 'accepted';
+        });
+      };
+
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        window.dispatchEvent(new CustomEvent('kinly-pwa-can-install-changed'));
+      });
+
+      window.addEventListener('appinstalled', function () {
+        deferredPrompt = null;
+        window.dispatchEvent(new CustomEvent('kinly-pwa-can-install-changed'));
+      });
+    })();
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

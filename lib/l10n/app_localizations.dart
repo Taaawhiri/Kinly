@@ -3763,6 +3763,30 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'In attesa della posizione…'**
   String get mapWaitingForLocation;
+
+  /// No description provided for @pwaInstallTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Installa Kinly'**
+  String get pwaInstallTitle;
+
+  /// No description provided for @pwaInstallAndroidBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungila alla schermata Home: si apre più veloce e non occupa spazio extra.'**
+  String get pwaInstallAndroidBody;
+
+  /// No description provided for @pwaInstallButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Installa'**
+  String get pwaInstallButton;
+
+  /// No description provided for @pwaInstallIosBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Tocca Condividi, poi \"Aggiungi alla schermata Home\".'**
+  String get pwaInstallIosBody;
 }
 
 class _AppLocalizationsDelegate
