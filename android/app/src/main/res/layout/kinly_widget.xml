@@ -73,6 +73,54 @@
             android:textSize="11sp" />
     </LinearLayout>
 
+    <!-- Nome della cerchia mostrata, con frecce per passare alla precedente/
+         successiva se l'utente ne ha più di una: le frecce mandano un
+         broadcast diretto al widget (vedi KinlyWidgetProvider.onReceive),
+         che aggiorna e ridisegna subito senza aprire l'app. Nascosta del
+         tutto se l'utente non ha ancora nessuna cerchia. -->
+    <LinearLayout
+        android:id="@+id/widget_circle_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/widget_circle_prev"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:text="‹"
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:textColor="#8A90A6" />
+
+        <TextView
+            android:id="@+id/widget_circle_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textSize="11.5sp"
+            android:textStyle="bold"
+            android:textColor="#4A63E7" />
+
+        <TextView
+            android:id="@+id/widget_circle_next"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:text="›"
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:textColor="#8A90A6" />
+    </LinearLayout>
+
     <!-- Occupa tutto lo spazio verticale che resta sotto l'intestazione: le
          righe delle persone dentro si centrano lì, invece di restare
          incollate in alto con un vuoto enorme sotto quando il widget è

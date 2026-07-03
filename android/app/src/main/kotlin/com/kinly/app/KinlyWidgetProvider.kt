@@ -3,6 +3,7 @@ package com.kinly.app
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -20,21 +21,81 @@ import es.antonborri.home_widget.HomeWidgetPlugin
  * grigio, separate da una sottile linea divisoria. Toccare una riga apre
  * Kinly centrato su quella persona; toccare altrove apre l'app e basta.
  *
- * Quando nessuno condivide ancora (isPreview = "1" da Flutter, vedi
- * HomeWidgetService), invece di un testo di esempio mostriamo righe
- * puramente visive: pallino colorato + due barre grigie astratte al posto
- * del testo, la stessa illustrazione usata per spiegare la funzione sul
- * sito — fa capire a colpo d'occhio come apparirà il widget, senza bisogno
- * di leggere un esempio scritto.
+ * Se l'utente ha più di una cerchia, sotto il titolo compare il nome della
+ * cerchia mostrata con due frecce per passare alla precedente/successiva:
+ * un tocco lì manda un broadcast diretto a questo provider (vedi
+ * [onReceive]), che cambia l'indice salvato e ridisegna subito — nessun
+ * bisogno di aprire l'app per sfogliare le cerchie.
+ *
+ * Quando la cerchia mostrata non ha ancora nessuno che condivide (isPreview
+ * = "1" da Flutter, vedi HomeWidgetService), invece di un testo di esempio
+ * mostriamo righe puramente visive: pallino colorato + due barre grigie
+ * astratte al posto del testo, la stessa illustrazione usata per spiegare
+ * la funzione sul sito.
  */
 class KinlyWidgetProvider : AppWidgetProvider() {
+    companion object {
+        private const val ACTION_PREV_CIRCLE = "com.kinly.app.WIDGET_CIRCLE_PREV"
+        private const val ACTION_NEXT_CIRCLE = "com.kinly.app.WIDGET_CIRCLE_NEXT"
+        private const val SELECTED_CIRCLE_KEY = "widget_selected_circle_index"
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        when (intent.action) {
+            ACTION_PREV_CIRCLE -> {
+                shiftCircle(context, -1)
+                return
+            }
+            ACTION_NEXT_CIRCLE -> {
+                shiftCircle(context, 1)
+                return
+            }
+        }
+        super.onReceive(context, intent)
+    }
+
+    /** Cambia la cerchia mostrata (con giro completo ai due estremi) e
+     *  ridisegna subito tutte le istanze del widget, senza aspettare il
+     *  prossimo aggiornamento periodico del sistema. */
+    private fun shiftCircle(context: Context, delta: Int) {
+        val prefs = HomeWidgetPlugin.getData(context)
+        val count = prefs.getString("circleCount", "0")?.toIntOrNull() ?: 0
+        if (count <= 1) return
+        val current = prefs.getInt(SELECTED_CIRCLE_KEY, 0).coerceIn(0, count - 1)
+        prefs.edit().putInt(SELECTED_CIRCLE_KEY, (current + delta + count) % count).apply()
+
+        val manager = AppWidgetManager.getInstance(context)
+        val ids = manager.getAppWidgetIds(ComponentName(context, KinlyWidgetProvider::class.java))
+        onUpdate(context, manager, ids)
+    }
+
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         val prefs = HomeWidgetPlugin.getData(context)
-        val isPreview = prefs.getString("isPreview", "0") == "1"
+        val circleCount = prefs.getString("circleCount", "0")?.toIntOrNull() ?: 0
+        val circleIndex = if (circleCount <= 0) 0 else prefs.getInt(SELECTED_CIRCLE_KEY, 0).coerceIn(0, circleCount - 1)
+        // Nessuna cerchia: l'utente non ne ha ancora creata/joinata una,
+        // niente da mostrare al posto del nome (diverso dal caso "cerchia
+        // vuota", dove il nome resta visibile e sono le righe sotto ad
+        // essere illustrative).
+        val isPreview = circleCount <= 0 || prefs.getString("c${circleIndex}_isPreview", "1") == "1"
 
         for (widgetId in appWidgetIds) {
             val views = RemoteViews(context.packageName, R.layout.kinly_widget)
             views.setTextViewText(R.id.widget_title, prefs.getString("title", "Kinly") ?: "Kinly")
+
+            if (circleCount <= 0) {
+                views.setViewVisibility(R.id.widget_circle_row, View.GONE)
+            } else {
+                views.setViewVisibility(R.id.widget_circle_row, View.VISIBLE)
+                views.setTextViewText(R.id.widget_circle_name, prefs.getString("circleName$circleIndex", "") ?: "")
+                val showArrows = if (circleCount > 1) View.VISIBLE else View.INVISIBLE
+                views.setViewVisibility(R.id.widget_circle_prev, showArrows)
+                views.setViewVisibility(R.id.widget_circle_next, showArrows)
+                if (circleCount > 1) {
+                    views.setOnClickPendingIntent(R.id.widget_circle_prev, circleNavPendingIntent(context, ACTION_PREV_CIRCLE, 10))
+                    views.setOnClickPendingIntent(R.id.widget_circle_next, circleNavPendingIntent(context, ACTION_NEXT_CIRCLE, 11))
+                }
+            }
 
             if (isPreview) {
                 // Righe puramente illustrative (pallino + barre), niente
@@ -55,29 +116,30 @@ class KinlyWidgetProvider : AppWidgetProvider() {
                 views.setViewVisibility(R.id.widget_row3, View.GONE)
                 views.setViewVisibility(R.id.widget_divider3, View.GONE)
             } else {
+                val prefix = "c${circleIndex}_"
                 setDataRow(
                     views, context,
                     rowId = R.id.widget_row1, dividerId = null, dotId = R.id.widget_dot1,
                     textGroupId = R.id.widget_text_group1, barsGroupId = R.id.widget_bars_group1,
                     nameId = R.id.widget_name1, subId = R.id.widget_sub1,
-                    name = prefs.getString("name1", "") ?: "", sub = prefs.getString("sub1", "") ?: "",
-                    personId = prefs.getString("id1", null), colorHex = prefs.getString("color1", null),
+                    name = prefs.getString("${prefix}name1", "") ?: "", sub = prefs.getString("${prefix}sub1", "") ?: "",
+                    personId = prefs.getString("${prefix}id1", null), colorHex = prefs.getString("${prefix}color1", null),
                 )
                 setDataRow(
                     views, context,
                     rowId = R.id.widget_row2, dividerId = R.id.widget_divider2, dotId = R.id.widget_dot2,
                     textGroupId = R.id.widget_text_group2, barsGroupId = R.id.widget_bars_group2,
                     nameId = R.id.widget_name2, subId = R.id.widget_sub2,
-                    name = prefs.getString("name2", "") ?: "", sub = prefs.getString("sub2", "") ?: "",
-                    personId = prefs.getString("id2", null), colorHex = prefs.getString("color2", null),
+                    name = prefs.getString("${prefix}name2", "") ?: "", sub = prefs.getString("${prefix}sub2", "") ?: "",
+                    personId = prefs.getString("${prefix}id2", null), colorHex = prefs.getString("${prefix}color2", null),
                 )
                 setDataRow(
                     views, context,
                     rowId = R.id.widget_row3, dividerId = R.id.widget_divider3, dotId = R.id.widget_dot3,
                     textGroupId = R.id.widget_text_group3, barsGroupId = R.id.widget_bars_group3,
                     nameId = R.id.widget_name3, subId = R.id.widget_sub3,
-                    name = prefs.getString("name3", "") ?: "", sub = prefs.getString("sub3", "") ?: "",
-                    personId = prefs.getString("id3", null), colorHex = prefs.getString("color3", null),
+                    name = prefs.getString("${prefix}name3", "") ?: "", sub = prefs.getString("${prefix}sub3", "") ?: "",
+                    personId = prefs.getString("${prefix}id3", null), colorHex = prefs.getString("${prefix}color3", null),
                 )
             }
 
@@ -110,6 +172,15 @@ class KinlyWidgetProvider : AppWidgetProvider() {
 
             appWidgetManager.updateAppWidget(widgetId, views)
         }
+    }
+
+    /** Broadcast esplicito diretto a questo stesso provider (non un Intent
+     *  che apre l'app): cambia solo l'indice salvato e ridisegna, restando
+     *  nella schermata home. requestCode diverso da azione a azione per
+     *  evitare che Android confonda i due PendingIntent tra loro. */
+    private fun circleNavPendingIntent(context: Context, action: String, requestCode: Int): PendingIntent {
+        val intent = Intent(context, KinlyWidgetProvider::class.java).apply { this.action = action }
+        return PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
 
     private fun setPreviewRow(views: RemoteViews, context: Context, rowId: Int, dotId: Int, textGroupId: Int, barsGroupId: Int, color: Int) {
