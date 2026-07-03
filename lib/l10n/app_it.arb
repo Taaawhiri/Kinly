@@ -772,6 +772,9 @@
   "pingKindCoffee": "Un caffè?",
   "pingKindTraffic": "Occhio al traffico",
   "pingKindHighFive": "High five",
+  "pingKindCheckIn": "Tutto bene?",
+  "pingKindAllGood": "Sto bene!",
+  "pingReplyAllGood": "Sto bene 👍",
 
   "safeZoneKindHome": "Casa",
   "safeZoneKindWork": "Lavoro",

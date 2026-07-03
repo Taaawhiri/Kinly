@@ -904,6 +904,12 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             personName: state.personById(ping.fromId)?.name ?? someone,
             kind: ping.kind,
             onDismiss: () => state.dismissPing(ping.id),
+            onReply: ping.kind == PingKind.checkIn
+                ? () {
+                    state.sendPing(toId: ping.fromId, kind: PingKind.allGood);
+                    state.dismissPing(ping.id);
+                  }
+                : null,
           ),
         for (final stop in state.othersActiveShoppingStops)
           _ShoppingStopBanner(
@@ -1604,13 +1610,18 @@ class _EncounterBanner extends StatelessWidget {
 }
 
 class _PingBanner extends StatelessWidget {
-  const _PingBanner({required this.personName, required this.kind, required this.onDismiss});
+  const _PingBanner({required this.personName, required this.kind, required this.onDismiss, this.onReply});
   final String personName;
   final PingKind kind;
   final VoidCallback onDismiss;
 
+  /// Presente solo per un ping "tutto bene?": risposta con un tocco, senza
+  /// dover aprire una scheda o scrivere nulla.
+  final VoidCallback? onReply;
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(14),
@@ -1623,10 +1634,12 @@ class _PingBanner extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              '$personName: ${kind.label(AppLocalizations.of(context)!)}',
+              '$personName: ${kind.label(l10n)}',
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AppTheme.textPrimary),
             ),
           ),
+          if (onReply != null)
+            TextButton(onPressed: onReply, child: Text(l10n.pingReplyAllGood)),
           IconButton(icon: const Icon(Icons.close_rounded, size: 18), onPressed: onDismiss, visualDensity: VisualDensity.compact),
         ],
       ),

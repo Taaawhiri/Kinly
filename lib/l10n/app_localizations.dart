@@ -3974,6 +3974,24 @@ abstract class AppLocalizations {
   /// **'High five'**
   String get pingKindHighFive;
 
+  /// No description provided for @pingKindCheckIn.
+  ///
+  /// In it, this message translates to:
+  /// **'Tutto bene?'**
+  String get pingKindCheckIn;
+
+  /// No description provided for @pingKindAllGood.
+  ///
+  /// In it, this message translates to:
+  /// **'Sto bene!'**
+  String get pingKindAllGood;
+
+  /// No description provided for @pingReplyAllGood.
+  ///
+  /// In it, this message translates to:
+  /// **'Sto bene 👍'**
+  String get pingReplyAllGood;
+
   /// No description provided for @safeZoneKindHome.
   ///
   /// In it, this message translates to:

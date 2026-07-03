@@ -2285,6 +2285,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pingKindHighFive => 'High five';
 
   @override
+  String get pingKindCheckIn => 'You OK?';
+
+  @override
+  String get pingKindAllGood => 'I\'m OK!';
+
+  @override
+  String get pingReplyAllGood => 'I\'m OK 👍';
+
+  @override
   String get safeZoneKindHome => 'Home';
 
   @override

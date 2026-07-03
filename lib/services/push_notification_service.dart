@@ -18,6 +18,7 @@ class PushNotificationService {
   String? _lastToken;
   bool _initialized = false;
   void Function(String zoneId)? _onArrivalConfirmed;
+  void Function(String fromId)? _onCheckInReply;
 
   static const _channel = AndroidNotificationChannel(
     'kinly_default',
@@ -37,6 +38,17 @@ class PushNotificationService {
 
   static const _arrivalActionPrefix = 'confirm_arrival_';
 
+  /// Canale per il ping "tutto bene?": come [_arrivalChannel], una notifica
+  /// con un pulsante d'azione invece di un semplice avviso.
+  static const _checkInChannel = AndroidNotificationChannel(
+    'kinly_check_in',
+    'Tutto bene?',
+    description: 'Notifica per rispondere subito con un tocco a un ping "tutto bene?".',
+    importance: Importance.high,
+  );
+
+  static const _checkInActionPrefix = 'reply_check_in_';
+
   /// Non fallisce mai: su piattaforme dove Firebase non è configurato
   /// (es. web/desktop in fase di sviluppo) semplicemente non fa nulla,
   /// invece di bloccare l'avvio dell'app.
@@ -44,8 +56,14 @@ class PushNotificationService {
   /// [onArrivalConfirmed] è chiamato quando l'utente tocca "Sono arrivato"
   /// sulla notifica del ping d'arrivo (vedi [showArrivalPrompt]), sia ad
   /// app già aperta sia se l'ha aperta apposta toccando la notifica.
-  Future<void> initialize({void Function(String zoneId)? onArrivalConfirmed}) async {
+  ///
+  /// [onCheckInReply] è lo stesso meccanismo per il pulsante "Sto bene!"
+  /// sulla notifica di un ping "tutto bene?" ricevuto (vedi
+  /// [_showForegroundNotification]): riceve l'id di chi ha chiesto, per
+  /// mandargli subito il ping di risposta.
+  Future<void> initialize({void Function(String zoneId)? onArrivalConfirmed, void Function(String fromId)? onCheckInReply}) async {
     _onArrivalConfirmed = onArrivalConfirmed;
+    _onCheckInReply = onCheckInReply;
     if (_initialized) return;
     try {
       await _localNotifications.initialize(
@@ -58,6 +76,9 @@ class PushNotificationService {
       await _localNotifications
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(_arrivalChannel);
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(_checkInChannel);
 
       // Se l'app era chiusa ed è stata aperta apposta toccando la notifica
       // del ping d'arrivo, il tap arriva qui invece che nella callback
@@ -91,19 +112,40 @@ class PushNotificationService {
 
   void _handleNotificationResponse(NotificationResponse response) {
     final actionId = response.actionId;
-    if (actionId == null || !actionId.startsWith(_arrivalActionPrefix)) return;
-    final zoneId = actionId.substring(_arrivalActionPrefix.length);
-    if (zoneId.isNotEmpty) _onArrivalConfirmed?.call(zoneId);
+    if (actionId == null) return;
+    if (actionId.startsWith(_arrivalActionPrefix)) {
+      final zoneId = actionId.substring(_arrivalActionPrefix.length);
+      if (zoneId.isNotEmpty) _onArrivalConfirmed?.call(zoneId);
+    } else if (actionId.startsWith(_checkInActionPrefix)) {
+      final fromId = actionId.substring(_checkInActionPrefix.length);
+      if (fromId.isNotEmpty) _onCheckInReply?.call(fromId);
+    }
   }
 
+  /// Un ping "tutto bene?" (vedi data['type'] == 'ping_check_in', allegato
+  /// dalla Edge Function send-push) porta in più un pulsante "Sto bene!"
+  /// per rispondere subito: funziona qui (notifica mostrata mentre l'app è
+  /// aperta) con lo stesso meccanismo già usato per il ping d'arrivo.
+  /// Ad app chiusa la notifica arriva come avviso normale del sistema,
+  /// senza il pulsante: aprirla mostra comunque il ping ricevuto in app,
+  /// da cui si può rispondere con un tocco.
   void _showForegroundNotification(RemoteMessage message) {
     final notification = message.notification;
     if (notification == null) return;
+    final fromId = message.data['type'] == 'ping_check_in' ? message.data['from_id'] as String? : null;
     _localNotifications.show(
       id: notification.hashCode,
       title: notification.title,
       body: notification.body,
-      notificationDetails: NotificationDetails(android: AndroidNotificationDetails(_channel.id, _channel.name)),
+      notificationDetails: NotificationDetails(
+        android: fromId != null
+            ? AndroidNotificationDetails(
+                _checkInChannel.id,
+                _checkInChannel.name,
+                actions: [AndroidNotificationAction('$_checkInActionPrefix$fromId', 'Sto bene!', showsUserInterface: true)],
+              )
+            : AndroidNotificationDetails(_channel.id, _channel.name),
+      ),
     );
   }
 

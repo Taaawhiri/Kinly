@@ -260,20 +260,29 @@ class _PingRowState extends State<_PingRow> {
     );
   }
 
+  /// Il ping "occhio al traffico" ha senso solo se sta guidando, "un caffè?"
+  /// se sta camminando (o non sappiamo cosa sta facendo): un solo
+  /// suggerimento legato a come si sta muovendo invece di sempre gli stessi
+  /// due, più il "tutto bene?" sempre disponibile per un check rapido.
+  List<PingKind> get _suggestedKinds => switch (widget.person.activityStatus) {
+        ActivityStatus.driving => [PingKind.traffic, PingKind.checkIn],
+        ActivityStatus.walking => [PingKind.coffee, PingKind.checkIn],
+        ActivityStatus.stationary => [PingKind.coffee, PingKind.checkIn],
+      };
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Row(
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
       children: [
-        for (final kind in [PingKind.coffee, PingKind.traffic])
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: OutlinedButton.icon(
-              onPressed: _sent != null ? null : () => _send(kind),
-              icon: Text(kind.emoji, style: const TextStyle(fontSize: 16)),
-              label: Text(_sent == kind ? l10n.personPingSent : kind.label(l10n)),
-              style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
-            ),
+        for (final kind in _suggestedKinds)
+          OutlinedButton.icon(
+            onPressed: _sent != null ? null : () => _send(kind),
+            icon: Text(kind.emoji, style: const TextStyle(fontSize: 16)),
+            label: Text(_sent == kind ? l10n.personPingSent : kind.label(l10n)),
+            style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
           ),
       ],
     );

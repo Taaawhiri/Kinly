@@ -36,6 +36,10 @@ interface NotificationPlan {
   recipients: string[];
   title: string;
   body: string;
+  /// Dati extra allegati alla notifica (letti dal client, es. per mostrare
+  /// un pulsante d'azione "Sto bene!" sul ping "tutto bene?"): FCM richiede
+  /// che ogni valore in `data` sia una stringa.
+  data?: Record<string, string>;
 }
 
 let cachedAccessToken: { token: string; expiresAt: number } | null = null;
@@ -76,12 +80,13 @@ async function sendToToken(
   token: string,
   title: string,
   body: string,
+  data?: Record<string, string>,
 ): Promise<{ token: string; invalid: boolean }> {
   const response = await fetch(`https://fcm.googleapis.com/v1/projects/${account.project_id}/messages:send`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      message: { token, notification: { title, body }, android: { priority: 'high' } },
+      message: { token, notification: { title, body }, android: { priority: 'high' }, ...(data ? { data } : {}) },
     }),
   });
   if (!response.ok) {
@@ -200,6 +205,10 @@ function pingText(kind: string, fromName: string): { title: string; body: string
       return { title: `🚨 ${fromName}`, body: `${fromName} ti avvisa: occhio al traffico dove stai andando.` };
     case 'high_five':
       return { title: `🖐️ ${fromName}`, body: `${fromName} ti ha mandato un High Five!` };
+    case 'check_in':
+      return { title: `🙂 ${fromName}`, body: `${fromName} ti chiede: tutto bene?` };
+    case 'all_good':
+      return { title: `👍 ${fromName}`, body: `${fromName} ti fa sapere: tutto bene!` };
     default:
       return { title: fromName, body: 'Ti ha mandato un saluto.' };
   }
@@ -262,7 +271,11 @@ async function buildNotification(supabase: SupabaseClient, table: string, record
     case 'pings': {
       const name = await fetchName(supabase, record.from_id);
       const { title, body } = pingText(record.kind, name);
-      return { recipients: [record.to_id], title, body };
+      // Solo il "tutto bene?" porta un pulsante di risposta rapida sulla
+      // notifica (vedi PushNotificationService): agli altri tipi di ping
+      // non serve, restano un semplice avviso da leggere.
+      const data = record.kind === 'check_in' ? { type: 'ping_check_in', from_id: record.from_id as string } : undefined;
+      return { recipients: [record.to_id], title, body, data };
     }
     case 'encounters': {
       // Testo generico uguale per entrambi: personalizzarlo per destinatario
@@ -370,7 +383,7 @@ Deno.serve(async (req) => {
 
     const accessToken = await getAccessToken(account);
     const results = await Promise.all(
-      tokens.map((row: { token: string }) => sendToToken(account, accessToken, row.token, plan.title, plan.body)),
+      tokens.map((row: { token: string }) => sendToToken(account, accessToken, row.token, plan.title, plan.body, plan.data)),
     );
 
     const invalidTokens = results.filter((r) => r.invalid).map((r) => r.token);

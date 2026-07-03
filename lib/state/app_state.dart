@@ -165,7 +165,10 @@ class AppState extends ChangeNotifier {
 
     _channel ??= _repo.subscribeToChanges(_scheduleRefresh, _handleLocationChange);
     unawaited(LocationTracker.instance.start());
-    unawaited(PushNotificationService.instance.initialize(onArrivalConfirmed: sendArrivalPing));
+    unawaited(PushNotificationService.instance.initialize(
+      onArrivalConfirmed: sendArrivalPing,
+      onCheckInReply: (fromId) => sendPing(toId: fromId, kind: PingKind.allGood),
+    ));
     unawaited(WalkMeHomeService.instance.restore());
     if (isPremium) unawaited(CrashDetectionService.instance.start());
 
