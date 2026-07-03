@@ -2279,6 +2279,38 @@ class AppLocalizationsIt extends AppLocalizations {
   String get mapWaitingForLocation => 'In attesa della posizione…';
 
   @override
+  String get mapLocationPermissionDeniedTitle =>
+      'Manca il permesso di posizione';
+
+  @override
+  String get mapLocationPermissionDeniedBody =>
+      'Concedilo per vederti sulla mappa e condividere la posizione con la tua cerchia.';
+
+  @override
+  String get mapGrantPermission => 'Concedi permesso';
+
+  @override
+  String get mapLocationPermissionBlockedTitle =>
+      'Permesso di posizione bloccato';
+
+  @override
+  String get mapLocationPermissionBlockedBody =>
+      'È stato negato in modo permanente: aprilo dalle impostazioni del telefono per usare Kinly.';
+
+  @override
+  String get mapOpenAppSettings => 'Apri impostazioni';
+
+  @override
+  String get mapLocationServiceOffTitle => 'GPS spento';
+
+  @override
+  String get mapLocationServiceOffBody =>
+      'Attiva la posizione del telefono per vederti sulla mappa.';
+
+  @override
+  String get mapOpenLocationSettings => 'Attiva il GPS';
+
+  @override
   String get pwaInstallTitle => 'Installa Kinly';
 
   @override

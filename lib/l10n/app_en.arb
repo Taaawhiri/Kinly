@@ -694,6 +694,15 @@
   "tripReplayWatch": "Watch the trip",
 
   "mapWaitingForLocation": "Waiting for location…",
+  "mapLocationPermissionDeniedTitle": "Location permission needed",
+  "mapLocationPermissionDeniedBody": "Grant it to show yourself on the map and share your location with your circle.",
+  "mapGrantPermission": "Grant permission",
+  "mapLocationPermissionBlockedTitle": "Location permission blocked",
+  "mapLocationPermissionBlockedBody": "It was permanently denied: open it from your phone's settings to use Kinly.",
+  "mapOpenAppSettings": "Open settings",
+  "mapLocationServiceOffTitle": "GPS is off",
+  "mapLocationServiceOffBody": "Turn on your phone's location to show yourself on the map.",
+  "mapOpenLocationSettings": "Turn on GPS",
 
   "pwaInstallTitle": "Install Kinly",
   "pwaInstallAndroidBody": "Add it to your Home Screen: it opens faster and takes no extra space.",

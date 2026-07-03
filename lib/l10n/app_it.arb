@@ -777,6 +777,15 @@
   "tripReplayWatch": "Rivedi il tragitto",
 
   "mapWaitingForLocation": "In attesa della posizione…",
+  "mapLocationPermissionDeniedTitle": "Manca il permesso di posizione",
+  "mapLocationPermissionDeniedBody": "Concedilo per vederti sulla mappa e condividere la posizione con la tua cerchia.",
+  "mapGrantPermission": "Concedi permesso",
+  "mapLocationPermissionBlockedTitle": "Permesso di posizione bloccato",
+  "mapLocationPermissionBlockedBody": "È stato negato in modo permanente: aprilo dalle impostazioni del telefono per usare Kinly.",
+  "mapOpenAppSettings": "Apri impostazioni",
+  "mapLocationServiceOffTitle": "GPS spento",
+  "mapLocationServiceOffBody": "Attiva la posizione del telefono per vederti sulla mappa.",
+  "mapOpenLocationSettings": "Attiva il GPS",
 
   "pwaInstallTitle": "Installa Kinly",
   "pwaInstallAndroidBody": "Aggiungila alla schermata Home: si apre più veloce e non occupa spazio extra.",

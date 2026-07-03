@@ -2275,6 +2275,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapWaitingForLocation => 'Waiting for location…';
 
   @override
+  String get mapLocationPermissionDeniedTitle => 'Location permission needed';
+
+  @override
+  String get mapLocationPermissionDeniedBody =>
+      'Grant it to show yourself on the map and share your location with your circle.';
+
+  @override
+  String get mapGrantPermission => 'Grant permission';
+
+  @override
+  String get mapLocationPermissionBlockedTitle => 'Location permission blocked';
+
+  @override
+  String get mapLocationPermissionBlockedBody =>
+      'It was permanently denied: open it from your phone\'s settings to use Kinly.';
+
+  @override
+  String get mapOpenAppSettings => 'Open settings';
+
+  @override
+  String get mapLocationServiceOffTitle => 'GPS is off';
+
+  @override
+  String get mapLocationServiceOffBody =>
+      'Turn on your phone\'s location to show yourself on the map.';
+
+  @override
+  String get mapOpenLocationSettings => 'Turn on GPS';
+
+  @override
   String get pwaInstallTitle => 'Install Kinly';
 
   @override

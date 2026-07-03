@@ -3962,6 +3962,60 @@ abstract class AppLocalizations {
   /// **'In attesa della posizione…'**
   String get mapWaitingForLocation;
 
+  /// No description provided for @mapLocationPermissionDeniedTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Manca il permesso di posizione'**
+  String get mapLocationPermissionDeniedTitle;
+
+  /// No description provided for @mapLocationPermissionDeniedBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Concedilo per vederti sulla mappa e condividere la posizione con la tua cerchia.'**
+  String get mapLocationPermissionDeniedBody;
+
+  /// No description provided for @mapGrantPermission.
+  ///
+  /// In it, this message translates to:
+  /// **'Concedi permesso'**
+  String get mapGrantPermission;
+
+  /// No description provided for @mapLocationPermissionBlockedTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Permesso di posizione bloccato'**
+  String get mapLocationPermissionBlockedTitle;
+
+  /// No description provided for @mapLocationPermissionBlockedBody.
+  ///
+  /// In it, this message translates to:
+  /// **'È stato negato in modo permanente: aprilo dalle impostazioni del telefono per usare Kinly.'**
+  String get mapLocationPermissionBlockedBody;
+
+  /// No description provided for @mapOpenAppSettings.
+  ///
+  /// In it, this message translates to:
+  /// **'Apri impostazioni'**
+  String get mapOpenAppSettings;
+
+  /// No description provided for @mapLocationServiceOffTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'GPS spento'**
+  String get mapLocationServiceOffTitle;
+
+  /// No description provided for @mapLocationServiceOffBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Attiva la posizione del telefono per vederti sulla mappa.'**
+  String get mapLocationServiceOffBody;
+
+  /// No description provided for @mapOpenLocationSettings.
+  ///
+  /// In it, this message translates to:
+  /// **'Attiva il GPS'**
+  String get mapOpenLocationSettings;
+
   /// No description provided for @pwaInstallTitle.
   ///
   /// In it, this message translates to:

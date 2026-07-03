@@ -4,12 +4,14 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:maplibre_gl/maplibre_gl.dart';
 import '../l10n/app_localizations.dart';
 import '../models/meeting_point.dart';
 import '../models/person.dart';
 import '../models/safe_zone.dart';
+import '../services/location_tracker.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar_catalog.dart';
 import '../utils/color_hex.dart';
@@ -83,7 +85,7 @@ class KinlyMap extends StatefulWidget {
   State<KinlyMap> createState() => _KinlyMapState();
 }
 
-class _KinlyMapState extends State<KinlyMap> {
+class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
   MapLibreMapController? _controller;
   final Set<String> _registeredImages = {};
   bool _styleLoaded = false;
@@ -93,6 +95,59 @@ class _KinlyMapState extends State<KinlyMap> {
   /// salvata (magari vecchia) prima che arrivi un fix GPS fresco, senza poi
   /// continuare a spostare la camera ogni volta che qualcuno si muove.
   bool _autoCenteredOnFreshFix = false;
+
+  /// Stato del permesso di posizione, usato solo per spiegare perché la
+  /// mappa resta vuota (vedi _buildEmptyState) quando non è concesso: senza
+  /// questo controllo, un permesso negato o il GPS spento sembravano un
+  /// generico "in attesa della posizione" che non si risolveva mai, senza
+  /// dare all'utente un modo per capire perché o rimediare.
+  LocationPermission? _permission;
+  bool _serviceEnabled = true;
+  bool _requestingPermission = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(_refreshPermissionStatus());
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Se l'utente è andato nelle impostazioni di sistema per concedere il
+    // permesso (o accendere il GPS) e torna nell'app, questo lo scopre da
+    // solo al rientro, senza bisogno di un pulsante "riprova" manuale.
+    if (state == AppLifecycleState.resumed) unawaited(_refreshPermissionStatus());
+  }
+
+  /// Non deve mai lanciare un'eccezione non gestita: è chiamato anche solo
+  /// per spiegare meglio uno stato vuoto, mai per bloccare la mappa.
+  Future<void> _refreshPermissionStatus() async {
+    try {
+      final permission = await Geolocator.checkPermission();
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!mounted) return;
+      setState(() {
+        _permission = permission;
+        _serviceEnabled = serviceEnabled;
+      });
+    } catch (_) {
+      // Se il controllo stesso fallisce, si resta sul messaggio generico
+      // di attesa invece di un errore: meglio poco informativo che rotto.
+    }
+  }
+
+  Future<void> _requestPermission() async {
+    setState(() => _requestingPermission = true);
+    try {
+      final granted = await LocationTracker.instance.requestPermission();
+      if (granted) unawaited(LocationTracker.instance.start());
+    } catch (_) {
+      // Idem: un errore qui non deve mai bloccare la UI.
+    }
+    await _refreshPermissionStatus();
+    if (mounted) setState(() => _requestingPermission = false);
+  }
 
   List<Person> get _visiblePeople => widget.people.where((p) => p.lat != null && p.lng != null).toList();
 
@@ -182,18 +237,83 @@ class _KinlyMapState extends State<KinlyMap> {
     return true;
   }
 
+  /// Cosa mostrare al posto della mappa finché non c'è nessuna posizione
+  /// (nemmeno la mia) da disegnare. Prima era sempre lo stesso testo
+  /// passivo "in attesa della posizione": se il vero motivo è un permesso
+  /// negato o il GPS spento, quel messaggio non si sarebbe mai risolto da
+  /// solo, e l'utente non aveva modo di capire perché o cosa fare — da qui
+  /// i pulsanti per rimediare direttamente.
+  Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final permission = _permission;
+
+    String title;
+    String body;
+    String actionLabel;
+    VoidCallback? onAction;
+
+    if (!_serviceEnabled) {
+      title = l10n.mapLocationServiceOffTitle;
+      body = l10n.mapLocationServiceOffBody;
+      actionLabel = l10n.mapOpenLocationSettings;
+      onAction = () => unawaited(Geolocator.openLocationSettings());
+    } else if (permission == LocationPermission.deniedForever) {
+      title = l10n.mapLocationPermissionBlockedTitle;
+      body = l10n.mapLocationPermissionBlockedBody;
+      actionLabel = l10n.mapOpenAppSettings;
+      onAction = () => unawaited(Geolocator.openAppSettings());
+    } else if (permission == LocationPermission.denied || permission == LocationPermission.unableToDetermine) {
+      title = l10n.mapLocationPermissionDeniedTitle;
+      body = l10n.mapLocationPermissionDeniedBody;
+      actionLabel = l10n.mapGrantPermission;
+      onAction = _requestingPermission ? null : () => unawaited(_requestPermission());
+    } else {
+      // Permesso concesso e GPS acceso: è solo questione di aspettare il
+      // primo fix, il caso genuino che il messaggio originale copriva.
+      return Container(
+        color: const Color(0xFFEEF1FA),
+        alignment: Alignment.center,
+        child: Text(l10n.mapWaitingForLocation, style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+      );
+    }
+
+    return Container(
+      color: const Color(0xFFEEF1FA),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.all(28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.location_off_rounded, size: 40, color: AppTheme.textSecondary),
+          const SizedBox(height: 14),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w800, fontSize: 15),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            body,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.4),
+          ),
+          const SizedBox(height: 18),
+          FilledButton(
+            onPressed: onAction,
+            child: _requestingPermission
+                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white))
+                : Text(actionLabel),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final people = _visiblePeople;
     if (people.isEmpty) {
-      return Container(
-        color: const Color(0xFFEEF1FA),
-        alignment: Alignment.center,
-        child: Text(
-          AppLocalizations.of(context)!.mapWaitingForLocation,
-          style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-        ),
-      );
+      return _buildEmptyState(context);
     }
 
     return MapLibreMap(
@@ -402,6 +522,7 @@ class _KinlyMapState extends State<KinlyMap> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller?.onSymbolTapped.remove(_handleSymbolTap);
     _controller?.onFillTapped.remove(_handleFillTap);
     super.dispose();
