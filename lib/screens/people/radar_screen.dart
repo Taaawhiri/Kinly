@@ -129,56 +129,64 @@ class _RadarScreenState extends State<RadarScreen> {
 
             final arrowAngle = (bearing - heading) * pi / 180;
 
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                PersonAvatar(person: widget.person, size: 56, showStatusDot: false),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: 280,
-                  height: 280,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: 280,
-                        height: 280,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppTheme.surface,
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 24, spreadRadius: 4)],
+            // Centrare rispetto alla sola area del body (sotto la AppBar)
+            // sposta il contenuto percepito più in basso del centro reale
+            // dello schermo, perché la AppBar in alto "pesa" più della
+            // striscia di sistema in basso: un piccolo scarto verso l'alto
+            // compensa, così sembra centrato guardando lo schermo intero.
+            return Align(
+              alignment: const Alignment(0, -0.15),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  PersonAvatar(person: widget.person, size: 56, showStatusDot: false),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: 280,
+                    height: 280,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          width: 280,
+                          height: 280,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppTheme.surface,
+                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 24, spreadRadius: 4)],
+                          ),
                         ),
-                      ),
-                      Container(
-                        width: 220,
-                        height: 220,
-                        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppTheme.divider, width: 1.4)),
-                      ),
-                      Container(
-                        width: 140,
-                        height: 140,
-                        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppTheme.divider, width: 1.4)),
-                      ),
-                      AnimatedRotation(
-                        turns: arrowAngle / (2 * pi),
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeOut,
-                        child: Icon(Icons.navigation_rounded, size: 96, color: widget.person.color),
-                      ),
-                    ],
+                        Container(
+                          width: 220,
+                          height: 220,
+                          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppTheme.divider, width: 1.4)),
+                        ),
+                        Container(
+                          width: 140,
+                          height: 140,
+                          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppTheme.divider, width: 1.4)),
+                        ),
+                        AnimatedRotation(
+                          turns: arrowAngle / (2 * pi),
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeOut,
+                          child: Icon(Icons.navigation_rounded, size: 96, color: widget.person.color),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 28),
-                Text(
-                  distance >= 1000 ? '${(distance / 1000).toStringAsFixed(1)} km' : '${distance.round()} m',
-                  style: TextStyle(fontSize: 34, fontWeight: FontWeight.w900, color: AppTheme.textPrimary),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  distance < 50 ? l10n.radarVeryClose : l10n.radarFollowArrow(widget.person.name),
-                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5),
-                ),
-              ],
+                  const SizedBox(height: 28),
+                  Text(
+                    distance >= 1000 ? '${(distance / 1000).toStringAsFixed(1)} km' : '${distance.round()} m',
+                    style: TextStyle(fontSize: 34, fontWeight: FontWeight.w900, color: AppTheme.textPrimary),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    distance < 50 ? l10n.radarVeryClose : l10n.radarFollowArrow(widget.person.name),
+                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5),
+                  ),
+                ],
+              ),
             );
           },
         ),
