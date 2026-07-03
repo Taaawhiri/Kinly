@@ -39,12 +39,16 @@
   <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
   <link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet"/>
 
-  <!-- Forza l'attribuzione OpenStreetMap sulla mappa a restare sempre nella
-       forma compatta (sola icona "i"): di default MapLibre la mostra estesa
-       finche' la mappa non viene spostata almeno una volta, e su schermi
-       piccoli resta cosi' per un po'. Cliccare l'icona la apre comunque
-       (aggiunge la classe maplibregl-compact-show), quindi il testo resta
-       sempre raggiungibile. -->
+  <!-- Tiene sempre chiusa l'attribuzione OpenStreetMap sulla mappa (sola
+       icona "i", cliccabile): MapLibre la apre da solo una volta al primo
+       caricamento su schermi stretti, per farla notare, aggiungendo la
+       classe maplibregl-compact-show insieme a maplibregl-compact - la
+       stessa identica classe usata quando l'utente clicca sull'icona per
+       aprirla lui stesso, quindi non si puo' distinguere i due casi solo a
+       CSS. Lo script sotto intercetta esclusivamente quella prima apertura
+       automatica (il momento in cui maplibregl-compact compare per la
+       prima volta) e la richiude subito, poi si disattiva: da li' in poi
+       il clic sull'icona apre/chiude normalmente. -->
   <style>
     .maplibregl-ctrl-attrib:not(.maplibregl-compact-show) .maplibregl-ctrl-attrib-inner {
       display: none !important;
@@ -53,6 +57,36 @@
       display: block !important;
     }
   </style>
+  <script>
+    (function () {
+      var compactSeen = false;
+      function check(el) {
+        if (compactSeen || !el.classList.contains('maplibregl-compact')) return;
+        compactSeen = true;
+        if (el.classList.contains('maplibregl-compact-show')) {
+          el.classList.remove('maplibregl-compact-show');
+          el.removeAttribute('open');
+        }
+      }
+      var observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (m) {
+          if (m.target && m.target.classList && m.target.classList.contains('maplibregl-ctrl-attrib')) {
+            check(m.target);
+          }
+        });
+      });
+      function attach() {
+        var el = document.querySelector('.maplibregl-ctrl-attrib');
+        if (el) {
+          check(el);
+          observer.observe(el, { attributes: true, attributeFilter: ['class', 'open'] });
+        } else if (!compactSeen) {
+          requestAnimationFrame(attach);
+        }
+      }
+      attach();
+    })();
+  </script>
 
   <!-- Ponte per il banner "Installa Kinly" (vedi lib/services/pwa_install_service_web.dart):
        cattura qui l'evento beforeinstallprompt, non standard e non tipizzato
