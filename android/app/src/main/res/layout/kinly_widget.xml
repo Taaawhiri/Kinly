@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- gravity="center_vertical" sul contenitore radice: se il widget viene
-     ridimensionato più alto del contenuto (es. una sola persona che
-     condivide), le righe restano centrate invece di restare appiccicate
-     in alto con un vuoto enorme sotto. -->
+<!-- Intestazione (logo + titolo + le 3 scorciatoie) SEMPRE fissa in alto:
+     solo il blocco delle persone sotto, in mezzo allo spazio che resta, si
+     centra verticalmente se il widget viene ridimensionato più alto del
+     necessario (vedi il FrameLayout con layout_weight più sotto). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center_vertical"
     android:padding="16dp"
     android:background="@drawable/kinly_widget_background">
 
-    <!-- Titolo con una piccola iconcina quadrata accanto, come nel mockup
-         del sito (icona + testo sulla prima riga). -->
+    <!-- Riga fissa in alto: icona + titolo a sinistra, le 3 scorciatoie
+         rapide a destra, come nel mockup del sito. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -23,7 +22,7 @@
         <ImageView
             android:layout_width="18dp"
             android:layout_height="18dp"
-            android:layout_marginEnd="10dp"
+            android:layout_marginEnd="8dp"
             android:src="@drawable/widget_logo" />
 
         <TextView
@@ -34,169 +33,198 @@
             android:textStyle="bold"
             android:textSize="15sp"
             android:textColor="#4A63E7" />
-    </LinearLayout>
 
-    <!-- Ogni riga è un pallino colorato ("avatar") + un contenuto che può
-         essere il testo vero (nome, posizione, orario) oppure, quando
-         nessuno condivide ancora, una barra grigia astratta: stessa
-         struttura visiva sempre, cambia solo cosa si vede dentro (vedi
-         KinlyWidgetProvider), coerente con lo stile a pallini e barre dei
-         mockup del sito. -->
-    <LinearLayout
-        android:id="@+id/widget_row1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="18dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <ImageView
-            android:id="@+id/widget_dot1"
-            android:layout_width="14dp"
-            android:layout_height="14dp"
-            android:layout_marginEnd="10dp"
-            android:src="@drawable/widget_dot" />
-
-        <FrameLayout
+        <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1">
-
-            <TextView
-                android:id="@+id/widget_line1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="12.5sp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:textColor="#222533" />
-
-            <ImageView
-                android:id="@+id/widget_bar1"
-                android:layout_width="130dp"
-                android:layout_height="10dp"
-                android:layout_gravity="start|center_vertical"
-                android:src="@drawable/widget_bar" />
-        </FrameLayout>
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/widget_row2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <ImageView
-            android:id="@+id/widget_dot2"
-            android:layout_width="14dp"
-            android:layout_height="14dp"
-            android:layout_marginEnd="10dp"
-            android:src="@drawable/widget_dot" />
-
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1">
-
-            <TextView
-                android:id="@+id/widget_line2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="12.5sp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:textColor="#222533" />
-
-            <ImageView
-                android:id="@+id/widget_bar2"
-                android:layout_width="130dp"
-                android:layout_height="10dp"
-                android:layout_gravity="start|center_vertical"
-                android:src="@drawable/widget_bar" />
-        </FrameLayout>
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/widget_row3"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <ImageView
-            android:id="@+id/widget_dot3"
-            android:layout_width="14dp"
-            android:layout_height="14dp"
-            android:layout_marginEnd="10dp"
-            android:src="@drawable/widget_dot" />
-
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1">
-
-            <TextView
-                android:id="@+id/widget_line3"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="12.5sp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:textColor="#222533" />
-
-            <ImageView
-                android:id="@+id/widget_bar3"
-                android:layout_width="130dp"
-                android:layout_height="10dp"
-                android:layout_gravity="start|center_vertical"
-                android:src="@drawable/widget_bar" />
-        </FrameLayout>
-    </LinearLayout>
-
-    <!-- Scorciatoie rapide: SOS, richiesta aiuto, accompagnami. Toccarle
-         apre l'app già pronta a confermare (vedi KinlyWidgetProvider e
-         map_home_screen.dart): mai un'azione vera scattata da qui, per
-         evitare un allarme falso da un tocco accidentale in tasca. -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:orientation="horizontal"
-        android:gravity="center">
+            android:layout_height="1dp"
+            android:layout_weight="1" />
 
         <TextView
             android:id="@+id/widget_btn_sos"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="14dp"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginStart="6dp"
             android:background="@drawable/widget_action_circle_sos"
             android:gravity="center"
             android:includeFontPadding="false"
             android:text="🆘"
-            android:textSize="16sp" />
+            android:textSize="11sp" />
 
         <TextView
             android:id="@+id/widget_btn_help"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="14dp"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginStart="6dp"
             android:background="@drawable/widget_action_circle_help"
             android:gravity="center"
             android:includeFontPadding="false"
             android:text="✋"
-            android:textSize="16sp" />
+            android:textSize="11sp" />
 
         <TextView
             android:id="@+id/widget_btn_walk"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginStart="6dp"
             android:background="@drawable/widget_action_circle_walk"
             android:gravity="center"
             android:includeFontPadding="false"
             android:text="🚶"
-            android:textSize="16sp" />
+            android:textSize="11sp" />
     </LinearLayout>
+
+    <!-- Occupa tutto lo spazio verticale che resta sotto l'intestazione: le
+         righe delle persone dentro si centrano lì, invece di restare
+         incollate in alto con un vuoto enorme sotto quando il widget è
+         ridimensionato più alto del contenuto (es. una sola persona). -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical">
+
+            <!-- Ogni riga è un "avatar" (pallino colorato con la sagoma di
+                 una persona sopra) + un contenuto che può essere il testo
+                 vero (nome, posizione, orario) oppure, quando nessuno
+                 condivide ancora, una barra grigia astratta: stessa
+                 struttura visiva sempre, cambia solo cosa si vede dentro
+                 (vedi KinlyWidgetProvider). -->
+            <LinearLayout
+                android:id="@+id/widget_row1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <FrameLayout android:layout_width="24dp" android:layout_height="24dp" android:layout_marginEnd="10dp">
+                    <ImageView
+                        android:id="@+id/widget_dot1"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/widget_dot" />
+                    <ImageView
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/widget_person_icon" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/widget_line1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="12.5sp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textColor="#222533" />
+
+                    <ImageView
+                        android:id="@+id/widget_bar1"
+                        android:layout_width="130dp"
+                        android:layout_height="10dp"
+                        android:layout_gravity="start|center_vertical"
+                        android:src="@drawable/widget_bar" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/widget_row2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <FrameLayout android:layout_width="24dp" android:layout_height="24dp" android:layout_marginEnd="10dp">
+                    <ImageView
+                        android:id="@+id/widget_dot2"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/widget_dot" />
+                    <ImageView
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/widget_person_icon" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/widget_line2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="12.5sp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textColor="#222533" />
+
+                    <ImageView
+                        android:id="@+id/widget_bar2"
+                        android:layout_width="130dp"
+                        android:layout_height="10dp"
+                        android:layout_gravity="start|center_vertical"
+                        android:src="@drawable/widget_bar" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/widget_row3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <FrameLayout android:layout_width="24dp" android:layout_height="24dp" android:layout_marginEnd="10dp">
+                    <ImageView
+                        android:id="@+id/widget_dot3"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/widget_dot" />
+                    <ImageView
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/widget_person_icon" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/widget_line3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="12.5sp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textColor="#222533" />
+
+                    <ImageView
+                        android:id="@+id/widget_bar3"
+                        android:layout_width="130dp"
+                        android:layout_height="10dp"
+                        android:layout_gravity="start|center_vertical"
+                        android:src="@drawable/widget_bar" />
+                </FrameLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
 </LinearLayout>
