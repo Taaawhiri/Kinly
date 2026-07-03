@@ -452,6 +452,11 @@
   "avatarThemedTitle": "Avatar a tema",
   "avatarThemedHint": "Usati quando non hai caricato una foto.",
   "avatarUseInitials": "Usa le iniziali",
+  "avatarGenerativeTitle": "Oppure genera un avatar unico",
+  "avatarGenerativeHint": "Un motivo creato automaticamente da un seed casuale: nessun disegno da fare, sempre diverso.",
+  "avatarGenerativeShuffle": "Genera un altro",
+  "avatarGenerativeConfirm": "Usa questo avatar",
+  "avatarGenerativeSelected": "È il tuo avatar attuale",
 
   "personLocationNotShared": "Posizione non condivisa",
   "personBirthdayToday": "🎂 Oggi è il suo compleanno!",
@@ -530,6 +535,10 @@
   "paywallFeatureShoppingDesc": "Segnala alla cerchia quando sei al supermercato o al bar, per farti chiedere qualcosa al volo.",
   "paywallFeaturePriorityTitle": "Assistenza prioritaria",
   "paywallFeaturePriorityDesc": "Supporto dedicato per la tua cerchia, 7 giorni su 7.",
+  "paywallFeatureGhostModeTitle": "Ghost Mode temporaneo",
+  "paywallFeatureGhostModeDesc": "Rendi invisibile la tua posizione per 2 ore con un tocco: poi torna tutto visibile da solo.",
+  "paywallFeatureWidgetTitle": "Widget schermata home",
+  "paywallFeatureWidgetDesc": "Chi conta di più sempre a colpo d'occhio, senza aprire l'app (Android).",
 
   "paywallRequestError": "Non siamo riusciti a inviare la richiesta. Riprova.",
   "paywallCancelMessage": "Vorrei annullare il mio abbonamento Kinly+.",

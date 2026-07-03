@@ -4,6 +4,7 @@ import '../../l10n/app_localizations.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/avatar_catalog.dart';
+import '../../utils/generative_avatar.dart';
 import '../../utils/image_resizer.dart';
 import '../../widgets/person_avatar.dart';
 
@@ -18,6 +19,18 @@ class AvatarPickerScreen extends StatefulWidget {
 
 class _AvatarPickerScreenState extends State<AvatarPickerScreen> {
   bool _uploading = false;
+  late String _previewSeed;
+
+  @override
+  void initState() {
+    super.initState();
+    final currentKey = AppState.instance.me.avatarKey;
+    _previewSeed = GenerativeAvatar.isGenerativeKey(currentKey) ? GenerativeAvatar.seedFromKey(currentKey!) : GenerativeAvatar.newRandomSeed();
+  }
+
+  void _shuffleGenerativeAvatar() {
+    setState(() => _previewSeed = GenerativeAvatar.newRandomSeed());
+  }
 
   Future<void> _pickAndUpload(ImageSource source) async {
     final picked = await ImagePicker().pickImage(source: source, imageQuality: 90);
@@ -156,6 +169,48 @@ class _AvatarPickerScreenState extends State<AvatarPickerScreen> {
                         onTap: () => state.setAvatar(option.key),
                       ),
                   ],
+                ),
+                const SizedBox(height: 24),
+                Text(l10n.avatarGenerativeTitle, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                const SizedBox(height: 4),
+                Text(l10n.avatarGenerativeHint, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        GenerativeAvatarPreview(seed: _previewSeed, size: 64),
+                        if (selectedKey == GenerativeAvatar.keyFromSeed(_previewSeed))
+                          Positioned(
+                            right: -2,
+                            bottom: -2,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+                              child: const Icon(Icons.check_circle_rounded, color: AppTheme.primary, size: 18),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _shuffleGenerativeAvatar,
+                        icon: const Icon(Icons.shuffle_rounded, size: 18),
+                        label: Text(l10n.avatarGenerativeShuffle),
+                        style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                FilledButton(
+                  onPressed: selectedKey == GenerativeAvatar.keyFromSeed(_previewSeed) ? null : () => state.setAvatar(GenerativeAvatar.keyFromSeed(_previewSeed)),
+                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                  child: Text(
+                    selectedKey == GenerativeAvatar.keyFromSeed(_previewSeed) ? l10n.avatarGenerativeSelected : l10n.avatarGenerativeConfirm,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 OutlinedButton.icon(

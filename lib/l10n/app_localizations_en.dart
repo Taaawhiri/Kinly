@@ -1342,6 +1342,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get avatarUseInitials => 'Use initials';
 
   @override
+  String get avatarGenerativeTitle => 'Or generate a unique avatar';
+
+  @override
+  String get avatarGenerativeHint =>
+      'A pattern generated automatically from a random seed: no drawing needed, always different.';
+
+  @override
+  String get avatarGenerativeShuffle => 'Generate another';
+
+  @override
+  String get avatarGenerativeConfirm => 'Use this avatar';
+
+  @override
+  String get avatarGenerativeSelected => 'This is your current avatar';
+
+  @override
   String get personLocationNotShared => 'Location not shared';
 
   @override
@@ -1560,6 +1576,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get paywallFeaturePriorityDesc =>
       'Dedicated support for your circle, 7 days a week.';
+
+  @override
+  String get paywallFeatureGhostModeTitle => 'Temporary Ghost Mode';
+
+  @override
+  String get paywallFeatureGhostModeDesc =>
+      'Make your location invisible for 2 hours with one tap: everything becomes visible again on its own.';
+
+  @override
+  String get paywallFeatureWidgetTitle => 'Home screen widget';
+
+  @override
+  String get paywallFeatureWidgetDesc =>
+      'Whoever matters most, always at a glance, without opening the app (Android).';
 
   @override
   String get paywallRequestError =>

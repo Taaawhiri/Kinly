@@ -31,6 +31,8 @@ List<(IconData, String, String)> _features(AppLocalizations l10n) => [
       (Icons.gps_fixed_rounded, l10n.paywallFeatureBackgroundTitle, l10n.paywallFeatureBackgroundDesc),
       (Icons.forum_rounded, l10n.paywallFeatureUnlimitedMsgTitle, l10n.paywallFeatureUnlimitedMsgDesc),
       (Icons.shopping_bag_outlined, l10n.paywallFeatureShoppingTitle, l10n.paywallFeatureShoppingDesc),
+      (Icons.visibility_off_rounded, l10n.paywallFeatureGhostModeTitle, l10n.paywallFeatureGhostModeDesc),
+      (Icons.widgets_rounded, l10n.paywallFeatureWidgetTitle, l10n.paywallFeatureWidgetDesc),
       (Icons.support_agent_rounded, l10n.paywallFeaturePriorityTitle, l10n.paywallFeaturePriorityDesc),
     ];
 
@@ -387,6 +389,8 @@ List<(String, String?, String, String)> _comparisonRows(AppLocalizations l10n) =
       (l10n.personDrivingAlertsLink, null, 'check', 'check'),
       (l10n.privacyBackgroundTrackingHeader, null, 'check', 'check'),
       (l10n.paywallFeatureShoppingTitle, null, 'check', 'check'),
+      (l10n.paywallFeatureGhostModeTitle, null, 'check', 'check'),
+      (l10n.paywallFeatureWidgetTitle, null, 'check', 'check'),
       (l10n.paywallFeaturePriorityTitle, null, 'check', 'check'),
       (l10n.paywallCompareWhoBenefits, l10n.paywallCompareOnlyYou, l10n.paywallCompareOnlyYou, l10n.paywallCompareUpTo6People),
       (l10n.paywallComparePrice, l10n.paywallCompareFree, l10n.paywallCompareIndividualPricePerMonth, l10n.paywallCompareFamilyPricePerMonth),

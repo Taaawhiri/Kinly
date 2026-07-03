@@ -2384,6 +2384,36 @@ abstract class AppLocalizations {
   /// **'Usa le iniziali'**
   String get avatarUseInitials;
 
+  /// No description provided for @avatarGenerativeTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Oppure genera un avatar unico'**
+  String get avatarGenerativeTitle;
+
+  /// No description provided for @avatarGenerativeHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Un motivo creato automaticamente da un seed casuale: nessun disegno da fare, sempre diverso.'**
+  String get avatarGenerativeHint;
+
+  /// No description provided for @avatarGenerativeShuffle.
+  ///
+  /// In it, this message translates to:
+  /// **'Genera un altro'**
+  String get avatarGenerativeShuffle;
+
+  /// No description provided for @avatarGenerativeConfirm.
+  ///
+  /// In it, this message translates to:
+  /// **'Usa questo avatar'**
+  String get avatarGenerativeConfirm;
+
+  /// No description provided for @avatarGenerativeSelected.
+  ///
+  /// In it, this message translates to:
+  /// **'È il tuo avatar attuale'**
+  String get avatarGenerativeSelected;
+
   /// No description provided for @personLocationNotShared.
   ///
   /// In it, this message translates to:
@@ -2731,6 +2761,30 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Supporto dedicato per la tua cerchia, 7 giorni su 7.'**
   String get paywallFeaturePriorityDesc;
+
+  /// No description provided for @paywallFeatureGhostModeTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Ghost Mode temporaneo'**
+  String get paywallFeatureGhostModeTitle;
+
+  /// No description provided for @paywallFeatureGhostModeDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Rendi invisibile la tua posizione per 2 ore con un tocco: poi torna tutto visibile da solo.'**
+  String get paywallFeatureGhostModeDesc;
+
+  /// No description provided for @paywallFeatureWidgetTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Widget schermata home'**
+  String get paywallFeatureWidgetTitle;
+
+  /// No description provided for @paywallFeatureWidgetDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Chi conta di più sempre a colpo d\'occhio, senza aprire l\'app (Android).'**
+  String get paywallFeatureWidgetDesc;
 
   /// No description provided for @paywallRequestError.
   ///

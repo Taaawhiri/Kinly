@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar_catalog.dart';
+import '../utils/generative_avatar.dart';
 
 /// Avatar circolare con iniziali e, opzionalmente, un puntino di stato
 /// (verde = condivide ora, grigio = no). Il puntino fa un piccolo "battito"
@@ -46,8 +47,11 @@ class _PersonAvatarState extends State<PersonAvatar> with SingleTickerProviderSt
     final showActivityBadge = canSeeLocation && activity != ActivityStatus.stationary;
     final showLowBattery = canSeeLocation && person.isBatteryLow;
     final avatar = AvatarCatalog.find(person.avatarKey);
+    final generativeSeed = GenerativeAvatar.isGenerativeKey(person.avatarKey) ? GenerativeAvatar.seedFromKey(person.avatarKey!) : null;
     final photoUrl = person.photoUrl;
-    final glowColor = avatar != null ? avatar.colors.last : person.color;
+    final glowColor = generativeSeed != null
+        ? GenerativeAvatar.accentColor(generativeSeed)
+        : (avatar != null ? avatar.colors.last : person.color);
 
     return SizedBox(
       width: size,
@@ -60,10 +64,10 @@ class _PersonAvatarState extends State<PersonAvatar> with SingleTickerProviderSt
             height: size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: (photoUrl == null && avatar != null)
+              gradient: (photoUrl == null && generativeSeed == null && avatar != null)
                   ? LinearGradient(colors: avatar.colors, begin: Alignment.topLeft, end: Alignment.bottomRight)
                   : null,
-              color: (photoUrl == null && avatar == null) ? person.color : null,
+              color: (photoUrl == null && generativeSeed == null && avatar == null) ? person.color : null,
               border: Border.all(color: Colors.white, width: size * 0.06),
               boxShadow: [BoxShadow(color: glowColor.withOpacity(0.35), blurRadius: size * 0.22, offset: Offset(0, size * 0.06))],
             ),
@@ -79,12 +83,14 @@ class _PersonAvatarState extends State<PersonAvatar> with SingleTickerProviderSt
                         ? Text(avatar.emoji, style: TextStyle(fontSize: size * 0.5))
                         : Text(person.initials, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: size * 0.36)),
                   )
-                : (avatar != null
-                    ? Text(avatar.emoji, style: TextStyle(fontSize: size * 0.5))
-                    : Text(
-                        person.initials,
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: size * 0.36),
-                      )),
+                : (generativeSeed != null
+                    ? GenerativeAvatarPreview(seed: generativeSeed, size: size)
+                    : (avatar != null
+                        ? Text(avatar.emoji, style: TextStyle(fontSize: size * 0.5))
+                        : Text(
+                            person.initials,
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: size * 0.36),
+                          ))),
           ),
           if (widget.showStatusDot)
             Positioned(

@@ -419,6 +419,47 @@
   .shoplist-check.done { background: var(--green); border-color: var(--green); }
   .shoplist-claim { margin-left: auto; width: 46px; height: 16px; border-radius: 999px; background: rgba(74, 99, 231, 0.16); }
 
+  /* Cronologia e statistiche (skeleton): mappa con un percorso tratteggiato
+     tra due tappe + una card con due statistiche. */
+  .history-mock { position: absolute; inset: 0; }
+  .history-route { position: absolute; top: 14%; left: 10%; width: 76%; height: 58%; }
+  .history-stats {
+    position: absolute; left: 8%; right: 8%; bottom: 8%;
+    background: var(--surface); border-radius: 14px;
+    padding: 10px 12px;
+    box-shadow: 0 6px 16px rgba(28,34,51,0.12);
+    display: flex; gap: 14px;
+  }
+  .history-stat { flex: 1; }
+
+  /* Tracciamento in background (skeleton): schermo bloccato con un
+     indicatore "attivo" pulsante, per far capire che continua da solo. */
+  .bg-mock {
+    position: absolute; inset: 0;
+    background: linear-gradient(160deg, var(--primary-dark), var(--primary));
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 26%;
+  }
+  .bg-clock-bar { width: 74px; height: 22px; border-radius: 6px; background: rgba(255,255,255,0.9); }
+  .bg-date-bar { width: 50px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.5); margin-top: 10px; }
+  .bg-pill { margin-top: 30px; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.16); border-radius: 999px; padding: 8px 14px; }
+  .bg-pill-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: shimmer 1.3s ease-in-out infinite; flex: none; }
+  .bg-pill-bar { width: 60px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.6); }
+
+  /* Aree sicure (skeleton): mappa con un cerchio tratteggiato (l'area) e
+     una scheda con le zone tipiche (casa/lavoro/scuola). */
+  .zones-mock { position: absolute; inset: 0; }
+  .zones-ring { position: absolute; width: 84px; height: 84px; border-radius: 50%; border: 2px dashed var(--primary); background: rgba(74,99,231,0.08); }
+  .zones-sheet {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: var(--surface); border-radius: 18px 18px 0 0;
+    box-shadow: 0 -6px 16px rgba(28,34,51,0.1);
+    padding: 12px 14px 14px;
+    display: flex; gap: 8px;
+  }
+  .zone-chip { flex: 1; background: var(--surface-alt); border-radius: 10px; padding: 8px 6px; }
+  .zone-chip .bar { margin: 0 auto; }
+
   .plans {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -550,7 +591,7 @@
         <b>SOS e richieste di aiuto</b>
         <span>Un tocco per avvisare la tua cerchia con la posizione esatta.</span>
       </div>
-      <div class="feature" data-cat="sicurezza">
+      <div class="feature" data-cat="plus">
         <div class="icon-badge">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 3 20 6 20 11C20 16 16.5 20 12 21 7.5 20 4 16 4 11L4 6Z"/>
@@ -558,7 +599,7 @@
           </svg>
         </div>
         <b>Aree sicure</b>
-        <span>Sai subito quando chi ami arriva o esce da casa, scuola, lavoro.</span>
+        <span>Sai subito quando chi ami arriva o esce da casa, scuola, lavoro (Kinly+).</span>
       </div>
       <div class="feature" data-cat="sicurezza">
         <div class="icon-badge">
@@ -611,6 +652,74 @@
         </div>
         <b>Ghost Mode temporaneo</b>
         <span>Nasconditi del tutto per 2 ore quando ti serve davvero: torni visibile da solo.</span>
+      </div>
+      <div class="feature" data-cat="plus">
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 8a8 8 0 1 1 1 6"/>
+            <path d="M4 4v4h4"/>
+            <path d="M12 8v4l3 2"/>
+          </svg>
+        </div>
+        <b>Cronologia posizioni</b>
+        <span>Rivedi dove sono stati i membri della cerchia nei giorni passati, ricostruito passo passo (Kinly+).</span>
+      </div>
+      <div class="feature" data-cat="plus">
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 20V14"/>
+            <path d="M10 20V9"/>
+            <path d="M16 20V5"/>
+            <path d="M20 20H4"/>
+          </svg>
+        </div>
+        <b>Statistiche e itinerari</b>
+        <span>Distanza percorsa e mappa dei tragitti fatti, con una timeline animata da rivedere (Kinly+).</span>
+      </div>
+      <div class="feature" data-cat="plus">
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="8.5" cy="12" rx="4.5" ry="3.2"/>
+            <ellipse cx="15.5" cy="12" rx="4.5" ry="3.2"/>
+          </svg>
+        </div>
+        <b>Cerchie senza limiti</b>
+        <span>Nessun limite al numero di cerchie o di persone per cerchia: comodo per famiglie allargate (Kinly+).</span>
+      </div>
+      <div class="feature" data-cat="plus">
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 16a8 8 0 1 1 16 0"/>
+            <path d="M12 16 15 10"/>
+            <circle cx="12" cy="16" r="1" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <b>Avvisi di guida</b>
+        <span>Sai subito quando chi guida supera un limite di velocita' impostato (Kinly+).</span>
+      </div>
+      <div class="feature" data-cat="plus">
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 21s6-6.7 6-11a6 6 0 0 0-12 0c0 4.3 6 11 6 11Z"/>
+            <circle cx="10" cy="10" r="2"/>
+            <path d="M15.3 6.7a5 5 0 0 1 0 7"/>
+            <path d="M18 4a9 9 0 0 1 0 12.5"/>
+          </svg>
+        </div>
+        <b>Tracciamento in background</b>
+        <span>La posizione continua ad aggiornarsi anche con l'app chiusa, senza doverla tenere aperta (Kinly+).</span>
+      </div>
+      <div class="feature" data-cat="plus">
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 13v-1a8 8 0 0 1 16 0v1"/>
+            <rect x="3" y="13" width="4" height="6" rx="1.5"/>
+            <rect x="17" y="13" width="4" height="6" rx="1.5"/>
+            <path d="M20 19v1a3 3 0 0 1-3 3h-3"/>
+          </svg>
+        </div>
+        <b>Assistenza prioritaria</b>
+        <span>Supporto dedicato per la tua cerchia, sette giorni su sette (Kinly+).</span>
       </div>
       <div class="feature" data-cat="sicurezza">
         <div class="icon-badge">
@@ -672,7 +781,7 @@
         <b>Widget schermata home</b>
         <span>La tua cerchia a colpo d'occhio, senza aprire l'app: ultima posizione e stato di chi conta di piu' (Kinly+, Android).</span>
       </div>
-      <div class="feature" data-cat="comodita">
+      <div class="feature" data-cat="plus">
         <div class="icon-badge">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M6 8h12l-1 12H7Z"/>
@@ -680,7 +789,7 @@
           </svg>
         </div>
         <b>Portami qualcosa</b>
-        <span>Se sei vicino a un negozio, la cerchia puo' chiederti al volo di prendere qualcosa.</span>
+        <span>Se sei vicino a un negozio, la cerchia puo' chiederti al volo di prendere qualcosa (Kinly+).</span>
       </div>
     </div>
   </section>
@@ -990,6 +1099,75 @@
         <div class="story-text">
           <h3>Lista della spesa condivisa</h3>
           <p>Aggiungi cosa serve a casa: chi passa vicino a un negozio la vede e puo' rispondere "Ci penso io", senza messaggi incrociati per il latte finito.</p>
+        </div>
+      </div>
+
+      <div class="story" data-cat="plus">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="history-mock">
+              <div class="map-bg"></div>
+              <svg class="history-route" viewBox="0 0 100 70" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 8">
+                <path d="M10 60 C 30 20, 50 55, 90 10"/>
+              </svg>
+              <div class="skel-dot" style="background: var(--green); top: 58%; left: 6%;"></div>
+              <div class="skel-dot" style="background: var(--coral); top: 10%; left: 76%;"></div>
+              <div class="history-stats">
+                <div class="history-stat">
+                  <div class="bar" style="width: 30px; margin: 0 auto;"></div>
+                  <div class="bar light" style="width: 22px; margin: 6px auto 0;"></div>
+                </div>
+                <div class="history-stat">
+                  <div class="bar" style="width: 30px; margin: 0 auto;"></div>
+                  <div class="bar light" style="width: 22px; margin: 6px auto 0;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="story-text">
+          <h3>Cronologia e statistiche dei tragitti <span class="plus-badge">Kinly+</span></h3>
+          <p>Rivedi dove sei stato nei giorni passati, con distanza percorsa e una timeline animata da riguardare quando vuoi.</p>
+        </div>
+      </div>
+
+      <div class="story reverse" data-cat="plus">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="bg-mock">
+              <div class="bg-clock-bar"></div>
+              <div class="bg-date-bar"></div>
+              <div class="bg-pill">
+                <div class="bg-pill-dot"></div>
+                <div class="bg-pill-bar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="story-text">
+          <h3>Non perde il filo nemmeno ad app chiusa <span class="plus-badge">Kinly+</span></h3>
+          <p>La posizione continua ad aggiornarsi anche a telefono bloccato o con l'app chiusa: niente da tenere aperto apposta.</p>
+        </div>
+      </div>
+
+      <div class="story" data-cat="plus">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="zones-mock">
+              <div class="map-bg"></div>
+              <div class="zones-ring" style="top: 14%; left: 20%;"></div>
+              <div class="skel-dot" style="background: var(--primary); top: 30%; left: 40%;"></div>
+              <div class="zones-sheet">
+                <div class="zone-chip"><div class="bar" style="width: 26px;"></div></div>
+                <div class="zone-chip"><div class="bar" style="width: 26px;"></div></div>
+                <div class="zone-chip"><div class="bar" style="width: 26px;"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="story-text">
+          <h3>Aree sicure su misura <span class="plus-badge">Kinly+</span></h3>
+          <p>Disegna casa, lavoro, scuola o qualunque zona conti per te: ricevi una notifica dedicata a ogni ingresso o uscita.</p>
         </div>
       </div>
     </div>

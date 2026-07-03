@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:math' show min;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:maplibre_gl/maplibre_gl.dart';
 import '../l10n/app_localizations.dart';
 import '../models/meeting_point.dart';
@@ -11,6 +13,7 @@ import '../models/safe_zone.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar_catalog.dart';
 import '../utils/color_hex.dart';
+import '../utils/generative_avatar.dart';
 import '../utils/geo_circle.dart';
 
 /// I pin persona/punto d'incontro vengono disegnati a questa risoluzione
@@ -171,6 +174,7 @@ class _KinlyMapState extends State<KinlyMap> {
           a[i].lng != b[i].lng ||
           a[i].color != b[i].color ||
           a[i].avatarKey != b[i].avatarKey ||
+          a[i].photoUrl != b[i].photoUrl ||
           a[i].isFuzzyLocation != b[i].isFuzzyLocation) {
         return false;
       }
@@ -339,7 +343,38 @@ class _KinlyMapState extends State<KinlyMap> {
     await controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, left: 60, top: 80, right: 60, bottom: 80));
   }
 
+  /// Priorità delle immagini pin, coerente con [PersonAvatar] usato nel
+  /// resto dell'app: foto vera, poi avatar generativo da seed, poi avatar
+  /// a tema, infine iniziali. Il download della foto può fallire (rete
+  /// assente, URL scaduto): in quel caso si ripiega sotto senza bloccare
+  /// la mappa, che non deve mai dipendere da una chiamata di rete extra.
   Future<String> _ensureAvatarImage(MapLibreMapController controller, Person person) async {
+    final photoUrl = person.photoUrl;
+    if (photoUrl != null) {
+      final name = 'kinly_avatar_photo_${person.id}_${photoUrl.hashCode}';
+      if (_registeredImages.contains(name)) return name;
+      try {
+        final bytes = await _renderAvatarPinWithPhoto(photoUrl, person.color);
+        await controller.addImage(name, bytes);
+        _registeredImages.add(name);
+        return name;
+      } catch (_) {
+        // Foto non raggiungibile: si prosegue sotto con l'avatar/iniziali.
+      }
+    }
+
+    final generativeKey = person.avatarKey;
+    if (GenerativeAvatar.isGenerativeKey(generativeKey)) {
+      final seed = GenerativeAvatar.seedFromKey(generativeKey!);
+      final name = 'kinly_avatar_gen_${person.id}_$seed';
+      if (!_registeredImages.contains(name)) {
+        final bytes = await _renderAvatarPinWithGenerative(seed);
+        await controller.addImage(name, bytes);
+        _registeredImages.add(name);
+      }
+      return name;
+    }
+
     final avatar = AvatarCatalog.find(person.avatarKey);
     final name = avatar != null
         ? 'kinly_avatar_${person.id}_${avatar.key}'
@@ -492,4 +527,85 @@ Future<Uint8List> _renderAvatarPinWithEmoji(AvatarOption avatar) async {
   final image = await picture.toImage(width.round(), height.round());
   final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
   return byteData!.buffer.asUint8List();
+}
+
+/// Stessa forma del pin con iniziali, ma con la foto profilo vera al
+/// centro (ritagliata quadrata dal centro, poi in un cerchio): coerente
+/// con [PersonAvatar], che nel resto dell'app mostra la foto quando c'è.
+/// Il download può lanciare un'eccezione (rete assente, URL non valido,
+/// formato non decodificabile): sta a chi chiama ripiegare sull'avatar
+/// a tema o sulle iniziali in quel caso.
+Future<Uint8List> _renderAvatarPinWithPhoto(String photoUrl, Color tailColor) async {
+  final response = await http.get(Uri.parse(photoUrl)).timeout(const Duration(seconds: 8));
+  if (response.statusCode != 200) throw Exception('Foto non raggiungibile: HTTP ${response.statusCode}');
+  final codec = await ui.instantiateImageCodec(response.bodyBytes);
+  final frame = await codec.getNextFrame();
+  final photo = frame.image;
+
+  const double circleSize = 72;
+  const double tailHeight = 22;
+  const double pixelRatio = 2.0;
+  const width = circleSize * pixelRatio;
+  const height = (circleSize + tailHeight) * pixelRatio;
+
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder);
+  const center = Offset(width / 2, (circleSize / 2) * pixelRatio);
+  const radius = (circleSize / 2) * pixelRatio;
+
+  final tail = Path()
+    ..moveTo(center.dx - radius * 0.42, center.dy + radius * 0.82)
+    ..lineTo(center.dx + radius * 0.42, center.dy + radius * 0.82)
+    ..lineTo(center.dx, height)
+    ..close();
+  canvas.drawPath(tail, Paint()..color = tailColor);
+  canvas.drawCircle(center, radius, Paint()..color = Colors.white);
+
+  canvas.save();
+  canvas.clipPath(Path()..addOval(Rect.fromCircle(center: center, radius: radius * 0.92)));
+  final side = min(photo.width, photo.height).toDouble();
+  final srcSquare = Rect.fromCenter(center: Offset(photo.width / 2, photo.height / 2), width: side, height: side);
+  final dstCircle = Rect.fromCircle(center: center, radius: radius * 0.92);
+  canvas.drawImageRect(photo, srcSquare, dstCircle, Paint());
+  canvas.restore();
+
+  final picture2 = recorder.endRecording();
+  final image2 = await picture2.toImage(width.round(), height.round());
+  final byteData2 = await image2.toByteData(format: ui.ImageByteFormat.png);
+  return byteData2!.buffer.asUint8List();
+}
+
+/// Stessa forma del pin con iniziali, ma con l'avatar generativo da seed
+/// (vedi GenerativeAvatar) al centro, per chi ha scelto quello invece di
+/// un avatar a tema o di una foto.
+Future<Uint8List> _renderAvatarPinWithGenerative(String seed) async {
+  const double circleSize = 72;
+  const double tailHeight = 22;
+  const double pixelRatio = 2.0;
+  const width = circleSize * pixelRatio;
+  const height = (circleSize + tailHeight) * pixelRatio;
+
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder);
+  const center = Offset(width / 2, (circleSize / 2) * pixelRatio);
+  const radius = (circleSize / 2) * pixelRatio;
+  final tailColor = GenerativeAvatar.accentColor(seed);
+
+  final tail = Path()
+    ..moveTo(center.dx - radius * 0.42, center.dy + radius * 0.82)
+    ..lineTo(center.dx + radius * 0.42, center.dy + radius * 0.82)
+    ..lineTo(center.dx, height)
+    ..close();
+  canvas.drawPath(tail, Paint()..color = tailColor);
+  canvas.drawCircle(center, radius, Paint()..color = Colors.white);
+
+  canvas.save();
+  canvas.clipPath(Path()..addOval(Rect.fromCircle(center: center, radius: radius * 0.92)));
+  GenerativeAvatar.paint(canvas, Rect.fromCircle(center: center, radius: radius * 0.92), seed);
+  canvas.restore();
+
+  final picture3 = recorder.endRecording();
+  final image3 = await picture3.toImage(width.round(), height.round());
+  final byteData3 = await image3.toByteData(format: ui.ImageByteFormat.png);
+  return byteData3!.buffer.asUint8List();
 }

@@ -403,6 +403,11 @@
   "avatarThemedTitle": "Themed avatars",
   "avatarThemedHint": "Used when you haven't uploaded a photo.",
   "avatarUseInitials": "Use initials",
+  "avatarGenerativeTitle": "Or generate a unique avatar",
+  "avatarGenerativeHint": "A pattern generated automatically from a random seed: no drawing needed, always different.",
+  "avatarGenerativeShuffle": "Generate another",
+  "avatarGenerativeConfirm": "Use this avatar",
+  "avatarGenerativeSelected": "This is your current avatar",
 
   "personLocationNotShared": "Location not shared",
   "personBirthdayToday": "🎂 Today is their birthday!",
@@ -467,6 +472,10 @@
   "paywallFeatureShoppingDesc": "Let the circle know when you're at the supermarket or a bar, so they can ask you for something quickly.",
   "paywallFeaturePriorityTitle": "Priority support",
   "paywallFeaturePriorityDesc": "Dedicated support for your circle, 7 days a week.",
+  "paywallFeatureGhostModeTitle": "Temporary Ghost Mode",
+  "paywallFeatureGhostModeDesc": "Make your location invisible for 2 hours with one tap: everything becomes visible again on its own.",
+  "paywallFeatureWidgetTitle": "Home screen widget",
+  "paywallFeatureWidgetDesc": "Whoever matters most, always at a glance, without opening the app (Android).",
 
   "paywallRequestError": "We couldn't send the request. Please try again.",
   "paywallCancelMessage": "I'd like to cancel my Kinly+ subscription.",
