@@ -6,6 +6,17 @@ on:
       - "**"
   workflow_dispatch: {}
 
+# Serve il permesso di scrittura per poter creare la GitHub Release usata
+# dai beta tester (vedi step "Publish beta release" sotto): di default il
+# GITHUB_TOKEN automatico potrebbe essere in sola lettura.
+permissions:
+  contents: write
+
+# Branch da cui pubblicare le release per i beta tester: aggiornare se in
+# futuro si cambia il branch di sviluppo principale.
+env:
+  BETA_RELEASE_BRANCH: refs/heads/claude/kinly-supabase-dev-1bzs4w
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
@@ -34,7 +45,14 @@ jobs:
           # GitHub, questi flag andrebbero passati vuoti e sovrascriverebbero
           # il progetto Supabase di default incorporato nell'app. Li
           # aggiungiamo quindi solo se i secret sono valorizzati.
-          args=()
+          #
+          # BUILD_NUMBER (sempre valorizzato, non è un segreto) è il numero
+          # progressivo di questa esecuzione: incorporato nell'app, permette
+          # di confrontare "quale versione ho" con "qual è l'ultima
+          # disponibile" per il controllo aggiornamenti dei beta tester
+          # (vedi lib/services/app_update_service.dart), senza dover tenere
+          # aggiornato a mano version+build in pubspec.yaml ad ogni push.
+          args=("--dart-define=BUILD_NUMBER=${{ github.run_number }}")
           if [ -n "$SUPABASE_URL" ]; then
             args+=("--dart-define=SUPABASE_URL=$SUPABASE_URL")
           fi
@@ -47,3 +65,20 @@ jobs:
         with:
           name: kinly-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      # Solo dal branch di sviluppo principale, per non riempire la pagina
+      # Release con un build per ogni branch sperimentale: una vera release
+      # pubblica (repo pubblica, nessun token richiesto per scaricarla),
+      # taggata con il numero di build, con l'APK allegato. L'app dei beta
+      # tester la trova via GitHub API (releases/latest).
+      - name: Publish beta release
+        if: github.ref == env.BETA_RELEASE_BRANCH
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: beta-${{ github.run_number }}
+          name: "Beta build ${{ github.run_number }}"
+          body: |
+            Build automatica da ${{ github.sha }}.
+
+            ${{ github.event.head_commit.message }}
+          files: build/app/outputs/flutter-apk/app-release.apk

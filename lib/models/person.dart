@@ -57,6 +57,7 @@ class Person {
     this.avatarKey,
     this.photoUrl,
     this.isAdmin = false,
+    this.isBetaTester = false,
     this.birthday,
     this.statusEmoji,
     this.statusText,
@@ -110,6 +111,10 @@ class Person {
   /// Amministratore dell'assistenza: vede e risponde a tutti i messaggi di
   /// supporto (vedi AdminSupportInboxScreen), non solo ai propri.
   final bool isAdmin;
+
+  /// Beta tester: vede in Privacy e sicurezza la sezione per controllare e
+  /// scaricare le build più recenti pubblicate su GitHub.
+  final bool isBetaTester;
 
   /// Data di nascita (opzionale, la sceglie l'utente): solo mese e giorno
   /// contano, per mostrare un'iconcina di compleanno nel giorno giusto.
@@ -213,6 +218,7 @@ class Person {
       avatarKey: clearAvatarKey ? null : (avatarKey ?? this.avatarKey),
       photoUrl: clearPhotoUrl ? null : (photoUrl ?? this.photoUrl),
       isAdmin: isAdmin,
+      isBetaTester: isBetaTester,
       birthday: birthday ?? this.birthday,
       statusEmoji: clearStatus ? null : (statusEmoji ?? this.statusEmoji),
       statusText: clearStatus ? null : (statusText ?? this.statusText),

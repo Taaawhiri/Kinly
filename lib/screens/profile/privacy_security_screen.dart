@@ -4,7 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/app_update_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/background_tracking_settings.dart';
 import '../../services/biometric_lock_service.dart';
@@ -39,6 +41,8 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
 
   String? _emergencySmsNumber;
   bool _crashDetectionEnabled = false;
+
+  bool _checkingUpdate = false;
 
   @override
   void initState() {
@@ -325,6 +329,41 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     );
     if (result == null) return;
     await AppState.instance.setPhoneNumber(result.isEmpty ? null : result);
+  }
+
+  /// Scarica l'APK aprendolo nel browser di sistema (finisce nei Download
+  /// del telefono come un file qualunque): non lo installa da sola, serve
+  /// un tocco manuale dell'utente sul file scaricato. Vedi AppUpdateService
+  /// per il perché di questa scelta invece di un download+installazione
+  /// automatici da dentro l'app.
+  Future<void> _checkForUpdate() async {
+    setState(() => _checkingUpdate = true);
+    final update = await AppUpdateService.instance.checkForUpdate();
+    if (!mounted) return;
+    setState(() => _checkingUpdate = false);
+    final l10n = AppLocalizations.of(context)!;
+
+    if (update == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.privacyUpToDate)));
+      return;
+    }
+
+    final notes = update.notes?.trim();
+    final download = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(l10n.privacyUpdateAvailableTitle(update.buildNumber)),
+        content: Text((notes != null && notes.isNotEmpty) ? notes : l10n.privacyUpdateAvailableBody),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonNotNow)),
+          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.privacyDownloadUpdate)),
+        ],
+      ),
+    );
+    if (download == true) {
+      await launchUrl(Uri.parse(update.downloadUrl), mode: LaunchMode.externalApplication);
+    }
   }
 
   @override
@@ -645,6 +684,22 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     MaterialPageRoute(builder: (_) => const CirclesScreen(forceCoachMark: true)),
                   ),
                 ),
+                if (state.me.isBetaTester) ...[
+                  const SizedBox(height: 24),
+                  Text(l10n.privacyBetaHeader, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                  const SizedBox(height: 6),
+                  Text(
+                    l10n.privacyBetaHint,
+                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
+                  ),
+                  const SizedBox(height: 10),
+                  _ActionTile(
+                    icon: Icons.system_update_rounded,
+                    label: _checkingUpdate ? l10n.privacyCheckingUpdate : l10n.privacyCheckForUpdates,
+                    loading: _checkingUpdate,
+                    onTap: _checkingUpdate ? null : _checkForUpdate,
+                  ),
+                ],
               ],
             ),
           ),

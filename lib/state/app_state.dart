@@ -80,6 +80,7 @@ class AppState extends ChangeNotifier {
   bool get hasCircles => _circles.isNotEmpty;
   bool get isPremium => me.isPremium;
   bool get isAdmin => me.isAdmin;
+  bool get isBetaTester => me.isBetaTester;
 
   /// Piano posseduto direttamente (non l'effettivo): usato dalla pagina
   /// Kinly+ per capire quale dei tre livelli è davvero il mio, distinto dal
@@ -405,6 +406,7 @@ class AppState extends ChangeNotifier {
       avatarKey: person.avatarKey,
       photoUrl: person.photoUrl,
       isAdmin: person.isAdmin,
+      isBetaTester: person.isBetaTester,
       birthday: person.birthday,
       statusEmoji: person.statusEmoji,
       statusText: person.statusText,
@@ -442,6 +444,7 @@ class AppState extends ChangeNotifier {
       avatarKey: profile['avatar_key'] as String?,
       photoUrl: profile['photo_url'] as String?,
       isAdmin: profile['is_admin'] as bool? ?? false,
+      isBetaTester: profile['is_beta_tester'] as bool? ?? false,
       mode: SharingModeData.fromDb(profile['effective_sharing_mode'] as String? ?? profile['sharing_mode'] as String? ?? 'automatic'),
       birthday: profile['birthday'] != null ? DateTime.parse(profile['birthday'] as String) : null,
       statusEmoji: profile['status_emoji'] as String?,

@@ -1201,6 +1201,38 @@ class AppLocalizationsIt extends AppLocalizations {
   String get privacyReviewCirclesGuide => 'Rivedi la guida delle cerchie';
 
   @override
+  String get privacyBetaHeader => 'Beta tester';
+
+  @override
+  String get privacyBetaHint =>
+      'Controlla se è disponibile una build più recente pubblicata su GitHub, prima che arrivi sugli store.';
+
+  @override
+  String get privacyCheckForUpdates => 'Controlla aggiornamenti';
+
+  @override
+  String get privacyCheckingUpdate => 'Controllo in corso…';
+
+  @override
+  String get privacyUpToDate => 'Hai già l\'ultima versione.';
+
+  @override
+  String get privacyUpdateCheckError =>
+      'Non siamo riusciti a controllare gli aggiornamenti. Riprova più tardi.';
+
+  @override
+  String privacyUpdateAvailableTitle(int number) {
+    return 'Build $number disponibile';
+  }
+
+  @override
+  String get privacyUpdateAvailableBody =>
+      'È disponibile una nuova build. Scaricala per aggiornare l\'app: dovrai poi aprirla dai Download del telefono per installarla (Kinly non installa nulla da solo).';
+
+  @override
+  String get privacyDownloadUpdate => 'Scarica';
+
+  @override
   String get changePasswordMismatch => 'Le due password non coincidono.';
 
   @override

@@ -114,6 +114,13 @@ alter table public.profiles add column if not exists photo_url text;
 -- in basso, quindi va impostato a mano da SQL Editor, come is_premium.
 alter table public.profiles add column if not exists is_admin boolean not null default false;
 
+-- Beta tester: vede in Privacy e sicurezza la sezione "Controlla
+-- aggiornamenti" che confronta il build installato con l'ultima release
+-- beta pubblicata su GitHub (vedi app_update_service.dart). Come is_admin,
+-- non è tra le colonne scrivibili da "authenticated": si attiva a mano da
+-- SQL Editor per chi si vuole invitare a testare le build più recenti.
+alter table public.profiles add column if not exists is_beta_tester boolean not null default false;
+
 -- Numero di telefono (facoltativo): permette a chi riceve un tuo SOS o una
 -- richiesta di aiuto di chiamarti direttamente con un tocco, invece di
 -- vedere solo la posizione.

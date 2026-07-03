@@ -2120,6 +2120,60 @@ abstract class AppLocalizations {
   /// **'Rivedi la guida delle cerchie'**
   String get privacyReviewCirclesGuide;
 
+  /// No description provided for @privacyBetaHeader.
+  ///
+  /// In it, this message translates to:
+  /// **'Beta tester'**
+  String get privacyBetaHeader;
+
+  /// No description provided for @privacyBetaHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Controlla se è disponibile una build più recente pubblicata su GitHub, prima che arrivi sugli store.'**
+  String get privacyBetaHint;
+
+  /// No description provided for @privacyCheckForUpdates.
+  ///
+  /// In it, this message translates to:
+  /// **'Controlla aggiornamenti'**
+  String get privacyCheckForUpdates;
+
+  /// No description provided for @privacyCheckingUpdate.
+  ///
+  /// In it, this message translates to:
+  /// **'Controllo in corso…'**
+  String get privacyCheckingUpdate;
+
+  /// No description provided for @privacyUpToDate.
+  ///
+  /// In it, this message translates to:
+  /// **'Hai già l\'ultima versione.'**
+  String get privacyUpToDate;
+
+  /// No description provided for @privacyUpdateCheckError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a controllare gli aggiornamenti. Riprova più tardi.'**
+  String get privacyUpdateCheckError;
+
+  /// No description provided for @privacyUpdateAvailableTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Build {number} disponibile'**
+  String privacyUpdateAvailableTitle(int number);
+
+  /// No description provided for @privacyUpdateAvailableBody.
+  ///
+  /// In it, this message translates to:
+  /// **'È disponibile una nuova build. Scaricala per aggiornare l\'app: dovrai poi aprirla dai Download del telefono per installarla (Kinly non installa nulla da solo).'**
+  String get privacyUpdateAvailableBody;
+
+  /// No description provided for @privacyDownloadUpdate.
+  ///
+  /// In it, this message translates to:
+  /// **'Scarica'**
+  String get privacyDownloadUpdate;
+
   /// No description provided for @changePasswordMismatch.
   ///
   /// In it, this message translates to:
