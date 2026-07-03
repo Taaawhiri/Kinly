@@ -1135,6 +1135,13 @@ create policy "encounters_select" on public.encounters
 -- (evita di spammare chi resta vicino per ore, es. stessa stanza), registra
 -- l'incrocio. La distanza è calcolata con la formula dell'emisenoverso,
 -- senza bisogno dell'estensione PostGIS.
+--
+-- Esclusione aree sicure: se la posizione ricade dentro un'area sicura
+-- (Casa, Lavoro, Scuola...) di una cerchia condivisa dai due, niente
+-- incrocio. Altrimenti due persone che vivono o lavorano insieme si
+-- vedrebbero proporre "High Five" in continuazione stando semplicemente
+-- ferme nello stesso posto, il che non ha senso: l'incrocio ha senso solo
+-- fuori, quando ci si trova per caso.
 create or replace function public.detect_encounters()
 returns trigger
 language plpgsql
@@ -1165,6 +1172,21 @@ begin
       where e.created_at > now() - interval '3 hours'
         and ((e.profile_a = new.profile_id and e.profile_b = nearby.profile_id)
           or (e.profile_a = nearby.profile_id and e.profile_b = new.profile_id))
+    ) and not exists (
+      select 1
+      from public.safe_zones sz
+      join public.circle_members mine on mine.circle_id = sz.circle_id
+      join public.circle_members theirs on theirs.circle_id = sz.circle_id
+      where mine.profile_id = new.profile_id
+        and theirs.profile_id = nearby.profile_id
+        and (
+          6371000 * acos(
+            least(1, greatest(-1,
+              sin(radians(new.lat)) * sin(radians(sz.lat)) +
+              cos(radians(new.lat)) * cos(radians(sz.lat)) * cos(radians(sz.lng) - radians(new.lng))
+            ))
+          )
+        ) <= sz.radius_meters
     ) then
       insert into public.encounters (profile_a, profile_b, lat, lng) values (new.profile_id, nearby.profile_id, new.lat, new.lng);
     end if;
