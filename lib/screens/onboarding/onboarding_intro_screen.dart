@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/biometric_lock_service.dart';
 import '../../services/onboarding_settings.dart';
 import '../../theme/app_theme.dart';
@@ -69,6 +70,7 @@ class _OnboardingIntroScreenState extends State<OnboardingIntroScreen> {
     if (!_biometricChecked) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: SafeArea(
@@ -79,20 +81,20 @@ class _OnboardingIntroScreenState extends State<OnboardingIntroScreen> {
                 controller: _pageController,
                 onPageChanged: (i) => setState(() => _page = i),
                 children: [
-                  const _IntroPage(
+                  _IntroPage(
                     icon: Icons.groups_rounded,
-                    title: 'Benvenuto in Kinly',
-                    description: 'Condividi la tua posizione solo con chi conta davvero: famiglia, amici, colleghi. Accesso sempre su invito, mai pubblico.',
+                    title: l10n.onboardingWelcomeTitle,
+                    description: l10n.onboardingWelcomeDesc,
                   ),
-                  const _IntroPage(
+                  _IntroPage(
                     icon: Icons.emergency_rounded,
-                    title: 'Sempre al sicuro',
-                    description: 'SOS e "Chiedi aiuto" avvisano subito la tua cerchia in caso di bisogno. Le aree sicure ti dicono quando qualcuno arriva o esce da casa, lavoro o scuola.',
+                    title: l10n.onboardingSafeTitle,
+                    description: l10n.onboardingSafeDesc,
                   ),
-                  const _IntroPage(
+                  _IntroPage(
                     icon: Icons.forum_rounded,
-                    title: 'Restate in contatto',
-                    description: 'Messaggi rapidi, punto d\'incontro condiviso e meteo della zona: tutto in un posto solo, senza dover chiedere "dove sei?".',
+                    title: l10n.onboardingContactTitle,
+                    description: l10n.onboardingContactDesc,
                   ),
                   if (_biometricSupported)
                     _BiometricPage(enabled: _biometricEnabled, onChanged: _toggleBiometric),
@@ -122,11 +124,11 @@ class _OnboardingIntroScreenState extends State<OnboardingIntroScreen> {
                   FilledButton(
                     onPressed: _next,
                     style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
-                    child: Text(_page == _pageCount - 1 ? 'Inizia' : 'Continua'),
+                    child: Text(_page == _pageCount - 1 ? l10n.onboardingStart : l10n.commonContinue),
                   ),
                   if (_page < _pageCount - 1) ...[
                     const SizedBox(height: 10),
-                    TextButton(onPressed: _finish, child: const Text('Salta')),
+                    TextButton(onPressed: _finish, child: Text(l10n.onboardingSkip)),
                   ],
                 ],
               ),
@@ -179,6 +181,7 @@ class _BiometricPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
@@ -186,10 +189,10 @@ class _BiometricPage extends StatelessWidget {
         children: [
           const KinlyLogo(size: 72),
           const SizedBox(height: 24),
-          Text('Proteggi l\'accesso', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppTheme.textPrimary)),
+          Text(l10n.onboardingBiometricTitle, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppTheme.textPrimary)),
           const SizedBox(height: 12),
           Text(
-            'Attiva subito lo sblocco con impronta, volto o codice del dispositivo: un livello in più oltre alla password, verificato dal sistema (Kinly non vede mai i tuoi dati biometrici).',
+            l10n.onboardingBiometricDesc,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 14.5, color: AppTheme.textSecondary, height: 1.5),
           ),
@@ -200,7 +203,7 @@ class _BiometricPage extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: Text('Sblocco biometrico', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                  child: Text(l10n.privacyBiometricUnlock, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
                 ),
                 Switch(value: enabled, onChanged: onChanged),
               ],

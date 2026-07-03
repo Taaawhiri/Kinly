@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
@@ -11,6 +12,7 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final error = AppState.instance.loadError;
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: Center(
         child: Padding(
@@ -26,14 +28,14 @@ class SplashScreen extends StatelessWidget {
                 Icon(Icons.wifi_off_rounded, size: 32, color: AppTheme.textSecondary),
                 const SizedBox(height: 12),
                 Text(
-                  'Non riusciamo a contattare Kinly. Controlla la connessione e riprova.',
+                  l10n.splashConnectionError,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5, height: 1.4),
                 ),
                 const SizedBox(height: 16),
                 FilledButton(
                   onPressed: () => AppState.instance.initialize(),
-                  child: const Text('Riprova'),
+                  child: Text(l10n.commonRetry),
                 ),
               ],
             ],

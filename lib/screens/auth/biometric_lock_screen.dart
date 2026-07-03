@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/biometric_lock_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_logo.dart';
@@ -34,12 +35,13 @@ class _BiometricLockScreenState extends State<BiometricLockScreen> {
     if (ok) {
       widget.onUnlocked();
     } else {
-      setState(() => _error = 'Non siamo riusciti a verificare la tua identità.');
+      if (mounted) setState(() => _error = AppLocalizations.of(context)!.privacyBiometricAuthFailed);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -50,10 +52,10 @@ class _BiometricLockScreenState extends State<BiometricLockScreen> {
               children: [
                 const KinlyLogo(size: 72),
                 const SizedBox(height: 24),
-                Text('Kinly è bloccata', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+                Text(l10n.biometricLockedTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
                 const SizedBox(height: 8),
                 Text(
-                  'Sblocca con l\'impronta, il volto o il codice del dispositivo per continuare.',
+                  l10n.biometricLockedMessage,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5, height: 1.4),
                 ),
@@ -68,7 +70,7 @@ class _BiometricLockScreenState extends State<BiometricLockScreen> {
                   FilledButton.icon(
                     onPressed: _tryUnlock,
                     icon: const Icon(Icons.fingerprint_rounded),
-                    label: const Text('Sblocca'),
+                    label: Text(l10n.biometricUnlockButton),
                     style: FilledButton.styleFrom(minimumSize: const Size(200, 52)),
                   ),
               ],

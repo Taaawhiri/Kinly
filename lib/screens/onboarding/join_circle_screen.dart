@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/kinly_repository.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
@@ -65,7 +66,7 @@ class _JoinCircleScreenState extends State<JoinCircleScreen> {
       final circle = await AppState.instance.joinCircleByCode(_controller.text);
       if (!mounted) return;
       if (circle == null) {
-        setState(() => _error = 'Codice non valido. Chiedi a chi ti ha invitato di controllarlo.');
+        setState(() => _error = AppLocalizations.of(context)!.joinCircleInvalidCode);
         return;
       }
       if (widget.isOnboarding) {
@@ -75,14 +76,13 @@ class _JoinCircleScreenState extends State<JoinCircleScreen> {
       }
     } on FreeLimitException catch (e) {
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       setState(() {
         _limitReached = true;
-        _error = e.kind == FreeLimitKind.tooManyCircles
-            ? 'Nel piano gratuito puoi far parte di massimo 2 cerchie. Passa a Kinly+ per non avere limiti.'
-            : 'Questa cerchia ha già raggiunto il limite di 6 persone del piano gratuito.';
+        _error = e.kind == FreeLimitKind.tooManyCircles ? l10n.circleLimitCirclesMessage : l10n.joinCircleMemberLimitMessage;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = 'Non siamo riusciti a verificare il codice. Riprova.');
+      if (mounted) setState(() => _error = AppLocalizations.of(context)!.joinCircleError);
     } finally {
       if (mounted) setState(() => _joining = false);
     }
@@ -90,8 +90,9 @@ class _JoinCircleScreenState extends State<JoinCircleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Entra in una cerchia')),
+      appBar: AppBar(title: Text(l10n.joinCircleTitle)),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
@@ -99,12 +100,12 @@ class _JoinCircleScreenState extends State<JoinCircleScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Inserisci il codice di invito',
+                l10n.joinCircleQuestion,
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
               ),
               const SizedBox(height: 6),
               Text(
-                'Te lo manda chi ha creato la cerchia, ad esempio via messaggio.',
+                l10n.joinCircleHint,
                 style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5),
               ),
               const SizedBox(height: 24),
@@ -129,14 +130,14 @@ class _JoinCircleScreenState extends State<JoinCircleScreen> {
                 style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
                 child: _joining
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
-                    : const Text('Entra'),
+                    : Text(l10n.joinCircleSubmit),
               ),
               if (_limitReached) ...[
                 const SizedBox(height: 10),
                 OutlinedButton(
                   onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen())),
                   style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(54)),
-                  child: const Text('Scopri Kinly+'),
+                  child: Text(l10n.circleMessagesDiscoverPlus),
                 ),
               ],
               const Spacer(),
@@ -149,7 +150,7 @@ class _JoinCircleScreenState extends State<JoinCircleScreen> {
                     SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Chiedi il codice a chi ha creato la cerchia: ha il formato XXX-0000.',
+                        l10n.joinCircleFormatHint,
                         style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                       ),
                     ),

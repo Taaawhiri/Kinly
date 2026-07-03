@@ -3313,6 +3313,228 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'{speed} km/h (limite {threshold} km/h)'**
   String speedAlertsKmhLimit(int speed, int threshold);
+
+  /// No description provided for @commonRetry.
+  ///
+  /// In it, this message translates to:
+  /// **'Riprova'**
+  String get commonRetry;
+
+  /// No description provided for @commonContinue.
+  ///
+  /// In it, this message translates to:
+  /// **'Continua'**
+  String get commonContinue;
+
+  /// No description provided for @biometricLockedTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Kinly è bloccata'**
+  String get biometricLockedTitle;
+
+  /// No description provided for @biometricLockedMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Sblocca con l\'impronta, il volto o il codice del dispositivo per continuare.'**
+  String get biometricLockedMessage;
+
+  /// No description provided for @biometricUnlockButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Sblocca'**
+  String get biometricUnlockButton;
+
+  /// No description provided for @splashConnectionError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non riusciamo a contattare Kinly. Controlla la connessione e riprova.'**
+  String get splashConnectionError;
+
+  /// No description provided for @onboardingWelcomeTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Benvenuto in Kinly'**
+  String get onboardingWelcomeTitle;
+
+  /// No description provided for @onboardingWelcomeDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Condividi la tua posizione solo con chi conta davvero: famiglia, amici, colleghi. Accesso sempre su invito, mai pubblico.'**
+  String get onboardingWelcomeDesc;
+
+  /// No description provided for @onboardingSafeTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Sempre al sicuro'**
+  String get onboardingSafeTitle;
+
+  /// No description provided for @onboardingSafeDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'SOS e \"Chiedi aiuto\" avvisano subito la tua cerchia in caso di bisogno. Le aree sicure ti dicono quando qualcuno arriva o esce da casa, lavoro o scuola.'**
+  String get onboardingSafeDesc;
+
+  /// No description provided for @onboardingContactTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Restate in contatto'**
+  String get onboardingContactTitle;
+
+  /// No description provided for @onboardingContactDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Messaggi rapidi, punto d\'incontro condiviso e meteo della zona: tutto in un posto solo, senza dover chiedere \"dove sei?\".'**
+  String get onboardingContactDesc;
+
+  /// No description provided for @onboardingStart.
+  ///
+  /// In it, this message translates to:
+  /// **'Inizia'**
+  String get onboardingStart;
+
+  /// No description provided for @onboardingSkip.
+  ///
+  /// In it, this message translates to:
+  /// **'Salta'**
+  String get onboardingSkip;
+
+  /// No description provided for @onboardingBiometricTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Proteggi l\'accesso'**
+  String get onboardingBiometricTitle;
+
+  /// No description provided for @onboardingBiometricDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Attiva subito lo sblocco con impronta, volto o codice del dispositivo: un livello in più oltre alla password, verificato dal sistema (Kinly non vede mai i tuoi dati biometrici).'**
+  String get onboardingBiometricDesc;
+
+  /// No description provided for @createCircleTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Crea la tua cerchia'**
+  String get createCircleTitle;
+
+  /// No description provided for @circleLimitCirclesMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Nel piano gratuito puoi far parte di massimo 2 cerchie. Passa a Kinly+ per non avere limiti.'**
+  String get circleLimitCirclesMessage;
+
+  /// No description provided for @createCircleError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a creare la cerchia. Riprova.'**
+  String get createCircleError;
+
+  /// No description provided for @createCircleNameQuestion.
+  ///
+  /// In it, this message translates to:
+  /// **'Come si chiama?'**
+  String get createCircleNameQuestion;
+
+  /// No description provided for @createCircleNameHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Ad esempio \"Famiglia\" o \"Weekend in montagna\".'**
+  String get createCircleNameHint;
+
+  /// No description provided for @createCircleNameField.
+  ///
+  /// In it, this message translates to:
+  /// **'Nome della cerchia'**
+  String get createCircleNameField;
+
+  /// No description provided for @createCircleIconLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Icona'**
+  String get createCircleIconLabel;
+
+  /// No description provided for @createCircleColorLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Colore'**
+  String get createCircleColorLabel;
+
+  /// No description provided for @createCircleSubmit.
+  ///
+  /// In it, this message translates to:
+  /// **'Crea la cerchia'**
+  String get createCircleSubmit;
+
+  /// No description provided for @createCircleSuccessTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'\"{name}\" è pronta!'**
+  String createCircleSuccessTitle(String name);
+
+  /// No description provided for @createCircleSuccessMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Condividi questo codice con chi vuoi invitare. Solo chi lo ha può entrare.'**
+  String get createCircleSuccessMessage;
+
+  /// No description provided for @createCircleCodeCopied.
+  ///
+  /// In it, this message translates to:
+  /// **'Codice copiato'**
+  String get createCircleCodeCopied;
+
+  /// No description provided for @createCircleCopyCode.
+  ///
+  /// In it, this message translates to:
+  /// **'Copia codice'**
+  String get createCircleCopyCode;
+
+  /// No description provided for @joinCircleTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Entra in una cerchia'**
+  String get joinCircleTitle;
+
+  /// No description provided for @joinCircleQuestion.
+  ///
+  /// In it, this message translates to:
+  /// **'Inserisci il codice di invito'**
+  String get joinCircleQuestion;
+
+  /// No description provided for @joinCircleHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Te lo manda chi ha creato la cerchia, ad esempio via messaggio.'**
+  String get joinCircleHint;
+
+  /// No description provided for @joinCircleInvalidCode.
+  ///
+  /// In it, this message translates to:
+  /// **'Codice non valido. Chiedi a chi ti ha invitato di controllarlo.'**
+  String get joinCircleInvalidCode;
+
+  /// No description provided for @joinCircleMemberLimitMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Questa cerchia ha già raggiunto il limite di 6 persone del piano gratuito.'**
+  String get joinCircleMemberLimitMessage;
+
+  /// No description provided for @joinCircleError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a verificare il codice. Riprova.'**
+  String get joinCircleError;
+
+  /// No description provided for @joinCircleSubmit.
+  ///
+  /// In it, this message translates to:
+  /// **'Entra'**
+  String get joinCircleSubmit;
+
+  /// No description provided for @joinCircleFormatHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Chiedi il codice a chi ha creato la cerchia: ha il formato XXX-0000.'**
+  String get joinCircleFormatHint;
 }
 
 class _AppLocalizationsDelegate

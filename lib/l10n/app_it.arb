@@ -642,5 +642,49 @@
   "speedAlertsUpsellMessage": "Passa a Kinly+ per sapere quando chi guida supera il limite di velocità che si è impostato.",
   "speedAlertsEmpty": "Nessun avviso registrato: questa persona non ha ancora superato la soglia di velocità impostata (o non l'ha impostata).",
   "speedAlertsKmhLimit": "{speed} km/h (limite {threshold} km/h)",
-  "@speedAlertsKmhLimit": {"placeholders": {"speed": {"type": "int"}, "threshold": {"type": "int"}}}
+  "@speedAlertsKmhLimit": {"placeholders": {"speed": {"type": "int"}, "threshold": {"type": "int"}}},
+
+  "commonRetry": "Riprova",
+  "commonContinue": "Continua",
+
+  "biometricLockedTitle": "Kinly è bloccata",
+  "biometricLockedMessage": "Sblocca con l'impronta, il volto o il codice del dispositivo per continuare.",
+  "biometricUnlockButton": "Sblocca",
+
+  "splashConnectionError": "Non riusciamo a contattare Kinly. Controlla la connessione e riprova.",
+
+  "onboardingWelcomeTitle": "Benvenuto in Kinly",
+  "onboardingWelcomeDesc": "Condividi la tua posizione solo con chi conta davvero: famiglia, amici, colleghi. Accesso sempre su invito, mai pubblico.",
+  "onboardingSafeTitle": "Sempre al sicuro",
+  "onboardingSafeDesc": "SOS e \"Chiedi aiuto\" avvisano subito la tua cerchia in caso di bisogno. Le aree sicure ti dicono quando qualcuno arriva o esce da casa, lavoro o scuola.",
+  "onboardingContactTitle": "Restate in contatto",
+  "onboardingContactDesc": "Messaggi rapidi, punto d'incontro condiviso e meteo della zona: tutto in un posto solo, senza dover chiedere \"dove sei?\".",
+  "onboardingStart": "Inizia",
+  "onboardingSkip": "Salta",
+  "onboardingBiometricTitle": "Proteggi l'accesso",
+  "onboardingBiometricDesc": "Attiva subito lo sblocco con impronta, volto o codice del dispositivo: un livello in più oltre alla password, verificato dal sistema (Kinly non vede mai i tuoi dati biometrici).",
+
+  "createCircleTitle": "Crea la tua cerchia",
+  "circleLimitCirclesMessage": "Nel piano gratuito puoi far parte di massimo 2 cerchie. Passa a Kinly+ per non avere limiti.",
+  "createCircleError": "Non siamo riusciti a creare la cerchia. Riprova.",
+  "createCircleNameQuestion": "Come si chiama?",
+  "createCircleNameHint": "Ad esempio \"Famiglia\" o \"Weekend in montagna\".",
+  "createCircleNameField": "Nome della cerchia",
+  "createCircleIconLabel": "Icona",
+  "createCircleColorLabel": "Colore",
+  "createCircleSubmit": "Crea la cerchia",
+  "createCircleSuccessTitle": "\"{name}\" è pronta!",
+  "@createCircleSuccessTitle": {"placeholders": {"name": {"type": "String"}}},
+  "createCircleSuccessMessage": "Condividi questo codice con chi vuoi invitare. Solo chi lo ha può entrare.",
+  "createCircleCodeCopied": "Codice copiato",
+  "createCircleCopyCode": "Copia codice",
+
+  "joinCircleTitle": "Entra in una cerchia",
+  "joinCircleQuestion": "Inserisci il codice di invito",
+  "joinCircleHint": "Te lo manda chi ha creato la cerchia, ad esempio via messaggio.",
+  "joinCircleInvalidCode": "Codice non valido. Chiedi a chi ti ha invitato di controllarlo.",
+  "joinCircleMemberLimitMessage": "Questa cerchia ha già raggiunto il limite di 6 persone del piano gratuito.",
+  "joinCircleError": "Non siamo riusciti a verificare il codice. Riprova.",
+  "joinCircleSubmit": "Entra",
+  "joinCircleFormatHint": "Chiedi il codice a chi ha creato la cerchia: ha il formato XXX-0000."
 }

@@ -567,5 +567,48 @@
   "speedAlertsTitle": "Driving alerts · {name}",
   "speedAlertsUpsellMessage": "Switch to Kinly+ to know when a driver exceeds the speed limit they set.",
   "speedAlertsEmpty": "No alerts recorded: this person hasn't exceeded their speed threshold yet (or hasn't set one).",
-  "speedAlertsKmhLimit": "{speed} km/h (limit {threshold} km/h)"
+  "speedAlertsKmhLimit": "{speed} km/h (limit {threshold} km/h)",
+
+  "commonRetry": "Retry",
+  "commonContinue": "Continue",
+
+  "biometricLockedTitle": "Kinly is locked",
+  "biometricLockedMessage": "Unlock with your fingerprint, face, or device passcode to continue.",
+  "biometricUnlockButton": "Unlock",
+
+  "splashConnectionError": "We can't reach Kinly. Check your connection and try again.",
+
+  "onboardingWelcomeTitle": "Welcome to Kinly",
+  "onboardingWelcomeDesc": "Share your location only with who really matters: family, friends, colleagues. Always invite-only, never public.",
+  "onboardingSafeTitle": "Always safe",
+  "onboardingSafeDesc": "SOS and \"Ask for help\" immediately alert your circle when needed. Safe zones tell you when someone arrives at or leaves home, work or school.",
+  "onboardingContactTitle": "Stay in touch",
+  "onboardingContactDesc": "Quick messages, a shared meeting point, and local weather: all in one place, without having to ask \"where are you?\".",
+  "onboardingStart": "Get started",
+  "onboardingSkip": "Skip",
+  "onboardingBiometricTitle": "Protect your access",
+  "onboardingBiometricDesc": "Turn on unlock with fingerprint, face or device passcode right away: one more layer beyond your password, verified by the system (Kinly never sees your biometric data).",
+
+  "createCircleTitle": "Create your circle",
+  "circleLimitCirclesMessage": "On the free plan you can be part of up to 2 circles. Switch to Kinly+ for no limits.",
+  "createCircleError": "We couldn't create the circle. Please try again.",
+  "createCircleNameQuestion": "What's it called?",
+  "createCircleNameHint": "For example \"Family\" or \"Weekend in the mountains\".",
+  "createCircleNameField": "Circle name",
+  "createCircleIconLabel": "Icon",
+  "createCircleColorLabel": "Color",
+  "createCircleSubmit": "Create circle",
+  "createCircleSuccessTitle": "\"{name}\" is ready!",
+  "createCircleSuccessMessage": "Share this code with whoever you want to invite. Only those who have it can join.",
+  "createCircleCodeCopied": "Code copied",
+  "createCircleCopyCode": "Copy code",
+
+  "joinCircleTitle": "Join a circle",
+  "joinCircleQuestion": "Enter the invite code",
+  "joinCircleHint": "Whoever created the circle sends it to you, for example by message.",
+  "joinCircleInvalidCode": "Invalid code. Ask whoever invited you to double-check it.",
+  "joinCircleMemberLimitMessage": "This circle has already reached the free plan's limit of 6 people.",
+  "joinCircleError": "We couldn't verify the code. Please try again.",
+  "joinCircleSubmit": "Join",
+  "joinCircleFormatHint": "Ask whoever created the circle for the code: it has the format XXX-0000."
 }

@@ -1907,4 +1907,132 @@ class AppLocalizationsEn extends AppLocalizations {
   String speedAlertsKmhLimit(int speed, int threshold) {
     return '$speed km/h (limit $threshold km/h)';
   }
+
+  @override
+  String get commonRetry => 'Retry';
+
+  @override
+  String get commonContinue => 'Continue';
+
+  @override
+  String get biometricLockedTitle => 'Kinly is locked';
+
+  @override
+  String get biometricLockedMessage =>
+      'Unlock with your fingerprint, face, or device passcode to continue.';
+
+  @override
+  String get biometricUnlockButton => 'Unlock';
+
+  @override
+  String get splashConnectionError =>
+      'We can\'t reach Kinly. Check your connection and try again.';
+
+  @override
+  String get onboardingWelcomeTitle => 'Welcome to Kinly';
+
+  @override
+  String get onboardingWelcomeDesc =>
+      'Share your location only with who really matters: family, friends, colleagues. Always invite-only, never public.';
+
+  @override
+  String get onboardingSafeTitle => 'Always safe';
+
+  @override
+  String get onboardingSafeDesc =>
+      'SOS and \"Ask for help\" immediately alert your circle when needed. Safe zones tell you when someone arrives at or leaves home, work or school.';
+
+  @override
+  String get onboardingContactTitle => 'Stay in touch';
+
+  @override
+  String get onboardingContactDesc =>
+      'Quick messages, a shared meeting point, and local weather: all in one place, without having to ask \"where are you?\".';
+
+  @override
+  String get onboardingStart => 'Get started';
+
+  @override
+  String get onboardingSkip => 'Skip';
+
+  @override
+  String get onboardingBiometricTitle => 'Protect your access';
+
+  @override
+  String get onboardingBiometricDesc =>
+      'Turn on unlock with fingerprint, face or device passcode right away: one more layer beyond your password, verified by the system (Kinly never sees your biometric data).';
+
+  @override
+  String get createCircleTitle => 'Create your circle';
+
+  @override
+  String get circleLimitCirclesMessage =>
+      'On the free plan you can be part of up to 2 circles. Switch to Kinly+ for no limits.';
+
+  @override
+  String get createCircleError =>
+      'We couldn\'t create the circle. Please try again.';
+
+  @override
+  String get createCircleNameQuestion => 'What\'s it called?';
+
+  @override
+  String get createCircleNameHint =>
+      'For example \"Family\" or \"Weekend in the mountains\".';
+
+  @override
+  String get createCircleNameField => 'Circle name';
+
+  @override
+  String get createCircleIconLabel => 'Icon';
+
+  @override
+  String get createCircleColorLabel => 'Color';
+
+  @override
+  String get createCircleSubmit => 'Create circle';
+
+  @override
+  String createCircleSuccessTitle(String name) {
+    return '\"$name\" is ready!';
+  }
+
+  @override
+  String get createCircleSuccessMessage =>
+      'Share this code with whoever you want to invite. Only those who have it can join.';
+
+  @override
+  String get createCircleCodeCopied => 'Code copied';
+
+  @override
+  String get createCircleCopyCode => 'Copy code';
+
+  @override
+  String get joinCircleTitle => 'Join a circle';
+
+  @override
+  String get joinCircleQuestion => 'Enter the invite code';
+
+  @override
+  String get joinCircleHint =>
+      'Whoever created the circle sends it to you, for example by message.';
+
+  @override
+  String get joinCircleInvalidCode =>
+      'Invalid code. Ask whoever invited you to double-check it.';
+
+  @override
+  String get joinCircleMemberLimitMessage =>
+      'This circle has already reached the free plan\'s limit of 6 people.';
+
+  @override
+  String get joinCircleError =>
+      'We couldn\'t verify the code. Please try again.';
+
+  @override
+  String get joinCircleSubmit => 'Join';
+
+  @override
+  String get joinCircleFormatHint =>
+      'Ask whoever created the circle for the code: it has the format XXX-0000.';
 }
