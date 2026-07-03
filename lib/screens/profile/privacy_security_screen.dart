@@ -13,6 +13,7 @@ import '../../services/auth_service.dart';
 import '../../services/background_tracking_settings.dart';
 import '../../services/battery_optimization_service.dart';
 import '../../services/biometric_lock_service.dart';
+import '../../services/push_notification_service.dart';
 import '../../services/crash_detection_service.dart';
 import '../../services/emergency_sms_settings.dart';
 import '../../services/location_tracker.dart';
@@ -129,6 +130,10 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     } else {
       try {
         await FirebaseMessaging.instance.requestPermission();
+        // Il token FCM va (ri)registrato ora che il permesso c'è,
+        // altrimenti il server non sa a chi mandare le push: vedi
+        // PushNotificationService.ensureRegistered.
+        await PushNotificationService.instance.ensureRegistered();
       } catch (_) {
         // Va bene fallire in silenzio: la riga si limiterà a mostrare lo
         // stato invariato dopo il ricaricamento sotto.

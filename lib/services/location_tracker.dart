@@ -153,9 +153,16 @@ class LocationTracker with WidgetsBindingObserver {
 
   /// Riscrive l'ultima posizione nota con un orario fresco, senza aspettare
   /// un vero nuovo fix GPS: vedi il commento su _heartbeatTimer per il
-  /// perché. Se non abbiamo ancora nessuna posizione in cache non c'è
-  /// niente da "tenere vivo".
+  /// perché. Fa anche da guardiano: se lo stream di posizione si è fermato
+  /// (es. dopo aver esaurito i tentativi rapidi di riavvio in
+  /// _handleStreamDown), prova a riaccenderlo qui, così ogni pochi minuti
+  /// c'è comunque un tentativo di ripresa invece di restare morti fino al
+  /// prossimo ritorno in primo piano dell'app.
   Future<void> _sendHeartbeat() async {
+    if (!isTracking) {
+      _restartAttempts = 0;
+      unawaited(_subscribe());
+    }
     final position = _lastPosition;
     if (position == null) return;
     try {

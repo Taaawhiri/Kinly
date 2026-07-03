@@ -89,8 +89,15 @@ class PushNotificationService {
         _handleNotificationResponse(launchResponse);
       }
 
-      final settings = await FirebaseMessaging.instance.requestPermission();
-      if (settings.authorizationStatus == AuthorizationStatus.denied) return;
+      // Chiediamo il permesso di MOSTRARE le notifiche (Android 13+/iOS), ma
+      // NON blocchiamo la registrazione del token su questo esito: il token
+      // FCM è indipendente dal permesso di visualizzazione. Registrarlo
+      // sempre significa che, se l'utente concede il permesso più tardi (o
+      // lo aveva già concesso ma la richiesta è stata rifiutata la prima
+      // volta), le push iniziano ad arrivare senza dover reinstallare o
+      // riloggare — prima invece un "no" iniziale lasciava il dispositivo
+      // per sempre senza token, quindi invisibile al server.
+      await FirebaseMessaging.instance.requestPermission();
 
       FirebaseMessaging.onMessage.listen(_showForegroundNotification);
       FirebaseMessaging.instance.onTokenRefresh.listen((token) {
@@ -107,6 +114,28 @@ class PushNotificationService {
     } catch (_) {
       // Firebase non disponibile/configurato su questa piattaforma: l'app
       // resta comunque utilizzabile, solo senza notifiche push.
+    }
+  }
+
+  /// Da chiamare quando l'utente concede il permesso notifiche più tardi
+  /// (es. dalla schermata Privacy e sicurezza): si assicura che il token di
+  /// questo dispositivo sia registrato sul server, così le push iniziano
+  /// subito ad arrivare. Se l'inizializzazione non è ancora avvenuta, la fa
+  /// partire ora.
+  Future<void> ensureRegistered() async {
+    if (!_initialized) {
+      await initialize(onArrivalConfirmed: _onArrivalConfirmed, onCheckInReply: _onCheckInReply);
+      return;
+    }
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null) {
+        _lastToken = token;
+        await KinlyRepository.instance.upsertDeviceToken(token);
+      }
+    } catch (_) {
+      // Va bene fallire in silenzio: onTokenRefresh rimedia comunque non
+      // appena il token cambia.
     }
   }
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ import '../../models/person.dart';
 import '../../models/ping.dart';
 import '../../models/safe_zone.dart';
 import '../../models/shopping_stop.dart';
+import '../../services/battery_optimization_service.dart';
 import '../../services/crash_detection_service.dart';
 import '../../services/emergency_sms_settings.dart';
 import '../../services/kinly_repository.dart';
@@ -53,6 +55,7 @@ const double _wideLayoutBreakpoint = 900.0;
 
 class _MapHomeScreenState extends State<MapHomeScreen> {
   static const _webNoticePrefKey = 'web_companion_notice_dismissed';
+  static const _batteryPromptedPrefKey = 'battery_optimization_prompted';
 
   final _sheetController = DraggableScrollableController();
   MapLibreMapController? _mapController;
@@ -105,6 +108,42 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     if (!kIsWeb) {
       unawaited(HomeWidget.initiallyLaunchedFromHomeWidget().then(_handleWidgetUri));
       _widgetClickSub = HomeWidget.widgetClicked.listen(_handleWidgetUri);
+      WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_ensureReliableTracking()));
+    }
+  }
+
+  /// Perché Kinly "funzioni bene ovunque" senza che l'utente medio debba
+  /// sapere nulla, alla prima apertura (una volta sola: vedi il flag)
+  /// chiediamo da soli l'esclusione dal risparmio energetico di sistema —
+  /// il singolo interruttore che più spesso decide se posizione e notifiche
+  /// continuano ad arrivare in background su telefoni con gestione batteria
+  /// aggressiva (Samsung, Xiaomi...). Il permesso notifiche viene invece
+  /// già chiesto da PushNotificationService all'avvio.
+  Future<void> _ensureReliableTracking() async {
+    if (!Platform.isAndroid) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_batteryPromptedPrefKey) ?? false) return;
+    // Segniamo subito il flag: anche se l'utente rifiuta, non lo
+    // reinfastidiamo ad ogni apertura — resta comunque riproponibile a mano
+    // dalla sezione Permessi in Privacy e sicurezza.
+    await prefs.setBool(_batteryPromptedPrefKey, true);
+    final alreadyExempt = await BatteryOptimizationService.instance.isIgnoringOptimizations();
+    if (alreadyExempt || !mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(l10n.privacyBatteryOptimizationDialogTitle),
+        content: Text(l10n.privacyBatteryOptimizationDialogBody),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonNotNow)),
+          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.privacyBatteryOptimizationOpen)),
+        ],
+      ),
+    );
+    if (proceed == true) {
+      await BatteryOptimizationService.instance.requestIgnoreOptimizations();
     }
   }
 
