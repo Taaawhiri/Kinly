@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:home_widget/home_widget.dart';
 import '../l10n/app_localizations.dart';
 import '../models/person.dart';
-import '../theme/app_theme.dart';
 import '../utils/color_hex.dart';
 
 /// Aggiorna il widget della schermata home di Android con un riassunto
@@ -37,17 +36,12 @@ class HomeWidgetService {
 
       await HomeWidget.saveWidgetData<String>('title', l10n.homeWidgetTitle);
       if (visible.isEmpty) {
-        // Niente da mostrare ancora: invece di lasciarlo vuoto, un esempio
-        // "finto" (in grigio lato Android, vedi KinlyWidgetProvider) fa
-        // capire subito cosa aspettarsi appena qualcuno condivide. I
-        // pallini colorati usano gli stessi colori del sito, per sembrare
-        // un vero mockup e non un semplice elenco di testo.
-        await HomeWidget.saveWidgetData<String>('line1', l10n.homeWidgetPreviewHint);
-        await HomeWidget.saveWidgetData<String>('line2', l10n.homeWidgetPreviewLine1);
-        await HomeWidget.saveWidgetData<String>('line3', l10n.homeWidgetPreviewLine2);
-        await HomeWidget.saveWidgetData<String>('line1Color', AppTheme.primary.toHex());
-        await HomeWidget.saveWidgetData<String>('line2Color', AppTheme.accentCoral.toHex());
-        await HomeWidget.saveWidgetData<String>('line3Color', AppTheme.accentAmber.toHex());
+        // Niente da mostrare ancora: invece di lasciarlo vuoto o con un
+        // esempio scritto, il lato Android (vedi KinlyWidgetProvider)
+        // disegna due righe puramente illustrative (pallino + barra
+        // astratta al posto del testo) — la stessa illustrazione usata per
+        // spiegare la funzione sul sito, capibile a colpo d'occhio senza
+        // dover leggere un esempio.
         await HomeWidget.saveWidgetData<String>('isPreview', '1');
       } else {
         String colorFor(int i) => i < visible.length ? visible[i].color.toHex() : '';

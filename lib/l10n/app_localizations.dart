@@ -248,24 +248,6 @@ abstract class AppLocalizations {
   /// **'La tua cerchia'**
   String get homeWidgetTitle;
 
-  /// No description provided for @homeWidgetPreviewHint.
-  ///
-  /// In it, this message translates to:
-  /// **'Esempio — così apparirà quando qualcuno condivide:'**
-  String get homeWidgetPreviewHint;
-
-  /// No description provided for @homeWidgetPreviewLine1.
-  ///
-  /// In it, this message translates to:
-  /// **'Mamma · Casa · 5 min fa'**
-  String get homeWidgetPreviewLine1;
-
-  /// No description provided for @homeWidgetPreviewLine2.
-  ///
-  /// In it, this message translates to:
-  /// **'Luca · A scuola · 12 min fa'**
-  String get homeWidgetPreviewLine2;
-
   /// No description provided for @arrivalPromptTitle.
   ///
   /// In it, this message translates to:

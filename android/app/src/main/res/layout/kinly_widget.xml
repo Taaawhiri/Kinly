@@ -7,25 +7,41 @@
     android:padding="14dp"
     android:background="@drawable/kinly_widget_background">
 
-    <TextView
-        android:id="@+id/widget_title"
+    <!-- Titolo con una piccola iconcina quadrata accanto, come nel mockup
+         del sito (icona + testo sulla prima riga). -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Kinly"
-        android:textStyle="bold"
-        android:textSize="14sp"
-        android:textColor="#4A63E7" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-    <!-- Ogni riga è un pallino colorato ("avatar") + una riga di testo,
-         come le righe con pallino usate nei mockup del sito: più visivo
-         di un elenco di solo testo, sia con dati veri che nell'esempio
-         mostrato quando nessuno condivide ancora (vedi HomeWidgetService
-         e KinlyWidgetProvider). -->
+        <ImageView
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/widget_logo" />
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kinly"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:textColor="#4A63E7" />
+    </LinearLayout>
+
+    <!-- Ogni riga è un pallino colorato ("avatar") + un contenuto che può
+         essere il testo vero (nome, posizione, orario) oppure, quando
+         nessuno condivide ancora, una barra grigia astratta: stessa
+         struttura visiva sempre, cambia solo cosa si vede dentro (vedi
+         KinlyWidgetProvider), coerente con lo stile a pallini e barre dei
+         mockup del sito. -->
     <LinearLayout
         android:id="@+id/widget_row1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="12dp"
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
@@ -36,22 +52,34 @@
             android:layout_marginEnd="8dp"
             android:src="@drawable/widget_dot" />
 
-        <TextView
-            android:id="@+id/widget_line1"
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="12sp"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:textColor="#222533" />
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/widget_line1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="#222533" />
+
+            <ImageView
+                android:id="@+id/widget_bar1"
+                android:layout_width="120dp"
+                android:layout_height="8dp"
+                android:layout_gravity="start|center_vertical"
+                android:src="@drawable/widget_bar" />
+        </FrameLayout>
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/widget_row2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
@@ -62,22 +90,34 @@
             android:layout_marginEnd="8dp"
             android:src="@drawable/widget_dot" />
 
-        <TextView
-            android:id="@+id/widget_line2"
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="12sp"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:textColor="#222533" />
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/widget_line2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="#222533" />
+
+            <ImageView
+                android:id="@+id/widget_bar2"
+                android:layout_width="120dp"
+                android:layout_height="8dp"
+                android:layout_gravity="start|center_vertical"
+                android:src="@drawable/widget_bar" />
+        </FrameLayout>
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/widget_row3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
@@ -88,14 +128,26 @@
             android:layout_marginEnd="8dp"
             android:src="@drawable/widget_dot" />
 
-        <TextView
-            android:id="@+id/widget_line3"
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="12sp"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:textColor="#222533" />
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/widget_line3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="#222533" />
+
+            <ImageView
+                android:id="@+id/widget_bar3"
+                android:layout_width="120dp"
+                android:layout_height="8dp"
+                android:layout_gravity="start|center_vertical"
+                android:src="@drawable/widget_bar" />
+        </FrameLayout>
     </LinearLayout>
 </LinearLayout>

@@ -90,16 +90,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWidgetTitle => 'Your circle';
 
   @override
-  String get homeWidgetPreviewHint =>
-      'Example — this is how it\'ll look when someone shares:';
-
-  @override
-  String get homeWidgetPreviewLine1 => 'Mom · Home · 5 min ago';
-
-  @override
-  String get homeWidgetPreviewLine2 => 'Luke · At school · 12 min ago';
-
-  @override
   String arrivalPromptTitle(String zone) {
     return 'Did you arrive at $zone?';
   }
