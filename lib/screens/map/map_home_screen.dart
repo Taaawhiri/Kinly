@@ -977,12 +977,20 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   }
 
   Widget _buildMap(AppState state, List<Person> people, {bool interactive = true}) {
-    return GestureDetector(
+    return Listener(
       // Toccare/trascinare la mappa toglie il focus dalla barra di ricerca:
       // altrimenti restava aperta e la tastiera occupava lo schermo anche
-      // dopo aver smesso di cercare.
+      // dopo aver smesso di cercare. Usiamo Listener (eventi di puntamento
+      // "grezzi") invece di GestureDetector(onPanDown: ...): quest'ultimo
+      // registra un vero riconoscitore di pan che entra in competizione
+      // nell'arena dei gesti con il pan nativo della mappa (una PlatformView
+      // sotto al cofano), impedendole a volte di rispondere al trascinamento
+      // con le dita — molto più evidente quando la mappa è già zoomata
+      // larga per inquadrare più persone, dove un pan solo parzialmente
+      // funzionante sembra completamente bloccato. Listener non entra mai
+      // nell'arena dei gesti: non compete con nulla.
       behavior: HitTestBehavior.translucent,
-      onPanDown: (_) => _searchFocusNode.unfocus(),
+      onPointerDown: (_) => _searchFocusNode.unfocus(),
       child: KinlyMap(
         people: [state.me, ...people.where((p) => p.isSharingWithMe)],
         safeZones: state.visibleSafeZones(),
