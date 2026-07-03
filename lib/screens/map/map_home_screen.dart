@@ -112,7 +112,9 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   /// arrivano qui come URI (kinly://sos, .../help, .../walk): aprono solo la
   /// stessa conferma dei pulsanti in app (vedi _handleSosButton e affini),
   /// mai un'azione diretta — un tocco accidentale sul widget in tasca non
-  /// deve poter far scattare un SOS vero.
+  /// deve poter far scattare un SOS vero. Toccare una riga persona nel
+  /// widget arriva invece come kinly://person/<id>: centra la mappa lì,
+  /// come toccare l'avatar nella lista sotto la mappa in app.
   void _handleWidgetUri(Uri? uri) {
     if (uri == null) return;
     final action = uri.host;
@@ -125,6 +127,11 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
           _handleHelpButton();
         case 'walk':
           _onWalkMeHomeTap();
+        case 'person':
+          if (uri.pathSegments.isNotEmpty) {
+            final person = AppState.instance.personById(uri.pathSegments.first);
+            if (person != null) unawaited(_flyToPerson(person));
+          }
       }
     });
   }

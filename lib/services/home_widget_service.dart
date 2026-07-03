@@ -28,29 +28,29 @@ class HomeWidgetService {
     if (!Platform.isAndroid) return;
     try {
       final visible = others.where((p) => p.isSharingWithMe).take(3).toList();
-      String lineFor(int i) {
-        if (i >= visible.length) return '';
-        final p = visible[i];
-        return '${p.name} · ${p.address.isEmpty ? '—' : p.address} (${p.lastUpdateLabel(l10n)})';
-      }
 
       await HomeWidget.saveWidgetData<String>('title', l10n.homeWidgetTitle);
       if (visible.isEmpty) {
         // Niente da mostrare ancora: invece di lasciarlo vuoto o con un
         // esempio scritto, il lato Android (vedi KinlyWidgetProvider)
-        // disegna due righe puramente illustrative (pallino + barra
-        // astratta al posto del testo) — la stessa illustrazione usata per
+        // disegna due righe puramente illustrative (pallino + barre
+        // astratte al posto del testo) — la stessa illustrazione usata per
         // spiegare la funzione sul sito, capibile a colpo d'occhio senza
         // dover leggere un esempio.
         await HomeWidget.saveWidgetData<String>('isPreview', '1');
       } else {
-        String colorFor(int i) => i < visible.length ? visible[i].color.toHex() : '';
-        await HomeWidget.saveWidgetData<String>('line1', lineFor(0));
-        await HomeWidget.saveWidgetData<String>('line2', lineFor(1));
-        await HomeWidget.saveWidgetData<String>('line3', lineFor(2));
-        await HomeWidget.saveWidgetData<String>('line1Color', colorFor(0));
-        await HomeWidget.saveWidgetData<String>('line2Color', colorFor(1));
-        await HomeWidget.saveWidgetData<String>('line3Color', colorFor(2));
+        for (var i = 0; i < 3; i++) {
+          final n = i + 1;
+          if (i < visible.length) {
+            final p = visible[i];
+            await HomeWidget.saveWidgetData<String>('name$n', p.name);
+            await HomeWidget.saveWidgetData<String>('sub$n', '${p.address.isEmpty ? '—' : p.address} · ${p.lastUpdateLabel(l10n)}');
+            await HomeWidget.saveWidgetData<String>('id$n', p.id);
+            await HomeWidget.saveWidgetData<String>('color$n', p.color.toHex());
+          } else {
+            await HomeWidget.saveWidgetData<String>('name$n', '');
+          }
+        }
         await HomeWidget.saveWidgetData<String>('isPreview', '0');
       }
       await HomeWidget.updateWidget(androidName: 'KinlyWidgetProvider');
