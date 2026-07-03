@@ -299,7 +299,22 @@ class LocationTracker with WidgetsBindingObserver {
     _lastShoppingStopRecordedAt = null;
   }
 
-  Future<void> _onPosition(Position position) async {
+  /// Forza subito l'aggiornamento della mia posizione, saltando la soglia
+  /// di frequenza: usato dal pulsante "centra su di me", che deve muovere
+  /// il mio pin all'istante anche se ero fermo o mi sono spostato poco
+  /// (prima la mappa si spostava dove ero davvero ma il pin restava fermo
+  /// sull'ultima posizione salvata, sotto la soglia di scrittura).
+  Future<Position?> forceRefresh() async {
+    try {
+      final position = await Geolocator.getCurrentPosition();
+      await _onPosition(position, force: true);
+      return position;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _onPosition(Position position, {bool force = false}) async {
     // Un fix vero prova che lo stream è di nuovo sano: azzera il contatore
     // di tentativi di riavvio (vedi _handleStreamDown), così un problema
     // futuro riparte con lo stesso margine di tentativi invece di trovarlo
@@ -312,7 +327,7 @@ class LocationTracker with WidgetsBindingObserver {
     if (position.accuracy.isFinite && position.accuracy > _maxAcceptableAccuracyMeters) return;
 
     final now = DateTime.now();
-    if (_lastProcessedAt != null && now.difference(_lastProcessedAt!) < _minProcessInterval) return;
+    if (!force && _lastProcessedAt != null && now.difference(_lastProcessedAt!) < _minProcessInterval) return;
     _lastProcessedAt = now;
 
     final address = await _reverseGeocode(position.latitude, position.longitude);
@@ -321,6 +336,14 @@ class LocationTracker with WidgetsBindingObserver {
     // Position.speed è in m/s e può essere impreciso/negativo da fermi:
     // lo consideriamo solo se il GPS lo ritiene valido (>= 0).
     final speedKmh = (position.speed.isFinite && position.speed >= 0) ? position.speed * 3.6 : null;
+    // Sposta subito il mio pin sulla mappa, senza aspettare l'eco realtime
+    // dal server (vedi AppState.updateMyLocationOptimistic).
+    AppState.instance.updateMyLocationOptimistic(
+      lat: position.latitude,
+      lng: position.longitude,
+      address: address,
+      speedKmh: speedKmh,
+    );
     await KinlyRepository.instance.upsertMyLocation(
       lat: position.latitude,
       lng: position.longitude,

@@ -447,6 +447,16 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
   }
 
   Future<void> _fitCamera(MapLibreMapController controller, List<Person> people) async {
+    // All'apertura la mappa deve portarti DOVE SEI TU, non inquadrare tutta
+    // la cerchia: è quello che ci si aspetta appena si apre l'app. Se la mia
+    // posizione non è ancora nota si ripiega sull'inquadratura di chi c'è, e
+    // il ricentraggio su di me scatta poi da solo appena arriva un fix GPS
+    // fresco (vedi didUpdateWidget / _autoCenteredOnFreshFix).
+    final me = _meIn(people);
+    if (me?.lat != null && me?.lng != null) {
+      await controller.animateCamera(CameraUpdate.newLatLngZoom(LatLng(me!.lat!, me.lng!), 15.5));
+      return;
+    }
     if (people.length == 1) {
       await controller.animateCamera(CameraUpdate.newLatLngZoom(LatLng(people.first.lat!, people.first.lng!), 14));
       return;

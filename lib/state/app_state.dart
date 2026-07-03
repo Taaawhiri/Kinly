@@ -383,6 +383,28 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Sposta subito il MIO pin sulla mappa alla posizione appena rilevata,
+  /// senza aspettare l'eco realtime dal server (round-trip che può tardare
+  /// o essere saltato del tutto se la modifica non supera la soglia di
+  /// scrittura del tracker): chiamato da LocationTracker ad ogni nuova
+  /// posizione e dal pulsante "centra su di me". Prima il pin restava
+  /// fermo sull'ultima posizione salvata mentre la mappa si spostava dove
+  /// eri davvero.
+  void updateMyLocationOptimistic({required double lat, required double lng, String? address, double? speedKmh}) {
+    final current = _me;
+    if (current == null) return;
+    _me = current.copyWith(
+      lat: lat,
+      lng: lng,
+      address: address,
+      lastUpdate: DateTime.now(),
+      speedKmh: speedKmh,
+      clearSpeedKmh: speedKmh == null,
+      isSharingWithMe: true,
+    );
+    notifyListeners();
+  }
+
   /// Ricostruisce i soli campi legati alla posizione di [person] (vedi
   /// _buildPerson, di cui questo è il sotto-insieme "posizione"): usato per
   /// l'aggiornamento mirato di _handleLocationChange, per non toccare nome,

@@ -20,6 +20,7 @@ import '../../services/battery_optimization_service.dart';
 import '../../services/crash_detection_service.dart';
 import '../../services/emergency_sms_settings.dart';
 import '../../services/kinly_repository.dart';
+import '../../services/location_tracker.dart';
 import '../../services/place_search_service.dart';
 import '../../services/walk_me_home_service.dart';
 import '../../state/app_state.dart';
@@ -437,7 +438,11 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   Future<void> _centerOnMyLocation() async {
     setState(() => _centering = true);
     try {
-      final position = await Geolocator.getCurrentPosition();
+      // forceRefresh (non solo getCurrentPosition) così, oltre a muovere la
+      // mappa, aggiorna subito anche il MIO pin alla posizione attuale:
+      // prima la mappa si spostava dove ero davvero ma il pin restava
+      // fermo sull'ultima posizione salvata.
+      final position = await LocationTracker.instance.forceRefresh() ?? await Geolocator.getCurrentPosition();
       await _mapController?.animateCamera(CameraUpdate.newLatLngZoom(LatLng(position.latitude, position.longitude), 15));
     } catch (_) {
       if (mounted) {
