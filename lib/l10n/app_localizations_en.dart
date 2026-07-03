@@ -260,7 +260,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapWebNotice =>
-      'You\'re using the web companion of Kinly: here your location only updates while this tab is open. For continuous tracking, push notifications and biometric lock, you need the app.';
+      'You\'re using the web companion of Kinly: here your location only updates while this tab is open.';
 
   @override
   String get mapSosActiveLabel => 'SOS active';

@@ -88,7 +88,7 @@
   "mapEmptyCircleTitle": "Nessuno da vedere qui ancora",
   "mapEmptyCircleMessage": "Invita una persona nella cerchia per vederla sulla mappa.",
   "mapAllCirclesChip": "Tutte",
-  "mapWebNotice": "Stai usando la versione web di Kinly: qui la posizione si aggiorna solo mentre questa scheda è aperta. Per il tracciamento continuo, notifiche push e sblocco biometrico serve l'app.",
+  "mapWebNotice": "Stai usando la versione web (compagna) di Kinly: qui la posizione si aggiorna solo mentre questa scheda è aperta.",
   "mapSosActiveLabel": "SOS attivo",
   "mapActivateSosSemantic": "Attiva SOS",
   "mapHelpRequestedLabel": "Aiuto richiesto",

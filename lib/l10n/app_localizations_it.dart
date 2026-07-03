@@ -261,7 +261,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get mapWebNotice =>
-      'Stai usando la versione web di Kinly: qui la posizione si aggiorna solo mentre questa scheda è aperta. Per il tracciamento continuo, notifiche push e sblocco biometrico serve l\'app.';
+      'Stai usando la versione web (compagna) di Kinly: qui la posizione si aggiorna solo mentre questa scheda è aperta.';
 
   @override
   String get mapSosActiveLabel => 'SOS attivo';

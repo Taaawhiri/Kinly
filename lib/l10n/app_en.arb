@@ -79,7 +79,7 @@
   "mapEmptyCircleTitle": "No one to see here yet",
   "mapEmptyCircleMessage": "Invite someone to the circle to see them on the map.",
   "mapAllCirclesChip": "All",
-  "mapWebNotice": "You're using the web companion of Kinly: here your location only updates while this tab is open. For continuous tracking, push notifications and biometric lock, you need the app.",
+  "mapWebNotice": "You're using the web companion of Kinly: here your location only updates while this tab is open.",
   "mapSosActiveLabel": "SOS active",
   "mapActivateSosSemantic": "Activate SOS",
   "mapHelpRequestedLabel": "Help requested",
