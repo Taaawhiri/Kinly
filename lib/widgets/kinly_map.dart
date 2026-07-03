@@ -110,7 +110,7 @@ class _KinlyMapState extends State<KinlyMap> {
     if (!_sameSafeZones(oldWidget.safeZones, widget.safeZones)) {
       unawaited(_syncSafeZoneFills());
     }
-    if (oldWidget.searchPreviewPoint != widget.searchPreviewPoint) {
+    if (!_sameLatLng(oldWidget.searchPreviewPoint, widget.searchPreviewPoint)) {
       unawaited(_syncSymbols(fitCamera: false));
       final point = widget.searchPreviewPoint;
       final controller = _controller;
@@ -129,6 +129,16 @@ class _KinlyMapState extends State<KinlyMap> {
         }
       }
     }
+  }
+
+  /// LatLng non ha un operatore == personalizzato: senza questo confronto
+  /// per valore, ogni rebuild della schermata (es. per un aggiornamento
+  /// posizione altrui) ricrea un'istanza diversa con le stesse coordinate,
+  /// che sembrerebbe "cambiata" e rifarebbe lo zoom sul risultato di
+  /// ricerca ogni volta, anche da fermo.
+  bool _sameLatLng(LatLng? a, LatLng? b) {
+    if (a == null || b == null) return a == b;
+    return a.latitude == b.latitude && a.longitude == b.longitude;
   }
 
   bool _sameMeetingPoints(List<MeetingPoint> a, List<MeetingPoint> b) {

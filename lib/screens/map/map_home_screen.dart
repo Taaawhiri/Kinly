@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -978,18 +977,25 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   }
 
   Widget _buildMap(AppState state, List<Person> people, {bool interactive = true}) {
-    return KinlyMap(
-      people: [state.me, ...people.where((p) => p.isSharingWithMe)],
-      safeZones: state.visibleSafeZones(),
-      meetingPoints: state.visibleMeetingPoints(),
-      interactive: interactive,
-      onPersonTap: (personId) => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: personId)),
+    return GestureDetector(
+      // Toccare/trascinare la mappa toglie il focus dalla barra di ricerca:
+      // altrimenti restava aperta e la tastiera occupava lo schermo anche
+      // dopo aver smesso di cercare.
+      behavior: HitTestBehavior.translucent,
+      onPanDown: (_) => _searchFocusNode.unfocus(),
+      child: KinlyMap(
+        people: [state.me, ...people.where((p) => p.isSharingWithMe)],
+        safeZones: state.visibleSafeZones(),
+        meetingPoints: state.visibleMeetingPoints(),
+        interactive: interactive,
+        onPersonTap: (personId) => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: personId)),
+        ),
+        onMapReady: (controller) => _mapController = controller,
+        onMeetingPointTap: (id) => _openMeetingPointInfo(id),
+        onSafeZoneTap: (id) => _openSafeZoneInfo(id),
+        searchPreviewPoint: _selectedPlace != null ? LatLng(_selectedPlace!.lat, _selectedPlace!.lng) : null,
       ),
-      onMapReady: (controller) => _mapController = controller,
-      onMeetingPointTap: (id) => _openMeetingPointInfo(id),
-      onSafeZoneTap: (id) => _openSafeZoneInfo(id),
-      searchPreviewPoint: _selectedPlace != null ? LatLng(_selectedPlace!.lat, _selectedPlace!.lng) : null,
     );
   }
 
@@ -1760,7 +1766,9 @@ class _CenterOnMeButton extends StatelessWidget {
 /// "my_location"/"gps_fixed" hanno il punto centrale otticamente decentrato
 /// nel loro riquadro, visibile proprio dentro un pulsante circolare piccolo.
 /// Disegnando noi il cerchio e il puntino sullo stesso centro esatto del
-/// canvas, la centratura è garantita.
+/// canvas, la centratura è garantita. Niente tacche a croce intorno
+/// all'anello: con quelle sembra un mirino invece della classica icona
+/// "centra sulla mia posizione".
 class _GpsIconPainter extends CustomPainter {
   const _GpsIconPainter({required this.color});
   final Color color;
@@ -1772,23 +1780,8 @@ class _GpsIconPainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.8;
-    final tickPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.8
-      ..strokeCap = StrokeCap.round;
-    const ringRadius = 5.5;
-    const tickLength = 3.0;
-    const tickGap = 1.5;
-    canvas.drawCircle(center, ringRadius, ringPaint);
-    canvas.drawCircle(center, 2.2, Paint()..color = color);
-    for (final angle in [-90.0, 0.0, 90.0, 180.0]) {
-      final rad = angle * 3.1415926535 / 180;
-      final dir = Offset(math.cos(rad), math.sin(rad));
-      final start = center + dir * (ringRadius + tickGap);
-      final end = start + dir * tickLength;
-      canvas.drawLine(start, end, tickPaint);
-    }
+    canvas.drawCircle(center, 5.5, ringPaint);
+    canvas.drawCircle(center, 2.6, Paint()..color = color);
   }
 
   @override
