@@ -1053,6 +1053,38 @@ class AppLocalizationsIt extends AppLocalizations {
   String get privacyPhoneNumberTitle => 'Numero di telefono';
 
   @override
+  String get privacyPermissionsHeader => 'Permessi';
+
+  @override
+  String get privacyPermissionsHint =>
+      'Lo stato dei permessi di sistema usati da Kinly. Toccane uno per attivarlo o per aprire le impostazioni del telefono.';
+
+  @override
+  String get privacyPermissionLocation => 'Posizione';
+
+  @override
+  String get privacyPermissionLocationAlways => 'Sempre attiva';
+
+  @override
+  String get privacyPermissionLocationWhileInUse => 'Solo con l\'app aperta';
+
+  @override
+  String get privacyPermissionLocationDenied => 'Disattivata';
+
+  @override
+  String get privacyPermissionNotifications => 'Notifiche';
+
+  @override
+  String get privacyPermissionNotificationsOn => 'Attive';
+
+  @override
+  String get privacyPermissionNotificationsOff => 'Disattivate';
+
+  @override
+  String get privacyPermissionDisableFromSystem =>
+      'Per disattivarlo serve usare le impostazioni di sistema del telefono.';
+
+  @override
   String get privacyAccountHeader => 'Account';
 
   @override
@@ -1217,10 +1249,24 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get privacyUpdateAvailableBody =>
-      'È disponibile una nuova build. Scaricala per aggiornare l\'app: dovrai poi aprirla dai Download del telefono per installarla (Kinly non installa nulla da solo).';
+      'È disponibile una nuova build. Scaricala per aggiornare l\'app: dopo il download si aprirà la schermata di installazione di Android, dove dovrai confermare tu (Kinly non installa nulla da solo).';
 
   @override
   String get privacyDownloadUpdate => 'Scarica';
+
+  @override
+  String get privacyDownloadingUpdate => 'Download in corso…';
+
+  @override
+  String get privacyUpdateInstallError =>
+      'Il file è stato scaricato ma non siamo riusciti ad aprirlo per l\'installazione.';
+
+  @override
+  String get privacyUpdateDownloadError =>
+      'Il download è fallito. Puoi provare ad aprirlo nel browser invece.';
+
+  @override
+  String get privacyOpenInBrowser => 'Apri nel browser';
 
   @override
   String get changePasswordMismatch => 'Le due password non coincidono.';

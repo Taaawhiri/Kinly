@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/app_update_service.dart';
@@ -44,12 +46,66 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
 
   bool _checkingUpdate = false;
 
+  LocationPermission? _locationPermission;
+  bool? _notificationsEnabled;
+
   @override
   void initState() {
     super.initState();
     unawaited(_loadBiometric());
     unawaited(_loadBackgroundTracking());
     unawaited(_loadEmergencySettings());
+    unawaited(_loadPermissionsStatus());
+  }
+
+  Future<void> _loadPermissionsStatus() async {
+    final location = await Geolocator.checkPermission();
+    bool? notifications;
+    if (!kIsWeb) {
+      try {
+        final settings = await FirebaseMessaging.instance.getNotificationSettings();
+        notifications = settings.authorizationStatus == AuthorizationStatus.authorized ||
+            settings.authorizationStatus == AuthorizationStatus.provisional;
+      } catch (_) {
+        // Firebase non configurato su questa build/piattaforma: niente riga
+        // notifiche invece di un errore, coerente con PushNotificationService.
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _locationPermission = location;
+        _notificationsEnabled = notifications;
+      });
+    }
+  }
+
+  /// Un'app non può disattivare da sola un permesso già concesso: se è già
+  /// attivo, l'unica azione sensata è aprire le impostazioni di sistema
+  /// (dove l'utente può revocarlo lui); se non lo è, proviamo a chiederlo.
+  Future<void> _toggleLocationPermission(bool wantsOn) async {
+    final granted = _locationPermission == LocationPermission.always || _locationPermission == LocationPermission.whileInUse;
+    if (granted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.privacyPermissionDisableFromSystem)));
+      await Geolocator.openAppSettings();
+    } else {
+      await Geolocator.requestPermission();
+    }
+    await _loadPermissionsStatus();
+  }
+
+  Future<void> _toggleNotificationsPermission(bool wantsOn) async {
+    if (_notificationsEnabled == true) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.privacyPermissionDisableFromSystem)));
+      await Geolocator.openAppSettings();
+    } else {
+      try {
+        await FirebaseMessaging.instance.requestPermission();
+      } catch (_) {
+        // Va bene fallire in silenzio: la riga si limiterà a mostrare lo
+        // stato invariato dopo il ricaricamento sotto.
+      }
+    }
+    await _loadPermissionsStatus();
   }
 
   Future<void> _loadEmergencySettings() async {
@@ -331,11 +387,6 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     await AppState.instance.setPhoneNumber(result.isEmpty ? null : result);
   }
 
-  /// Scarica l'APK aprendolo nel browser di sistema (finisce nei Download
-  /// del telefono come un file qualunque): non lo installa da sola, serve
-  /// un tocco manuale dell'utente sul file scaricato. Vedi AppUpdateService
-  /// per il perché di questa scelta invece di un download+installazione
-  /// automatici da dentro l'app.
   Future<void> _checkForUpdate() async {
     setState(() => _checkingUpdate = true);
     final update = await AppUpdateService.instance.checkForUpdate();
@@ -361,8 +412,55 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
         ],
       ),
     );
-    if (download == true) {
-      await launchUrl(Uri.parse(update.downloadUrl), mode: LaunchMode.externalApplication);
+    if (download == true && mounted) {
+      await _downloadAndInstall(update.downloadUrl);
+    }
+  }
+
+  /// Scarica l'APK QUI dentro l'app (invece di aprire il link nel browser
+  /// di sistema, che restava bloccato al 99% su alcuni telefoni: un bug
+  /// noto di Chrome per i download avviati da un'altra app, vedi
+  /// AppUpdateService), poi lo apre con OpenFilex: quello fa comparire la
+  /// schermata di installazione di Android, dove il tocco finale resta
+  /// comunque dell'utente.
+  Future<void> _downloadAndInstall(String url) async {
+    final l10n = AppLocalizations.of(context)!;
+    final progress = ValueNotifier<double>(0);
+    unawaited(showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(l10n.privacyDownloadingUpdate),
+        content: ValueListenableBuilder<double>(
+          valueListenable: progress,
+          builder: (context, value, _) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              LinearProgressIndicator(value: value > 0 ? value : null),
+              const SizedBox(height: 10),
+              Text('${(value * 100).round()}%'),
+            ],
+          ),
+        ),
+      ),
+    ));
+
+    try {
+      final path = await AppUpdateService.instance.downloadApk(url, onProgress: (p) => progress.value = p);
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      final result = await OpenFilex.open(path);
+      if (result.type != ResultType.done && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.privacyUpdateInstallError)));
+      }
+    } catch (_) {
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(l10n.privacyUpdateDownloadError),
+          action: SnackBarAction(label: l10n.privacyOpenInBrowser, onPressed: () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication)),
+        ));
+      }
     }
   }
 
@@ -395,6 +493,43 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                           style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                         ),
                       ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(l10n.privacyPermissionsHeader, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
+                const SizedBox(height: 6),
+                Text(
+                  l10n.privacyPermissionsHint,
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(16)),
+                  child: Column(
+                    children: [
+                      _PermissionRow(
+                        icon: Icons.location_on_outlined,
+                        label: l10n.privacyPermissionLocation,
+                        status: switch (_locationPermission) {
+                          LocationPermission.always => l10n.privacyPermissionLocationAlways,
+                          LocationPermission.whileInUse => l10n.privacyPermissionLocationWhileInUse,
+                          _ => l10n.privacyPermissionLocationDenied,
+                        },
+                        value: _locationPermission == LocationPermission.always || _locationPermission == LocationPermission.whileInUse,
+                        onChanged: _toggleLocationPermission,
+                      ),
+                      if (_notificationsEnabled != null) ...[
+                        const Divider(height: 24),
+                        _PermissionRow(
+                          icon: Icons.notifications_outlined,
+                          label: l10n.privacyPermissionNotifications,
+                          status: _notificationsEnabled! ? l10n.privacyPermissionNotificationsOn : l10n.privacyPermissionNotificationsOff,
+                          value: _notificationsEnabled!,
+                          onChanged: _toggleNotificationsPermission,
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -684,7 +819,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     MaterialPageRoute(builder: (_) => const CirclesScreen(forceCoachMark: true)),
                   ),
                 ),
-                if (state.me.isBetaTester) ...[
+                if (!kIsWeb && state.me.isBetaTester) ...[
                   const SizedBox(height: 24),
                   Text(l10n.privacyBetaHeader, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                   const SizedBox(height: 6),
@@ -705,6 +840,36 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+class _PermissionRow extends StatelessWidget {
+  const _PermissionRow({required this.icon, required this.label, required this.status, required this.value, required this.onChanged});
+  final IconData icon;
+  final String label;
+  final String status;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 19, color: AppTheme.textPrimary),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+              const SizedBox(height: 2),
+              Text(status, style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5)),
+            ],
+          ),
+        ),
+        Switch(value: value, onChanged: onChanged),
+      ],
     );
   }
 }

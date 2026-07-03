@@ -12,12 +12,18 @@ class PersonListTile extends StatelessWidget {
     super.key,
     required this.person,
     this.onTap,
+    this.onAvatarTap,
     this.trailing,
     this.showBadge = true,
   });
 
   final Person person;
   final VoidCallback? onTap;
+
+  /// Se non passato, toccare l'avatar fa la stessa cosa di [onTap]: usato
+  /// nella mappa per centrare la mappa sulla persona invece di aprirne la
+  /// scheda, che resta raggiungibile toccando il resto della riga.
+  final VoidCallback? onAvatarTap;
   final Widget? trailing;
   final bool showBadge;
 
@@ -27,16 +33,20 @@ class PersonListTile extends StatelessWidget {
     final activity = person.activityStatus;
     final showActivity = canSeeLocation && activity != ActivityStatus.stationary;
     final l10n = AppLocalizations.of(context)!;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-        child: Row(
-          children: [
-            PersonAvatar(person: person, size: 46, showActivityBadge: false),
-            const SizedBox(width: 14),
-            Expanded(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+      child: Row(
+        children: [
+          InkWell(
+            onTap: onAvatarTap ?? onTap,
+            customBorder: const CircleBorder(),
+            child: PersonAvatar(person: person, size: 46, showActivityBadge: false),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -62,10 +72,10 @@ class PersonListTile extends StatelessWidget {
                 ],
               ),
             ),
-            if (showActivity) Padding(padding: const EdgeInsets.only(left: 8), child: ActivityIndicator(activity: activity)),
-            if (trailing != null) trailing!,
-          ],
-        ),
+          ),
+          if (showActivity) Padding(padding: const EdgeInsets.only(left: 8), child: ActivityIndicator(activity: activity)),
+          if (trailing != null) trailing!,
+        ],
       ),
     );
   }

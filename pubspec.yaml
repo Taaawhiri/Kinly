@@ -34,6 +34,8 @@ dependencies:
   image: ^4.9.1
   web: ^1.1.0
   home_widget: ^0.9.3
+  open_filex: ^4.7.0
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:

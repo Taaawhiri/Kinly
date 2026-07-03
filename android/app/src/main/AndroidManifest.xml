@@ -16,6 +16,11 @@
          dalla galleria non richiede questo permesso, usa il selettore di
          sistema). -->
     <uses-permission android:name="android.permission.CAMERA"/>
+    <!-- Solo per i beta tester: "Controlla aggiornamenti" scarica l'APK e
+         lo apre per farlo installare. Senza questo permesso Android
+         mostrerebbe comunque la richiesta la prima volta, solo con un
+         passaggio in più verso le impostazioni invece di un tocco diretto. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
     <application
         android:label="Kinly"
         android:name="${applicationName}"

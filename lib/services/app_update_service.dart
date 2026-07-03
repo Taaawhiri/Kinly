@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 /// Aggiornamento beta disponibile: numero di build, link diretto all'APK
 /// su GitHub Releases e note di rilascio (facoltative).
@@ -16,14 +18,15 @@ class UpdateInfo {
 /// sviluppo (vedi .github/workflows/build-apk.yml) come GitHub Release
 /// pubblica — nessun token necessario, la repo è pubblica.
 ///
-/// Pensato solo per i beta tester (vedi profiles.is_beta_tester): scarica
-/// l'APK aprendolo nel browser di sistema, che lo mette nei Download del
-/// telefono come qualunque altro file — l'installazione resta un tocco
-/// manuale dell'utente sul file scaricato. Non scarica né installa nulla
-/// in automatico da dentro l'app: farlo richiederebbe il permesso Android
-/// "installa app sconosciute" e una configurazione nativa (FileProvider)
-/// non verificabile in questo ambiente di sviluppo (nessun dispositivo
-/// Android reale disponibile).
+/// Pensato solo per i beta tester (vedi profiles.is_beta_tester). L'APK
+/// viene scaricato QUI dentro l'app (non passando dal browser di sistema:
+/// aprire l'URL con un Intent esterno faceva restare il download di Chrome
+/// bloccato al 99% su alcuni dispositivi, un bug noto di Chrome per i
+/// download avviati da un'altra app, non risolvibile lato nostro). Una
+/// volta scaricato, aprirlo (vedi privacy_security_screen.dart, con
+/// OpenFilex) fa comunque comparire la schermata di installazione di
+/// sistema: quel tocco resta manuale, come per qualunque APK non
+/// distribuito dal Play Store.
 class AppUpdateService {
   AppUpdateService._();
   static final instance = AppUpdateService._();
@@ -35,6 +38,34 @@ class AppUpdateService {
   static int get currentBuildNumber => int.tryParse(const String.fromEnvironment('BUILD_NUMBER', defaultValue: '0')) ?? 0;
 
   static final _tagPattern = RegExp(r'beta-(\d+)');
+
+  /// Scarica l'APK nella cache dell'app (non nei Download pubblici: non
+  /// serve più nulla lì una volta installato) riportando l'avanzamento via
+  /// [onProgress] (0.0-1.0). Il file va poi aperto con OpenFilex per far
+  /// comparire la schermata di installazione di sistema.
+  Future<String> downloadApk(String url, {void Function(double progress)? onProgress}) async {
+    final client = http.Client();
+    try {
+      final response = await client.send(http.Request('GET', Uri.parse(url)));
+      if (response.statusCode != 200) {
+        throw Exception('Download fallito (${response.statusCode})');
+      }
+      final total = response.contentLength ?? 0;
+      var received = 0;
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/kinly_update.apk');
+      final sink = file.openWrite();
+      await for (final chunk in response.stream) {
+        sink.add(chunk);
+        received += chunk.length;
+        if (total > 0) onProgress?.call(received / total);
+      }
+      await sink.close();
+      return file.path;
+    } finally {
+      client.close();
+    }
+  }
 
   /// Torna null se non c'è un aggiornamento (o in caso di qualunque errore
   /// di rete/formato): un controllo aggiornamenti fallito non deve mai

@@ -1862,6 +1862,66 @@ abstract class AppLocalizations {
   /// **'Numero di telefono'**
   String get privacyPhoneNumberTitle;
 
+  /// No description provided for @privacyPermissionsHeader.
+  ///
+  /// In it, this message translates to:
+  /// **'Permessi'**
+  String get privacyPermissionsHeader;
+
+  /// No description provided for @privacyPermissionsHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Lo stato dei permessi di sistema usati da Kinly. Toccane uno per attivarlo o per aprire le impostazioni del telefono.'**
+  String get privacyPermissionsHint;
+
+  /// No description provided for @privacyPermissionLocation.
+  ///
+  /// In it, this message translates to:
+  /// **'Posizione'**
+  String get privacyPermissionLocation;
+
+  /// No description provided for @privacyPermissionLocationAlways.
+  ///
+  /// In it, this message translates to:
+  /// **'Sempre attiva'**
+  String get privacyPermissionLocationAlways;
+
+  /// No description provided for @privacyPermissionLocationWhileInUse.
+  ///
+  /// In it, this message translates to:
+  /// **'Solo con l\'app aperta'**
+  String get privacyPermissionLocationWhileInUse;
+
+  /// No description provided for @privacyPermissionLocationDenied.
+  ///
+  /// In it, this message translates to:
+  /// **'Disattivata'**
+  String get privacyPermissionLocationDenied;
+
+  /// No description provided for @privacyPermissionNotifications.
+  ///
+  /// In it, this message translates to:
+  /// **'Notifiche'**
+  String get privacyPermissionNotifications;
+
+  /// No description provided for @privacyPermissionNotificationsOn.
+  ///
+  /// In it, this message translates to:
+  /// **'Attive'**
+  String get privacyPermissionNotificationsOn;
+
+  /// No description provided for @privacyPermissionNotificationsOff.
+  ///
+  /// In it, this message translates to:
+  /// **'Disattivate'**
+  String get privacyPermissionNotificationsOff;
+
+  /// No description provided for @privacyPermissionDisableFromSystem.
+  ///
+  /// In it, this message translates to:
+  /// **'Per disattivarlo serve usare le impostazioni di sistema del telefono.'**
+  String get privacyPermissionDisableFromSystem;
+
   /// No description provided for @privacyAccountHeader.
   ///
   /// In it, this message translates to:
@@ -2147,7 +2207,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyUpdateAvailableBody.
   ///
   /// In it, this message translates to:
-  /// **'È disponibile una nuova build. Scaricala per aggiornare l\'app: dovrai poi aprirla dai Download del telefono per installarla (Kinly non installa nulla da solo).'**
+  /// **'È disponibile una nuova build. Scaricala per aggiornare l\'app: dopo il download si aprirà la schermata di installazione di Android, dove dovrai confermare tu (Kinly non installa nulla da solo).'**
   String get privacyUpdateAvailableBody;
 
   /// No description provided for @privacyDownloadUpdate.
@@ -2155,6 +2215,30 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Scarica'**
   String get privacyDownloadUpdate;
+
+  /// No description provided for @privacyDownloadingUpdate.
+  ///
+  /// In it, this message translates to:
+  /// **'Download in corso…'**
+  String get privacyDownloadingUpdate;
+
+  /// No description provided for @privacyUpdateInstallError.
+  ///
+  /// In it, this message translates to:
+  /// **'Il file è stato scaricato ma non siamo riusciti ad aprirlo per l\'installazione.'**
+  String get privacyUpdateInstallError;
+
+  /// No description provided for @privacyUpdateDownloadError.
+  ///
+  /// In it, this message translates to:
+  /// **'Il download è fallito. Puoi provare ad aprirlo nel browser invece.'**
+  String get privacyUpdateDownloadError;
+
+  /// No description provided for @privacyOpenInBrowser.
+  ///
+  /// In it, this message translates to:
+  /// **'Apri nel browser'**
+  String get privacyOpenInBrowser;
 
   /// No description provided for @changePasswordMismatch.
   ///

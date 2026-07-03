@@ -402,6 +402,18 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     }
   }
 
+  /// Toccare l'avatar nella lista "La tua cerchia" centra la mappa lì
+  /// invece di aprire la scheda persona (che resta un tocco sul resto
+  /// della riga): il foglio si restringe un po' per lasciar vedere la
+  /// mappa appena centrata invece di restare sopra a coprirla.
+  Future<void> _flyToPerson(Person person) async {
+    final lat = person.lat;
+    final lng = person.lng;
+    if (lat == null || lng == null) return;
+    unawaited(_sheetController.animateTo(_sheetMinSize, duration: const Duration(milliseconds: 300), curve: Curves.easeOut));
+    await _mapController?.animateCamera(CameraUpdate.newLatLngZoom(LatLng(lat, lng), 15));
+  }
+
   Future<void> _confirmAndTriggerSos() async {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
@@ -1006,6 +1018,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: p.id)),
                       ),
+                      onAvatarTap: (p.lat != null && p.lng != null) ? () => _flyToPerson(p) : null,
                     );
                   },
                 ),

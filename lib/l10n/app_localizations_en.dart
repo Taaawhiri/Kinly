@@ -1049,6 +1049,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyPhoneNumberTitle => 'Phone number';
 
   @override
+  String get privacyPermissionsHeader => 'Permissions';
+
+  @override
+  String get privacyPermissionsHint =>
+      'The status of the system permissions Kinly uses. Tap one to turn it on or to open your phone\'s settings.';
+
+  @override
+  String get privacyPermissionLocation => 'Location';
+
+  @override
+  String get privacyPermissionLocationAlways => 'Always on';
+
+  @override
+  String get privacyPermissionLocationWhileInUse =>
+      'Only while the app is open';
+
+  @override
+  String get privacyPermissionLocationDenied => 'Off';
+
+  @override
+  String get privacyPermissionNotifications => 'Notifications';
+
+  @override
+  String get privacyPermissionNotificationsOn => 'On';
+
+  @override
+  String get privacyPermissionNotificationsOff => 'Off';
+
+  @override
+  String get privacyPermissionDisableFromSystem =>
+      'To turn this off you need to use your phone\'s system settings.';
+
+  @override
   String get privacyAccountHeader => 'Account';
 
   @override
@@ -1213,10 +1246,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyUpdateAvailableBody =>
-      'A new build is available. Download it to update the app: you\'ll then need to open it from your phone\'s Downloads to install it (Kinly doesn\'t install anything on its own).';
+      'A new build is available. Download it to update the app: once it\'s downloaded, Android\'s install screen will open, where you\'ll need to confirm yourself (Kinly doesn\'t install anything on its own).';
 
   @override
   String get privacyDownloadUpdate => 'Download';
+
+  @override
+  String get privacyDownloadingUpdate => 'Downloading…';
+
+  @override
+  String get privacyUpdateInstallError =>
+      'The file downloaded but we couldn\'t open it to install.';
+
+  @override
+  String get privacyUpdateDownloadError =>
+      'The download failed. You can try opening it in the browser instead.';
+
+  @override
+  String get privacyOpenInBrowser => 'Open in browser';
 
   @override
   String get changePasswordMismatch => 'The two passwords don\'t match.';
