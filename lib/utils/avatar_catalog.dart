@@ -24,6 +24,16 @@ class AvatarCatalog {
     AvatarOption(key: 'rabbit', emoji: '🐰', colors: [Color(0xFFFF9EC4), Color(0xFFE87DA6)]),
     AvatarOption(key: 'bear', emoji: '🐻', colors: [Color(0xFFB08968), Color(0xFF8A6647)]),
     AvatarOption(key: 'penguin', emoji: '🐧', colors: [Color(0xFF5CC8D7), Color(0xFF3A9CAB)]),
+    AvatarOption(key: 'turtle', emoji: '🐢', colors: [Color(0xFF7BC08A), Color(0xFF4E9C60)]),
+    AvatarOption(key: 'dolphin', emoji: '🐬', colors: [Color(0xFF6FC4E8), Color(0xFF3E9BC7)]),
+    AvatarOption(key: 'unicorn', emoji: '🦄', colors: [Color(0xFFE8A0F4), Color(0xFFC46FE0)]),
+    AvatarOption(key: 'dragon', emoji: '🐲', colors: [Color(0xFF7FD9A0), Color(0xFF3FB876)]),
+    AvatarOption(key: 'tiger', emoji: '🐯', colors: [Color(0xFFFFB35C), Color(0xFFF07E1E)]),
+    AvatarOption(key: 'wolf', emoji: '🐺', colors: [Color(0xFF9AA8BD), Color(0xFF66768E)]),
+    AvatarOption(key: 'hedgehog', emoji: '🦔', colors: [Color(0xFFD9A876), Color(0xFFB27E4E)]),
+    AvatarOption(key: 'octopus', emoji: '🐙', colors: [Color(0xFFE38FC0), Color(0xFFC1579A)]),
+    AvatarOption(key: 'flamingo', emoji: '🦩', colors: [Color(0xFFFF9FB0), Color(0xFFF06E88)]),
+    AvatarOption(key: 'sloth', emoji: '🦥', colors: [Color(0xFFC9A66B), Color(0xFF9C7C46)]),
   ];
 
   static AvatarOption? find(String? key) {
