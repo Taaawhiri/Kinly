@@ -36,6 +36,7 @@ import '../circles/meeting_point_screen.dart';
 import '../people/help_request_screen.dart';
 import '../people/person_detail_screen.dart';
 import '../people/sos_alert_screen.dart';
+import '../premium/paywall_screen.dart';
 import '../premium/safe_zones_screen.dart';
 
 class MapHomeScreen extends StatefulWidget {
@@ -154,7 +155,9 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   /// mai un'azione diretta — un tocco accidentale sul widget in tasca non
   /// deve poter far scattare un SOS vero. Toccare una riga persona nel
   /// widget arriva invece come kinly://person/<id>: centra la mappa lì,
-  /// come toccare l'avatar nella lista sotto la mappa in app.
+  /// come toccare l'avatar nella lista sotto la mappa in app. Toccare
+  /// l'anteprima bloccata del widget (chi non ha Kinly+) arriva come
+  /// kinly://paywall: apre direttamente la pagina di Kinly+.
   void _handleWidgetUri(Uri? uri) {
     if (uri == null) return;
     final action = uri.host;
@@ -172,6 +175,8 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             final person = AppState.instance.personById(uri.pathSegments.first);
             if (person != null) unawaited(_flyToPerson(person));
           }
+        case 'paywall':
+          Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen()));
       }
     });
   }

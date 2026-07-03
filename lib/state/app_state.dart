@@ -290,7 +290,8 @@ class AppState extends ChangeNotifier {
         for (final r in circleSettingsRows) r['circle_id'] as String: SharingModeData.fromDb(r['sharing_mode'] as String),
       };
 
-      unawaited(HomeWidgetService.instance.update(_others, _circles, lookupAppLocalizations(LocaleController.instance.locale)));
+      unawaited(HomeWidgetService.instance
+          .update(_others, _circles, lookupAppLocalizations(LocaleController.instance.locale), isPremium: isPremium));
 
       loadError = null;
     } catch (e) {

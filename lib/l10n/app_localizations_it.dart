@@ -90,6 +90,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get homeWidgetTitle => 'La tua cerchia';
 
   @override
+  String get homeWidgetLockedTitle => 'Widget Kinly+';
+
+  @override
+  String get homeWidgetLockedSubtitle => 'Tocca per sbloccare';
+
+  @override
   String arrivalPromptTitle(String zone) {
     return 'Sei arrivato a $zone?';
   }
@@ -1689,7 +1695,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get paywallFeatureWidgetDesc =>
-      'Chi conta di più sempre a colpo d\'occhio, senza aprire l\'app (Android).';
+      'Chi conta di più sempre a colpo d\'occhio, con tutte le tue cerchie a un tocco (Android).';
 
   @override
   String get paywallRequestError =>

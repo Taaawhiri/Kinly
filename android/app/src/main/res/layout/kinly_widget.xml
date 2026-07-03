@@ -121,11 +121,57 @@
             android:textColor="#8A90A6" />
     </LinearLayout>
 
+    <!-- Anteprima per chi non ha Kinly+: il widget è una funzione a
+         pagamento (vedi HomeWidgetService), quindi niente nome o posizione
+         reale finisce nei dati letti qui, solo un invito a sbloccarla.
+         Toccarla apre l'app dritta sulla pagina di Kinly+ (kinly://paywall),
+         non un'azione diretta. -->
+    <LinearLayout
+        android:id="@+id/widget_locked_group"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:text="🔒"
+            android:textSize="22sp" />
+
+        <TextView
+            android:id="@+id/widget_locked_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textStyle="bold"
+            android:textSize="12.5sp"
+            android:textColor="#222533" />
+
+        <TextView
+            android:id="@+id/widget_locked_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:gravity="center"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textSize="11sp"
+            android:textColor="#8A90A6" />
+    </LinearLayout>
+
     <!-- Occupa tutto lo spazio verticale che resta sotto l'intestazione: le
          righe delle persone dentro si centrano lì, invece di restare
          incollate in alto con un vuoto enorme sotto quando il widget è
          ridimensionato più alto del contenuto (es. una sola persona). -->
     <FrameLayout
+        android:id="@+id/widget_content_frame"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">

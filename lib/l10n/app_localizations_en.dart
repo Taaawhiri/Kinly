@@ -90,6 +90,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWidgetTitle => 'Your circle';
 
   @override
+  String get homeWidgetLockedTitle => 'Kinly+ widget';
+
+  @override
+  String get homeWidgetLockedSubtitle => 'Tap to unlock';
+
+  @override
   String arrivalPromptTitle(String zone) {
     return 'Did you arrive at $zone?';
   }
@@ -1685,7 +1691,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paywallFeatureWidgetDesc =>
-      'Whoever matters most, always at a glance, without opening the app (Android).';
+      'Whoever matters most, always at a glance, with all your circles one tap away (Android).';
 
   @override
   String get paywallRequestError =>

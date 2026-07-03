@@ -32,10 +32,22 @@ class HomeWidgetService {
 
   /// [l10n] arriva da lookupAppLocalizations(locale): questo servizio è
   /// chiamato da AppState, che non ha un BuildContext a disposizione.
-  Future<void> update(List<Person> others, List<CircleGroup> circles, AppLocalizations l10n) async {
+  ///
+  /// Widget Kinly+: chi non è abbonato vede solo un invito a sbloccarlo
+  /// (nessun nome o posizione reale scritto nei dati del widget), non i
+  /// dati reali della cerchia.
+  Future<void> update(List<Person> others, List<CircleGroup> circles, AppLocalizations l10n, {required bool isPremium}) async {
     if (!Platform.isAndroid) return;
     try {
       await HomeWidget.saveWidgetData<String>('title', l10n.homeWidgetTitle);
+      if (!isPremium) {
+        await HomeWidget.saveWidgetData<String>('locked', '1');
+        await HomeWidget.saveWidgetData<String>('lockedTitle', l10n.homeWidgetLockedTitle);
+        await HomeWidget.saveWidgetData<String>('lockedSubtitle', l10n.homeWidgetLockedSubtitle);
+        await HomeWidget.updateWidget(androidName: 'KinlyWidgetProvider');
+        return;
+      }
+      await HomeWidget.saveWidgetData<String>('locked', '0');
       await HomeWidget.saveWidgetData<String>('circleCount', '${circles.length}');
 
       for (var c = 0; c < circles.length; c++) {

@@ -71,7 +71,8 @@ class KinlyWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         val prefs = HomeWidgetPlugin.getData(context)
-        val circleCount = prefs.getString("circleCount", "0")?.toIntOrNull() ?: 0
+        val locked = prefs.getString("locked", "0") == "1"
+        val circleCount = if (locked) 0 else prefs.getString("circleCount", "0")?.toIntOrNull() ?: 0
         val circleIndex = if (circleCount <= 0) 0 else prefs.getInt(SELECTED_CIRCLE_KEY, 0).coerceIn(0, circleCount - 1)
         // Nessuna cerchia: l'utente non ne ha ancora creata/joinata una,
         // niente da mostrare al posto del nome (diverso dal caso "cerchia
@@ -83,64 +84,84 @@ class KinlyWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.kinly_widget)
             views.setTextViewText(R.id.widget_title, prefs.getString("title", "Kinly") ?: "Kinly")
 
-            if (circleCount <= 0) {
+            if (locked) {
+                // Funzione Kinly+: niente nome di cerchia né righe persona,
+                // solo l'invito a sbloccare. Un tocco apre l'app dritta
+                // sulla pagina di Kinly+ (kinly://paywall). Le scorciatoie
+                // SOS/aiuto/accompagnami restano comunque attive più sotto:
+                // sono funzioni di sicurezza gratuite, non legate a Kinly+.
                 views.setViewVisibility(R.id.widget_circle_row, View.GONE)
+                views.setViewVisibility(R.id.widget_content_frame, View.GONE)
+                views.setViewVisibility(R.id.widget_locked_group, View.VISIBLE)
+                views.setTextViewText(R.id.widget_locked_title, prefs.getString("lockedTitle", "Kinly+") ?: "Kinly+")
+                views.setTextViewText(R.id.widget_locked_subtitle, prefs.getString("lockedSubtitle", "") ?: "")
+                views.setOnClickPendingIntent(
+                    R.id.widget_locked_group,
+                    HomeWidgetLaunchIntent.getActivity(context, MainActivity::class.java, Uri.parse("kinly://paywall")),
+                )
             } else {
-                views.setViewVisibility(R.id.widget_circle_row, View.VISIBLE)
-                views.setTextViewText(R.id.widget_circle_name, prefs.getString("circleName$circleIndex", "") ?: "")
-                val showArrows = if (circleCount > 1) View.VISIBLE else View.INVISIBLE
-                views.setViewVisibility(R.id.widget_circle_prev, showArrows)
-                views.setViewVisibility(R.id.widget_circle_next, showArrows)
-                if (circleCount > 1) {
-                    views.setOnClickPendingIntent(R.id.widget_circle_prev, circleNavPendingIntent(context, ACTION_PREV_CIRCLE, 10))
-                    views.setOnClickPendingIntent(R.id.widget_circle_next, circleNavPendingIntent(context, ACTION_NEXT_CIRCLE, 11))
-                }
-            }
+                views.setViewVisibility(R.id.widget_locked_group, View.GONE)
+                views.setViewVisibility(R.id.widget_content_frame, View.VISIBLE)
 
-            if (isPreview) {
-                // Righe puramente illustrative (pallino + barre), niente
-                // testo: rappresentano genericamente "qui comparirà chi
-                // condivide", non un esempio specifico da leggere.
-                setPreviewRow(
-                    views, context,
-                    rowId = R.id.widget_row1, dotId = R.id.widget_dot1,
-                    textGroupId = R.id.widget_text_group1, barsGroupId = R.id.widget_bars_group1,
-                    color = 0xFF4A63E7.toInt(),
-                )
-                setPreviewRow(
-                    views, context,
-                    rowId = R.id.widget_row2, dotId = R.id.widget_dot2,
-                    textGroupId = R.id.widget_text_group2, barsGroupId = R.id.widget_bars_group2,
-                    color = 0xFFFF6B6B.toInt(),
-                )
-                views.setViewVisibility(R.id.widget_row3, View.GONE)
-                views.setViewVisibility(R.id.widget_divider3, View.GONE)
-            } else {
-                val prefix = "c${circleIndex}_"
-                setDataRow(
-                    views, context,
-                    rowId = R.id.widget_row1, dividerId = null, dotId = R.id.widget_dot1,
-                    textGroupId = R.id.widget_text_group1, barsGroupId = R.id.widget_bars_group1,
-                    nameId = R.id.widget_name1, subId = R.id.widget_sub1,
-                    name = prefs.getString("${prefix}name1", "") ?: "", sub = prefs.getString("${prefix}sub1", "") ?: "",
-                    personId = prefs.getString("${prefix}id1", null), colorHex = prefs.getString("${prefix}color1", null),
-                )
-                setDataRow(
-                    views, context,
-                    rowId = R.id.widget_row2, dividerId = R.id.widget_divider2, dotId = R.id.widget_dot2,
-                    textGroupId = R.id.widget_text_group2, barsGroupId = R.id.widget_bars_group2,
-                    nameId = R.id.widget_name2, subId = R.id.widget_sub2,
-                    name = prefs.getString("${prefix}name2", "") ?: "", sub = prefs.getString("${prefix}sub2", "") ?: "",
-                    personId = prefs.getString("${prefix}id2", null), colorHex = prefs.getString("${prefix}color2", null),
-                )
-                setDataRow(
-                    views, context,
-                    rowId = R.id.widget_row3, dividerId = R.id.widget_divider3, dotId = R.id.widget_dot3,
-                    textGroupId = R.id.widget_text_group3, barsGroupId = R.id.widget_bars_group3,
-                    nameId = R.id.widget_name3, subId = R.id.widget_sub3,
-                    name = prefs.getString("${prefix}name3", "") ?: "", sub = prefs.getString("${prefix}sub3", "") ?: "",
-                    personId = prefs.getString("${prefix}id3", null), colorHex = prefs.getString("${prefix}color3", null),
-                )
+                if (circleCount <= 0) {
+                    views.setViewVisibility(R.id.widget_circle_row, View.GONE)
+                } else {
+                    views.setViewVisibility(R.id.widget_circle_row, View.VISIBLE)
+                    views.setTextViewText(R.id.widget_circle_name, prefs.getString("circleName$circleIndex", "") ?: "")
+                    val showArrows = if (circleCount > 1) View.VISIBLE else View.INVISIBLE
+                    views.setViewVisibility(R.id.widget_circle_prev, showArrows)
+                    views.setViewVisibility(R.id.widget_circle_next, showArrows)
+                    if (circleCount > 1) {
+                        views.setOnClickPendingIntent(R.id.widget_circle_prev, circleNavPendingIntent(context, ACTION_PREV_CIRCLE, 10))
+                        views.setOnClickPendingIntent(R.id.widget_circle_next, circleNavPendingIntent(context, ACTION_NEXT_CIRCLE, 11))
+                    }
+                }
+
+                if (isPreview) {
+                    // Righe puramente illustrative (pallino + barre), niente
+                    // testo: rappresentano genericamente "qui comparirà chi
+                    // condivide", non un esempio specifico da leggere.
+                    setPreviewRow(
+                        views, context,
+                        rowId = R.id.widget_row1, dotId = R.id.widget_dot1,
+                        textGroupId = R.id.widget_text_group1, barsGroupId = R.id.widget_bars_group1,
+                        color = 0xFF4A63E7.toInt(),
+                    )
+                    setPreviewRow(
+                        views, context,
+                        rowId = R.id.widget_row2, dotId = R.id.widget_dot2,
+                        textGroupId = R.id.widget_text_group2, barsGroupId = R.id.widget_bars_group2,
+                        color = 0xFFFF6B6B.toInt(),
+                    )
+                    views.setViewVisibility(R.id.widget_row3, View.GONE)
+                    views.setViewVisibility(R.id.widget_divider3, View.GONE)
+                } else {
+                    val prefix = "c${circleIndex}_"
+                    setDataRow(
+                        views, context,
+                        rowId = R.id.widget_row1, dividerId = null, dotId = R.id.widget_dot1,
+                        textGroupId = R.id.widget_text_group1, barsGroupId = R.id.widget_bars_group1,
+                        nameId = R.id.widget_name1, subId = R.id.widget_sub1,
+                        name = prefs.getString("${prefix}name1", "") ?: "", sub = prefs.getString("${prefix}sub1", "") ?: "",
+                        personId = prefs.getString("${prefix}id1", null), colorHex = prefs.getString("${prefix}color1", null),
+                    )
+                    setDataRow(
+                        views, context,
+                        rowId = R.id.widget_row2, dividerId = R.id.widget_divider2, dotId = R.id.widget_dot2,
+                        textGroupId = R.id.widget_text_group2, barsGroupId = R.id.widget_bars_group2,
+                        nameId = R.id.widget_name2, subId = R.id.widget_sub2,
+                        name = prefs.getString("${prefix}name2", "") ?: "", sub = prefs.getString("${prefix}sub2", "") ?: "",
+                        personId = prefs.getString("${prefix}id2", null), colorHex = prefs.getString("${prefix}color2", null),
+                    )
+                    setDataRow(
+                        views, context,
+                        rowId = R.id.widget_row3, dividerId = R.id.widget_divider3, dotId = R.id.widget_dot3,
+                        textGroupId = R.id.widget_text_group3, barsGroupId = R.id.widget_bars_group3,
+                        nameId = R.id.widget_name3, subId = R.id.widget_sub3,
+                        name = prefs.getString("${prefix}name3", "") ?: "", sub = prefs.getString("${prefix}sub3", "") ?: "",
+                        personId = prefs.getString("${prefix}id3", null), colorHex = prefs.getString("${prefix}color3", null),
+                    )
+                }
             }
 
             val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)

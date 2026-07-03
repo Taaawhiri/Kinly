@@ -290,7 +290,12 @@
   }
   .widget-mock-title { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
   .widget-mock-logo { width: 14px; height: 14px; border-radius: 4px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); flex: none; }
+  /* Riga nome cerchia + frecce per passare a un'altra: mostra che il widget
+     non e' bloccato su una sola cerchia se ne hai piu' di una. */
+  .widget-mock-circle { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+  .widget-mock-circle span { color: var(--text-secondary); font-weight: 400; }
   .widget-mock-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .widget-mock-row .bar.small { height: 4px; width: 60%; margin-top: 5px; }
 
   .plus-badge {
     display: inline-block;
@@ -1002,8 +1007,21 @@
                   <span class="widget-mock-logo"></span>
                   <div class="bar" style="width: 60px; margin: 0;"></div>
                 </div>
-                <div class="widget-mock-row"><div class="skel-dot" style="position: static; width: 14px; height: 14px; background: var(--primary); animation: none;"></div><div class="bar light" style="flex: 1; margin: 0;"></div></div>
-                <div class="widget-mock-row"><div class="skel-dot" style="position: static; width: 14px; height: 14px; background: var(--coral); animation: none;"></div><div class="bar light" style="flex: 1; margin: 0;"></div></div>
+                <div class="widget-mock-circle"><span>&lsaquo;</span>Famiglia<span>&rsaquo;</span></div>
+                <div class="widget-mock-row">
+                  <div class="skel-dot" style="position: static; width: 14px; height: 14px; background: var(--primary); animation: none;"></div>
+                  <div style="flex: 1;">
+                    <div class="bar" style="margin: 0; width: 70%;"></div>
+                    <div class="bar light small"></div>
+                  </div>
+                </div>
+                <div class="widget-mock-row">
+                  <div class="skel-dot" style="position: static; width: 14px; height: 14px; background: var(--coral); animation: none;"></div>
+                  <div style="flex: 1;">
+                    <div class="bar" style="margin: 0; width: 55%;"></div>
+                    <div class="bar light small"></div>
+                  </div>
+                </div>
               </div>
               <div class="hs-app-icon" style="bottom: 8%; left: 10%; background: var(--green);"></div>
               <div class="hs-app-icon" style="bottom: 8%; right: 10%; background: var(--primary);"></div>
@@ -1012,7 +1030,7 @@
         </div>
         <div class="story-text">
           <h3>La tua cerchia sulla schermata home <span class="plus-badge">Kinly+</span></h3>
-          <p>Chi conta di piu' sempre a colpo d'occhio, senza aprire l'app: ultima posizione e stato aggiornati da soli (Android).</p>
+          <p>Chi conta di piu' sempre a colpo d'occhio, senza aprire l'app: ultima posizione e stato aggiornati da soli. Se hai piu' di una cerchia, scorri tra loro direttamente dal widget (Android).</p>
         </div>
       </div>
 

@@ -33,6 +33,8 @@
   "languagePickerTitle": "Scegli la lingua",
 
   "homeWidgetTitle": "La tua cerchia",
+  "homeWidgetLockedTitle": "Widget Kinly+",
+  "homeWidgetLockedSubtitle": "Tocca per sbloccare",
 
   "arrivalPromptTitle": "Sei arrivato a {zone}?",
   "@arrivalPromptTitle": {"placeholders": {"zone": {"type": "String"}}},
@@ -567,7 +569,7 @@
   "paywallFeatureGhostModeTitle": "Ghost Mode temporaneo",
   "paywallFeatureGhostModeDesc": "Rendi invisibile la tua posizione per 2 ore con un tocco: poi torna tutto visibile da solo.",
   "paywallFeatureWidgetTitle": "Widget schermata home",
-  "paywallFeatureWidgetDesc": "Chi conta di più sempre a colpo d'occhio, senza aprire l'app (Android).",
+  "paywallFeatureWidgetDesc": "Chi conta di più sempre a colpo d'occhio, con tutte le tue cerchie a un tocco (Android).",
 
   "paywallRequestError": "Non siamo riusciti a inviare la richiesta. Riprova.",
   "paywallCancelMessage": "Vorrei annullare il mio abbonamento Kinly+.",

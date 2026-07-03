@@ -248,6 +248,18 @@ abstract class AppLocalizations {
   /// **'La tua cerchia'**
   String get homeWidgetTitle;
 
+  /// No description provided for @homeWidgetLockedTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Widget Kinly+'**
+  String get homeWidgetLockedTitle;
+
+  /// No description provided for @homeWidgetLockedSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Tocca per sbloccare'**
+  String get homeWidgetLockedSubtitle;
+
   /// No description provided for @arrivalPromptTitle.
   ///
   /// In it, this message translates to:
@@ -2951,7 +2963,7 @@ abstract class AppLocalizations {
   /// No description provided for @paywallFeatureWidgetDesc.
   ///
   /// In it, this message translates to:
-  /// **'Chi conta di più sempre a colpo d\'occhio, senza aprire l\'app (Android).'**
+  /// **'Chi conta di più sempre a colpo d\'occhio, con tutte le tue cerchie a un tocco (Android).'**
   String get paywallFeatureWidgetDesc;
 
   /// No description provided for @paywallRequestError.

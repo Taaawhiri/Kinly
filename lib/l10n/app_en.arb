@@ -31,6 +31,8 @@
   "languagePickerTitle": "Choose language",
 
   "homeWidgetTitle": "Your circle",
+  "homeWidgetLockedTitle": "Kinly+ widget",
+  "homeWidgetLockedSubtitle": "Tap to unlock",
 
   "arrivalPromptTitle": "Did you arrive at {zone}?",
   "arrivalPromptAction": "I've arrived",
@@ -504,7 +506,7 @@
   "paywallFeatureGhostModeTitle": "Temporary Ghost Mode",
   "paywallFeatureGhostModeDesc": "Make your location invisible for 2 hours with one tap: everything becomes visible again on its own.",
   "paywallFeatureWidgetTitle": "Home screen widget",
-  "paywallFeatureWidgetDesc": "Whoever matters most, always at a glance, without opening the app (Android).",
+  "paywallFeatureWidgetDesc": "Whoever matters most, always at a glance, with all your circles one tap away (Android).",
 
   "paywallRequestError": "We couldn't send the request. Please try again.",
   "paywallCancelMessage": "I'd like to cancel my Kinly+ subscription.",
