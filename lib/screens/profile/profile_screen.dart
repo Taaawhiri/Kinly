@@ -321,56 +321,123 @@ class _AppearanceOption extends StatelessWidget {
   }
 }
 
+/// Lingue offerte dal selettore: bandiera + locale. Aggiungerne una nuova
+/// significa solo aggiungere una riga qui (più il relativo ARB "languageX")
+/// — il foglio a comparsa si adatta da solo, non essendo più un Row a
+/// larghezza fissa come la vecchia versione a 3 pill.
+const _languageChoices = [
+  (Locale('it'), '🇮🇹'),
+  (Locale('en'), '🇬🇧'),
+];
+
+String _languageFlag(Locale locale) =>
+    _languageChoices.firstWhere((c) => c.$1 == locale, orElse: () => _languageChoices.first).$2;
+
+String _languageName(AppLocalizations l10n, Locale locale) =>
+    locale.languageCode == 'it' ? l10n.languageItalian : l10n.languageEnglish;
+
 class _LanguagePicker extends StatelessWidget {
   const _LanguagePicker({required this.locale});
-
-  /// null = segue la lingua di sistema.
-  final Locale? locale;
+  final Locale locale;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final options = [
-      (null, l10n.languageSystem),
-      (const Locale('it'), l10n.languageItalian),
-      (const Locale('en'), l10n.languageEnglish),
-    ];
-    return Row(
-      children: [
-        for (final option in options) ...[
-          Expanded(child: _LanguageOption(label: option.$2, selected: locale == option.$1, onTap: () => LocaleController.instance.setLocale(option.$1))),
-          if (option != options.last) const SizedBox(width: 10),
-        ],
-      ],
+    return GestureDetector(
+      onTap: () => _openLanguageSheet(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(14)),
+        child: Row(
+          children: [
+            _FlagBadge(flag: _languageFlag(locale)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(_languageName(l10n, locale), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
+            ),
+            Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openLanguageSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.languagePickerTitle, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+              const SizedBox(height: 14),
+              for (final choice in _languageChoices)
+                _LanguageOption(
+                  flag: choice.$2,
+                  label: _languageName(l10n, choice.$1),
+                  selected: locale == choice.$1,
+                  onTap: () {
+                    LocaleController.instance.setLocale(choice.$1);
+                    Navigator.of(sheetContext).pop();
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FlagBadge extends StatelessWidget {
+  const _FlagBadge({required this.flag});
+  final String flag;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 34,
+      height: 34,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: AppTheme.surface),
+      alignment: Alignment.center,
+      child: Text(flag, style: const TextStyle(fontSize: 17)),
     );
   }
 }
 
 class _LanguageOption extends StatelessWidget {
-  const _LanguageOption({required this.label, required this.selected, required this.onTap});
+  const _LanguageOption({required this.flag, required this.label, required this.selected, required this.onTap});
+  final String flag;
   final String label;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
-          color: AppTheme.surface,
+          color: AppTheme.surfaceAlt,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: selected ? AppTheme.primary : Colors.transparent, width: 1.6),
         ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w700,
-            color: selected ? AppTheme.primary : AppTheme.textSecondary,
-          ),
+        child: Row(
+          children: [
+            _FlagBadge(flag: flag),
+            const SizedBox(width: 12),
+            Expanded(child: Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary))),
+            if (selected) Icon(Icons.check_circle_rounded, color: AppTheme.primary, size: 20),
+          ],
         ),
       ),
     );

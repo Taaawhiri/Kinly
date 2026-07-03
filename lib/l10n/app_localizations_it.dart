@@ -84,6 +84,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
+  String get languagePickerTitle => 'Scegli la lingua';
+
+  @override
   String get commonCancel => 'Annulla';
 
   @override

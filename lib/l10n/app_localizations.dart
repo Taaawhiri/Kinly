@@ -236,6 +236,12 @@ abstract class AppLocalizations {
   /// **'English'**
   String get languageEnglish;
 
+  /// No description provided for @languagePickerTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Scegli la lingua'**
+  String get languagePickerTitle;
+
   /// No description provided for @commonCancel.
   ///
   /// In it, this message translates to:

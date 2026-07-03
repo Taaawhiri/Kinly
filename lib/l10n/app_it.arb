@@ -30,6 +30,7 @@
   "languageSystem": "Sistema",
   "languageItalian": "Italiano",
   "languageEnglish": "English",
+  "languagePickerTitle": "Scegli la lingua",
 
   "commonCancel": "Annulla",
   "commonClose": "Chiudi",

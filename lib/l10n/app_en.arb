@@ -28,6 +28,7 @@
   "languageSystem": "System",
   "languageItalian": "Italiano",
   "languageEnglish": "English",
+  "languagePickerTitle": "Choose language",
 
   "commonCancel": "Cancel",
   "commonClose": "Close",
