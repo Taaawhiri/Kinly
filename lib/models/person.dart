@@ -4,8 +4,11 @@ import '../l10n/app_localizations.dart';
 import 'sharing_mode.dart';
 
 /// Stato dinamico dedotto dall'ultima velocità nota: nessun sensore in più,
-/// solo delle soglie sulla velocità GPS che già tracciamo.
-enum ActivityStatus { stationary, walking, running, driving }
+/// solo delle soglie sulla velocità GPS che già tracciamo. Solo due stati
+/// "in movimento" (a piedi o in auto): niente riconoscimento mezzi
+/// pubblici, che richiederebbe un'API di activity recognition nativa
+/// separata (Android Activity Recognition / iOS Core Motion).
+enum ActivityStatus { stationary, walking, driving }
 
 extension ActivityStatusData on ActivityStatus {
   IconData get icon {
@@ -14,8 +17,6 @@ extension ActivityStatusData on ActivityStatus {
         return Icons.circle;
       case ActivityStatus.walking:
         return Icons.directions_walk_rounded;
-      case ActivityStatus.running:
-        return Icons.directions_run_rounded;
       case ActivityStatus.driving:
         return Icons.directions_car_filled_rounded;
     }
@@ -149,12 +150,12 @@ class Person {
   }
 
   /// Dedotto dall'ultima velocità nota: nessuna soglia se non condivide o
-  /// non c'è ancora un dato di velocità.
+  /// non c'è ancora un dato di velocità. Sopra i 15 km/h si considera "in
+  /// auto" (anche una corsa a piedi sostenuta resta sotto questa soglia).
   ActivityStatus get activityStatus {
     final kmh = speedKmh;
     if (kmh == null || kmh < 1) return ActivityStatus.stationary;
-    if (kmh < 7) return ActivityStatus.walking;
-    if (kmh < 15) return ActivityStatus.running;
+    if (kmh < 15) return ActivityStatus.walking;
     return ActivityStatus.driving;
   }
 
