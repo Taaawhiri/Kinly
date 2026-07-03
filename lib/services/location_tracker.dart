@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -35,13 +36,24 @@ enum BackgroundTrackingResult {
 /// insieme al livello di batteria. La visibilità per gli altri è decisa dal
 /// database (RLS) in base alla modalità di condivisione: qui ci limitiamo a
 /// tenere aggiornati i nostri dati quando la modalità non è "sospesa".
-class LocationTracker {
+class LocationTracker with WidgetsBindingObserver {
   LocationTracker._();
   static final instance = LocationTracker._();
 
   StreamSubscription<Position>? _positionSub;
   Timer? _batteryTimer;
   final _battery = Battery();
+
+  /// Riavvio dello stream dopo un errore/chiusura inattesa (vedi
+  /// _handleStreamDown): su alcuni dispositivi, usare un'altra app che
+  /// richiede il GPS (tipicamente un navigatore come Google Maps) può far
+  /// morire in silenzio lo stream di posizione in background senza che
+  /// Kinly se ne accorga da solo — prima restava così finché non si
+  /// riapriva l'app a mano.
+  Timer? _restartTimer;
+  int _restartAttempts = 0;
+  static const _maxRestartAttempts = 5;
+  bool _observingLifecycle = false;
 
   /// Ultimo stato noto (dentro/fuori) per ogni area sicura, per capire
   /// quando avviene un ingresso o un'uscita senza avvisare al primo
@@ -97,13 +109,20 @@ class LocationTracker {
   }
 
   Future<void> start() async {
+    if (!_observingLifecycle) {
+      // Ogni volta che si torna in primo piano verifichiamo che il
+      // tracciamento sia ancora vivo (vedi didChangeAppLifecycleState):
+      // così tornare su Kinly dopo aver usato un'altra app lo rimette in
+      // moto da solo, invece di restare fermo finché non si riavvia l'app.
+      WidgetsBinding.instance.addObserver(this);
+      _observingLifecycle = true;
+    }
     if (isTracking) return;
     final granted = await requestPermission();
     if (!granted) return;
 
-    _positionSub = Geolocator.getPositionStream(
-      locationSettings: await _buildLocationSettings(),
-    ).listen(_onPosition, onError: (_) {});
+    _restartAttempts = 0;
+    await _subscribe();
 
     _updateBattery();
     _batteryTimer = Timer.periodic(const Duration(minutes: 5), (_) => _updateBattery());
@@ -113,6 +132,33 @@ class LocationTracker {
       _onPosition(current);
     } catch (_) {
       // Se non è disponibile una posizione immediata, arriverà dallo stream.
+    }
+  }
+
+  Future<void> _subscribe() async {
+    _positionSub = Geolocator.getPositionStream(
+      locationSettings: await _buildLocationSettings(),
+    ).listen(_onPosition, onError: (_) => _handleStreamDown(), onDone: _handleStreamDown);
+  }
+
+  /// Lo stream di posizione può interrompersi da solo senza un errore Dart
+  /// vero e proprio (es. Play Services riavviato in background da
+  /// un'altra app che chiede il GPS, tipicamente un navigatore): senza
+  /// questo, Kinly restava silenzioso finché non si riapriva l'app a mano.
+  /// Qualche tentativo con una pausa breve invece di ritentare all'infinito
+  /// se il problema è persistente (es. permesso revocato davvero).
+  void _handleStreamDown() {
+    _positionSub = null;
+    if (_restartAttempts >= _maxRestartAttempts) return;
+    _restartAttempts++;
+    _restartTimer?.cancel();
+    _restartTimer = Timer(const Duration(seconds: 10), () => unawaited(_subscribe()));
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !isTracking) {
+      unawaited(start());
     }
   }
 
@@ -190,6 +236,13 @@ class LocationTracker {
     _positionSub = null;
     _batteryTimer?.cancel();
     _batteryTimer = null;
+    _restartTimer?.cancel();
+    _restartTimer = null;
+    _restartAttempts = 0;
+    if (_observingLifecycle) {
+      WidgetsBinding.instance.removeObserver(this);
+      _observingLifecycle = false;
+    }
     _zoneInsideState.clear();
     _wasOverSpeedLimit = false;
     _arrivedMeetingPointIds.clear();
@@ -200,6 +253,12 @@ class LocationTracker {
   }
 
   Future<void> _onPosition(Position position) async {
+    // Un fix vero prova che lo stream è di nuovo sano: azzera il contatore
+    // di tentativi di riavvio (vedi _handleStreamDown), così un problema
+    // futuro riparte con lo stesso margine di tentativi invece di trovarlo
+    // già esaurito da un problema passato e risolto da tempo.
+    _restartAttempts = 0;
+
     // Un fix troppo impreciso (tipicamente stima via IP su desktop/browser
     // senza Wi-Fi scan) e' peggio che inutile: meglio restare senza un
     // aggiornamento che condividerne uno sbagliato di decine di km.
