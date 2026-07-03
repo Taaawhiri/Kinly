@@ -91,6 +91,13 @@ alter table public.profiles add constraint profiles_sharing_mode_check
 alter table public.profiles add column if not exists auto_ghost_start time;
 alter table public.profiles add column if not exists auto_ghost_end time;
 
+-- Ghost Mode temporaneo (Kinly+): nascondimento manuale a tempo (es. 2 ore),
+-- a differenza di auto_ghost_start/end che è una finestra ricorrente ogni
+-- giorno. Non tocca sharing_mode: quando scade, la visibilità torna quella
+-- che sharing_mode/auto_ghost avrebbero già dato, senza dover "ripristinare"
+-- nulla a mano né lato client né lato server.
+alter table public.profiles add column if not exists ghost_until timestamptz;
+
 -- Avatar scelto tra un set predefinito (stile Netflix): null = mostra le
 -- iniziali colorate come prima, il valore è una chiave interpretata dal
 -- client (vedi lib/utils/avatar_catalog.dart), non un'immagine caricata.
@@ -387,9 +394,11 @@ as $$
   );
 $$;
 
--- Orario di reperibilità: se impostato, fuori da questa finestra nessuno
--- vede la posizione, qualunque sia la modalità di condivisione (è un "clock
--- out" totale, pensato per il lavoro). Se non impostato, nessuna limitazione.
+-- Orario di reperibilità (finestra ricorrente ogni giorno) + Ghost Mode
+-- temporaneo (nascondimento manuale a tempo, Kinly+): se una delle due è
+-- "attiva" in questo momento, fuori da questa finestra nessuno vede la
+-- posizione, qualunque sia la modalità di condivisione (è un "clock out"
+-- totale). Se nessuna delle due è impostata, nessuna limitazione.
 create or replace function public.is_within_ghost_schedule(p_target_id uuid)
 returns boolean
 language sql
@@ -398,9 +407,12 @@ security definer
 set search_path = public
 as $$
   select
-    auto_ghost_start is null
-    or auto_ghost_end is null
-    or (now() at time zone 'utc')::time between auto_ghost_start and auto_ghost_end
+    (
+      auto_ghost_start is null
+      or auto_ghost_end is null
+      or (now() at time zone 'utc')::time between auto_ghost_start and auto_ghost_end
+    )
+    and (ghost_until is null or now() >= ghost_until)
   from public.profiles
   where id = p_target_id;
 $$;
@@ -1395,8 +1407,9 @@ create policy "live_share_links_delete_own" on public.live_share_links
 -- scadenza: è un "abbonamento a vita" finché non lo si disattiva a mano.
 revoke update on public.profiles from authenticated;
 grant update (
-  name, color, sharing_mode, battery_percent, speed_alert_kmh, auto_ghost_start, auto_ghost_end, avatar_key,
-  photo_url, birthday, status_emoji, status_text, status_expires_at, payment_link, phone_number, weekly_summary_enabled
+  name, color, sharing_mode, battery_percent, speed_alert_kmh, auto_ghost_start, auto_ghost_end, ghost_until,
+  avatar_key, photo_url, birthday, status_emoji, status_text, status_expires_at, payment_link, phone_number,
+  weekly_summary_enabled
 ) on public.profiles to authenticated;
 
 -- =========================================================================

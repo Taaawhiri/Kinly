@@ -164,6 +164,11 @@ class KinlyRepository {
     }).eq('id', _myId);
   }
 
+  /// Ghost Mode temporaneo (Kinly+): null per tornare visibile subito.
+  Future<void> updateGhostUntil(DateTime? until) async {
+    await supabase.from('profiles').update({'ghost_until': until?.toUtc().toIso8601String()}).eq('id', _myId);
+  }
+
   // ---------------------------------------------------------------------
   // Cerchie
   // ---------------------------------------------------------------------

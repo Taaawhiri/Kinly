@@ -3590,6 +3590,48 @@ abstract class AppLocalizations {
   /// **'La tua cerchia vede solo la zona (circa 1 km), mai il punto esatto.'**
   String get sharingModeFuzzyDesc;
 
+  /// No description provided for @ghostModeTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Ghost Mode temporaneo'**
+  String get ghostModeTitle;
+
+  /// No description provided for @ghostModeDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Nasconditi del tutto per 2 ore, poi torni visibile da solo.'**
+  String get ghostModeDesc;
+
+  /// No description provided for @ghostModePlusTeaser.
+  ///
+  /// In it, this message translates to:
+  /// **'Nasconditi del tutto per un tempo limitato. Funzione Kinly+.'**
+  String get ghostModePlusTeaser;
+
+  /// No description provided for @ghostModeActiveTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Ghost Mode attivo'**
+  String get ghostModeActiveTitle;
+
+  /// No description provided for @ghostModeActiveUntil.
+  ///
+  /// In it, this message translates to:
+  /// **'Torni visibile alle {time}'**
+  String ghostModeActiveUntil(String time);
+
+  /// No description provided for @ghostModeActivate.
+  ///
+  /// In it, this message translates to:
+  /// **'Attiva'**
+  String get ghostModeActivate;
+
+  /// No description provided for @ghostModeEndNow.
+  ///
+  /// In it, this message translates to:
+  /// **'Termina ora'**
+  String get ghostModeEndNow;
+
   /// No description provided for @helpReqReasonFlatTire.
   ///
   /// In it, this message translates to:

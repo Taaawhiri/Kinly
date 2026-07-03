@@ -165,6 +165,8 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 10),
               for (final mode in SharingMode.values)
                 _ModeCard(mode: mode, selected: state.myMode == mode, onTap: () => state.setMyMode(mode)),
+              const SizedBox(height: 10),
+              const _GhostModeCard(),
               const SizedBox(height: 24),
               _Header(l10n.profileYourCirclesHeader),
               const SizedBox(height: 10),
@@ -490,6 +492,87 @@ class _ModeCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Nascondimento manuale a tempo (Kinly+): a differenza delle 4 modalità
+/// sopra, non cambia sharing_mode — è un override temporaneo che il server
+/// rispetta comunque (vedi is_within_ghost_schedule in schema.sql), quindi
+/// funziona anche se l'app viene chiusa prima che scada da solo.
+class _GhostModeCard extends StatelessWidget {
+  const _GhostModeCard();
+
+  static const _duration = Duration(hours: 2);
+
+  String _formatTime(DateTime dt) => '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final state = AppState.instance;
+
+    if (!state.isPremium) {
+      return GestureDetector(
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PaywallScreen())),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(14)),
+          child: Row(
+            children: [
+              Icon(Icons.nightlight_round, color: AppTheme.textSecondary, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.ghostModeTitle, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                    Text(l10n.ghostModePlusTeaser, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.3)),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final active = state.isGhostModeActive;
+    final until = state.ghostUntil;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: active ? AppTheme.textSecondary.withOpacity(0.12) : AppTheme.surfaceAlt,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: active ? AppTheme.textSecondary.withOpacity(0.35) : Colors.transparent, width: 1.6),
+      ),
+      child: Row(
+        children: [
+          Icon(active ? Icons.visibility_off_rounded : Icons.nightlight_round, color: AppTheme.textSecondary, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  active ? l10n.ghostModeActiveTitle : l10n.ghostModeTitle,
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary),
+                ),
+                Text(
+                  active ? l10n.ghostModeActiveUntil(_formatTime(until!)) : l10n.ghostModeDesc,
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.3),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: () => active ? state.cancelTemporaryGhostMode() : state.startTemporaryGhostMode(_duration),
+            child: Text(active ? l10n.ghostModeEndNow : l10n.ghostModeActivate),
+          ),
+        ],
       ),
     );
   }

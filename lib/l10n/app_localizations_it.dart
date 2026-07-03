@@ -2072,6 +2072,31 @@ class AppLocalizationsIt extends AppLocalizations {
       'La tua cerchia vede solo la zona (circa 1 km), mai il punto esatto.';
 
   @override
+  String get ghostModeTitle => 'Ghost Mode temporaneo';
+
+  @override
+  String get ghostModeDesc =>
+      'Nasconditi del tutto per 2 ore, poi torni visibile da solo.';
+
+  @override
+  String get ghostModePlusTeaser =>
+      'Nasconditi del tutto per un tempo limitato. Funzione Kinly+.';
+
+  @override
+  String get ghostModeActiveTitle => 'Ghost Mode attivo';
+
+  @override
+  String ghostModeActiveUntil(String time) {
+    return 'Torni visibile alle $time';
+  }
+
+  @override
+  String get ghostModeActivate => 'Attiva';
+
+  @override
+  String get ghostModeEndNow => 'Termina ora';
+
+  @override
   String get helpReqReasonFlatTire => 'Gomma bucata';
 
   @override

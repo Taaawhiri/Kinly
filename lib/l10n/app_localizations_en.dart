@@ -2068,6 +2068,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your circle only sees the general area (about 1 km), never the exact point.';
 
   @override
+  String get ghostModeTitle => 'Temporary Ghost Mode';
+
+  @override
+  String get ghostModeDesc =>
+      'Go fully invisible for 2 hours, then become visible again on your own.';
+
+  @override
+  String get ghostModePlusTeaser =>
+      'Go fully invisible for a limited time. Kinly+ feature.';
+
+  @override
+  String get ghostModeActiveTitle => 'Ghost Mode active';
+
+  @override
+  String ghostModeActiveUntil(String time) {
+    return 'You\'ll be visible again at $time';
+  }
+
+  @override
+  String get ghostModeActivate => 'Activate';
+
+  @override
+  String get ghostModeEndNow => 'End now';
+
+  @override
   String get helpReqReasonFlatTire => 'Flat tire';
 
   @override

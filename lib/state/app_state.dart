@@ -66,6 +66,7 @@ class AppState extends ChangeNotifier {
   Map<String, SharingMode> _circleSharingOverrides = {};
   TimeOfDay? _autoGhostStart;
   TimeOfDay? _autoGhostEnd;
+  DateTime? _ghostUntil;
 
   RealtimeChannel? _channel;
   Timer? _refreshDebounce;
@@ -134,6 +135,11 @@ class AppState extends ChangeNotifier {
   /// vede la mia posizione. Null = nessuna limitazione.
   TimeOfDay? get autoGhostStart => _autoGhostStart;
   TimeOfDay? get autoGhostEnd => _autoGhostEnd;
+
+  /// Ghost Mode temporaneo (Kinly+): se in futuro, nessuno vede la mia
+  /// posizione fino a quel momento, qualunque sia sharing_mode.
+  DateTime? get ghostUntil => _ghostUntil;
+  bool get isGhostModeActive => _ghostUntil != null && _ghostUntil!.isAfter(DateTime.now());
 
   SharingMode get myMode => me.mode;
 
@@ -216,6 +222,8 @@ class AppState extends ChangeNotifier {
 
       _autoGhostStart = _utcTimeStringToLocal(profileRow['auto_ghost_start'] as String?);
       _autoGhostEnd = _utcTimeStringToLocal(profileRow['auto_ghost_end'] as String?);
+      final ghostUntilRaw = profileRow['ghost_until'] as String?;
+      _ghostUntil = ghostUntilRaw != null ? DateTime.parse(ghostUntilRaw).toLocal() : null;
 
       final meetingPointRows = await _repo.fetchMeetingPoints();
       _meetingPoints = meetingPointRows.map(MeetingPoint.fromRow).toList();
@@ -467,6 +475,7 @@ class AppState extends ChangeNotifier {
     _dismissedEncounterIds.clear();
     _autoGhostStart = null;
     _autoGhostEnd = null;
+    _ghostUntil = null;
     activeCircleId = null;
     hasLoadedOnce = false;
     loadError = null;
@@ -763,6 +772,28 @@ class AppState extends ChangeNotifier {
       startUtc: start == null ? null : _localTimeToUtcString(start),
       endUtc: end == null ? null : _localTimeToUtcString(end),
     );
+    unawaited(_refreshData().then((_) => notifyListeners()));
+  }
+
+  // ---------------------------------------------------------------------
+  // Ghost Mode temporaneo (Kinly+)
+  // ---------------------------------------------------------------------
+
+  /// Nasconde la mia posizione a tutti per [duration] (non tocca
+  /// sharing_mode: alla scadenza torna tutto come prima da solo).
+  Future<void> startTemporaryGhostMode(Duration duration) async {
+    final until = DateTime.now().add(duration);
+    _ghostUntil = until;
+    notifyListeners();
+    await _repo.updateGhostUntil(until);
+    unawaited(_refreshData().then((_) => notifyListeners()));
+  }
+
+  /// Torna visibile subito, prima che scada da solo.
+  Future<void> cancelTemporaryGhostMode() async {
+    _ghostUntil = null;
+    notifyListeners();
+    await _repo.updateGhostUntil(null);
     unawaited(_refreshData().then((_) => notifyListeners()));
   }
 

@@ -698,6 +698,15 @@
   "sharingModePausedDesc": "Modalità fantasma: sei invisibile, nessuno può chiedere dove sei.",
   "sharingModeFuzzyDesc": "La tua cerchia vede solo la zona (circa 1 km), mai il punto esatto.",
 
+  "ghostModeTitle": "Ghost Mode temporaneo",
+  "ghostModeDesc": "Nasconditi del tutto per 2 ore, poi torni visibile da solo.",
+  "ghostModePlusTeaser": "Nasconditi del tutto per un tempo limitato. Funzione Kinly+.",
+  "ghostModeActiveTitle": "Ghost Mode attivo",
+  "ghostModeActiveUntil": "Torni visibile alle {time}",
+  "@ghostModeActiveUntil": {"placeholders": {"time": {"type": "String"}}},
+  "ghostModeActivate": "Attiva",
+  "ghostModeEndNow": "Termina ora",
+
   "helpReqReasonFlatTire": "Gomma bucata",
   "helpReqReasonAccident": "Incidente",
   "helpReqReasonFollowed": "Mi sento seguito/a",

@@ -622,6 +622,14 @@
   "sharingModePausedDesc": "Ghost mode: you're invisible, no one can ask where you are.",
   "sharingModeFuzzyDesc": "Your circle only sees the general area (about 1 km), never the exact point.",
 
+  "ghostModeTitle": "Temporary Ghost Mode",
+  "ghostModeDesc": "Go fully invisible for 2 hours, then become visible again on your own.",
+  "ghostModePlusTeaser": "Go fully invisible for a limited time. Kinly+ feature.",
+  "ghostModeActiveTitle": "Ghost Mode active",
+  "ghostModeActiveUntil": "You'll be visible again at {time}",
+  "ghostModeActivate": "Activate",
+  "ghostModeEndNow": "End now",
+
   "helpReqReasonFlatTire": "Flat tire",
   "helpReqReasonAccident": "Accident",
   "helpReqReasonFollowed": "I feel followed",
