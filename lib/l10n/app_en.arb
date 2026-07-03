@@ -31,7 +31,9 @@
   "languagePickerTitle": "Choose language",
 
   "homeWidgetTitle": "Your circle",
-  "homeWidgetEmpty": "No one is sharing right now",
+  "homeWidgetPreviewHint": "Example — this is how it'll look when someone shares:",
+  "homeWidgetPreviewLine1": "Mom · Home · 5 min ago",
+  "homeWidgetPreviewLine2": "Luke · At school · 12 min ago",
 
   "arrivalPromptTitle": "Did you arrive at {zone}?",
   "arrivalPromptAction": "I've arrived",

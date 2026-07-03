@@ -33,7 +33,9 @@
   "languagePickerTitle": "Scegli la lingua",
 
   "homeWidgetTitle": "La tua cerchia",
-  "homeWidgetEmpty": "Nessuno sta condividendo ora",
+  "homeWidgetPreviewHint": "Esempio — così apparirà quando qualcuno condivide:",
+  "homeWidgetPreviewLine1": "Mamma · Casa · 5 min fa",
+  "homeWidgetPreviewLine2": "Luca · A scuola · 12 min fa",
 
   "arrivalPromptTitle": "Sei arrivato a {zone}?",
   "@arrivalPromptTitle": {"placeholders": {"zone": {"type": "String"}}},

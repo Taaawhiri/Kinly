@@ -90,7 +90,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get homeWidgetTitle => 'La tua cerchia';
 
   @override
-  String get homeWidgetEmpty => 'Nessuno sta condividendo ora';
+  String get homeWidgetPreviewHint =>
+      'Esempio — così apparirà quando qualcuno condivide:';
+
+  @override
+  String get homeWidgetPreviewLine1 => 'Mamma · Casa · 5 min fa';
+
+  @override
+  String get homeWidgetPreviewLine2 => 'Luca · A scuola · 12 min fa';
 
   @override
   String arrivalPromptTitle(String zone) {

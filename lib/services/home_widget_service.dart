@@ -34,9 +34,20 @@ class HomeWidgetService {
       }
 
       await HomeWidget.saveWidgetData<String>('title', l10n.homeWidgetTitle);
-      await HomeWidget.saveWidgetData<String>('line1', visible.isEmpty ? l10n.homeWidgetEmpty : lineFor(0));
-      await HomeWidget.saveWidgetData<String>('line2', lineFor(1));
-      await HomeWidget.saveWidgetData<String>('line3', lineFor(2));
+      if (visible.isEmpty) {
+        // Niente da mostrare ancora: invece di lasciarlo vuoto, un esempio
+        // "finto" (in grigio lato Android, vedi KinlyWidgetProvider) fa
+        // capire subito cosa aspettarsi appena qualcuno condivide.
+        await HomeWidget.saveWidgetData<String>('line1', l10n.homeWidgetPreviewHint);
+        await HomeWidget.saveWidgetData<String>('line2', l10n.homeWidgetPreviewLine1);
+        await HomeWidget.saveWidgetData<String>('line3', l10n.homeWidgetPreviewLine2);
+        await HomeWidget.saveWidgetData<String>('isPreview', '1');
+      } else {
+        await HomeWidget.saveWidgetData<String>('line1', lineFor(0));
+        await HomeWidget.saveWidgetData<String>('line2', lineFor(1));
+        await HomeWidget.saveWidgetData<String>('line3', lineFor(2));
+        await HomeWidget.saveWidgetData<String>('isPreview', '0');
+      }
       await HomeWidget.updateWidget(androidName: 'KinlyWidgetProvider');
     } catch (_) {
       // Il widget è solo un di più: mai bloccare il refresh dati per lui.
