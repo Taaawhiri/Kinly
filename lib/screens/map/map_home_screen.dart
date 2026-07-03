@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -84,6 +85,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   /// della tastiera, che non ha un BuildContext comodo da cui leggere
   /// MediaQuery) per sapere se siamo nel layout largo da desktop.
   bool _isWideLayout = false;
+  StreamSubscription<Uri?>? _widgetClickSub;
 
   @override
   void initState() {
@@ -100,6 +102,31 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     // legato al focus: così funziona anche quando, appena aperta la pagina,
     // nessun widget ha ancora il focus.
     if (kIsWeb) HardwareKeyboard.instance.addHandler(_handleGlobalKey);
+    if (!kIsWeb) {
+      unawaited(HomeWidget.initiallyLaunchedFromHomeWidget().then(_handleWidgetUri));
+      _widgetClickSub = HomeWidget.widgetClicked.listen(_handleWidgetUri);
+    }
+  }
+
+  /// Le scorciatoie SOS/aiuto/accompagnami del widget in home aprono l'app e
+  /// arrivano qui come URI (kinly://sos, .../help, .../walk): aprono solo la
+  /// stessa conferma dei pulsanti in app (vedi _handleSosButton e affini),
+  /// mai un'azione diretta — un tocco accidentale sul widget in tasca non
+  /// deve poter far scattare un SOS vero.
+  void _handleWidgetUri(Uri? uri) {
+    if (uri == null) return;
+    final action = uri.host;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      switch (action) {
+        case 'sos':
+          _handleSosButton();
+        case 'help':
+          _handleHelpButton();
+        case 'walk':
+          _onWalkMeHomeTap();
+      }
+    });
   }
 
   bool _handleGlobalKey(KeyEvent event) {
@@ -140,6 +167,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       CrashDetectionService.instance.onPossibleCrash = null;
     }
     if (kIsWeb) HardwareKeyboard.instance.removeHandler(_handleGlobalKey);
+    _widgetClickSub?.cancel();
     _sheetController.dispose();
     _searchDebounce?.cancel();
     _searchController.dispose();
@@ -771,32 +799,42 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     );
   }
 
+  /// Usata sia dal pulsante SOS in app sia dalla scorciatoia SOS del widget
+  /// in home (vedi _handleWidgetUri): se un SOS è già attivo mostra quello,
+  /// altrimenti apre la conferma — mai un invio diretto.
+  void _handleSosButton() {
+    final state = AppState.instance;
+    final mySos = state.myActiveSos;
+    if (mySos != null) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => SosAlertScreen(alert: mySos, person: state.me)),
+      );
+    } else {
+      _confirmAndTriggerSos();
+    }
+  }
+
+  /// Vedi [_handleSosButton]: stessa logica, per la richiesta di aiuto.
+  void _handleHelpButton() {
+    final state = AppState.instance;
+    final mine = state.myActiveHelpRequest;
+    if (mine != null) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => HelpRequestScreen(request: mine, person: state.me)),
+      );
+    } else {
+      _openHelpRequestSheet();
+    }
+  }
+
   Widget _buildEmergencyActions(AppState state) {
     return _EmergencyActionsGroup(
       sosActive: state.myActiveSos != null,
       helpActive: state.myActiveHelpRequest != null,
       walkActive: WalkMeHomeService.instance.isActive,
       onWalkTap: _onWalkMeHomeTap,
-      onSosTap: () {
-        final mySos = state.myActiveSos;
-        if (mySos != null) {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => SosAlertScreen(alert: mySos, person: state.me)),
-          );
-        } else {
-          _confirmAndTriggerSos();
-        }
-      },
-      onHelpTap: () {
-        final mine = state.myActiveHelpRequest;
-        if (mine != null) {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => HelpRequestScreen(request: mine, person: state.me)),
-          );
-        } else {
-          _openHelpRequestSheet();
-        }
-      },
+      onSosTap: _handleSosButton,
+      onHelpTap: _handleHelpButton,
     );
   }
 

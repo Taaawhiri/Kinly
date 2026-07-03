@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sfondo del pulsante rapido SOS nel widget: stesso corallo di
+     AppTheme.accentCoral, così riconoscibile a colpo d'occhio come in app. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="#FFFF6B6B" />
+</shape>

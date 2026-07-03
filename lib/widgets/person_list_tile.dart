@@ -24,6 +24,8 @@ class PersonListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canSeeLocation = person.isMe || person.isSharingWithMe;
+    final activity = person.activityStatus;
+    final showActivity = canSeeLocation && activity != ActivityStatus.stationary;
     final l10n = AppLocalizations.of(context)!;
     return InkWell(
       onTap: onTap,
@@ -32,7 +34,7 @@ class PersonListTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
         child: Row(
           children: [
-            PersonAvatar(person: person, size: 46),
+            PersonAvatar(person: person, size: 46, showActivityBadge: false),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -60,6 +62,7 @@ class PersonListTile extends StatelessWidget {
                 ],
               ),
             ),
+            if (showActivity) Padding(padding: const EdgeInsets.only(left: 8), child: ActivityIndicator(activity: activity)),
             if (trailing != null) trailing!,
           ],
         ),

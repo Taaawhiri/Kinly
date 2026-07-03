@@ -155,4 +155,48 @@
                 android:src="@drawable/widget_bar" />
         </FrameLayout>
     </LinearLayout>
+
+    <!-- Scorciatoie rapide: SOS, richiesta aiuto, accompagnami. Toccarle
+         apre l'app già pronta a confermare (vedi KinlyWidgetProvider e
+         map_home_screen.dart): mai un'azione vera scattata da qui, per
+         evitare un allarme falso da un tocco accidentale in tasca. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/widget_btn_sos"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="14dp"
+            android:background="@drawable/widget_action_circle_sos"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:text="🆘"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/widget_btn_help"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="14dp"
+            android:background="@drawable/widget_action_circle_help"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:text="✋"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/widget_btn_walk"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/widget_action_circle_walk"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:text="🚶"
+            android:textSize="16sp" />
+    </LinearLayout>
 </LinearLayout>

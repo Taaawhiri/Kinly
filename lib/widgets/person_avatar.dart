@@ -9,11 +9,16 @@ import '../utils/generative_avatar.dart';
 /// quando arriva un aggiornamento di posizione, per far sentire l'app viva
 /// invece di un pallino statico che non si sa se è ancora collegato.
 class PersonAvatar extends StatefulWidget {
-  const PersonAvatar({super.key, required this.person, this.size = 44, this.showStatusDot = true});
+  const PersonAvatar({super.key, required this.person, this.size = 44, this.showStatusDot = true, this.showActivityBadge = true});
 
   final Person person;
   final double size;
   final bool showStatusDot;
+
+  /// Quando false, non disegna il badge a piedi/auto sovrapposto all'angolo
+  /// dell'avatar: usato da [PersonListTile] nella mappa, dove l'attività
+  /// viene mostrata a parte, a destra, dove c'è più spazio.
+  final bool showActivityBadge;
 
   @override
   State<PersonAvatar> createState() => _PersonAvatarState();
@@ -44,7 +49,7 @@ class _PersonAvatarState extends State<PersonAvatar> with SingleTickerProviderSt
     final isActive = person.isMe || person.isSharingWithMe;
     final canSeeLocation = person.isMe || person.isSharingWithMe;
     final activity = person.activityStatus;
-    final showActivityBadge = canSeeLocation && activity != ActivityStatus.stationary;
+    final showActivityBadge = widget.showActivityBadge && canSeeLocation && activity != ActivityStatus.stationary;
     final showLowBattery = canSeeLocation && person.isBatteryLow;
     final avatar = AvatarCatalog.find(person.avatarKey);
     final generativeSeed = GenerativeAvatar.isGenerativeKey(person.avatarKey) ? GenerativeAvatar.seedFromKey(person.avatarKey!) : null;
@@ -183,6 +188,55 @@ class _PersonAvatarState extends State<PersonAvatar> with SingleTickerProviderSt
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Indicatore di attività (a piedi/in auto) da mostrare accanto all'avatar,
+/// non sopra: un piccolo movimento continuo (passo per camminare,
+/// scivolamento per l'auto) comunica "in movimento" più di un'icona ferma.
+class ActivityIndicator extends StatefulWidget {
+  const ActivityIndicator({super.key, required this.activity, this.size = 30});
+  final ActivityStatus activity;
+  final double size;
+
+  @override
+  State<ActivityIndicator> createState() => _ActivityIndicatorState();
+}
+
+class _ActivityIndicatorState extends State<ActivityIndicator> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: Duration(milliseconds: widget.activity == ActivityStatus.driving ? 380 : 550),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDriving = widget.activity == ActivityStatus.driving;
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final t = Curves.easeInOut.transform(_controller.value);
+        final offset = isDriving ? Offset((t - 0.5) * widget.size * 0.22, 0) : Offset(0, -t * widget.size * 0.14);
+        return Transform.translate(offset: offset, child: child);
+      },
+      child: Container(
+        width: widget.size,
+        height: widget.size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppTheme.primary,
+          boxShadow: [BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: widget.size * 0.3, offset: Offset(0, widget.size * 0.06))],
+        ),
+        alignment: Alignment.center,
+        child: Icon(widget.activity.icon, size: widget.size * 0.56, color: Colors.white),
       ),
     );
   }

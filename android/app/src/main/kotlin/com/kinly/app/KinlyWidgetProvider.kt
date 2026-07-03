@@ -6,8 +6,10 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.view.View
 import android.widget.RemoteViews
+import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetPlugin
 
 /**
@@ -56,6 +58,24 @@ class KinlyWidgetProvider : AppWidgetProvider() {
                 )
                 views.setOnClickPendingIntent(R.id.widget_root, pending)
             }
+
+            // Scorciatoie SOS / richiesta aiuto / accompagnami: aprono l'app
+            // con un URI (kinly://sos, .../help, .../walk) che map_home_screen.dart
+            // legge per mostrare la STESSA conferma dei pulsanti in app, mai
+            // per attivare qualcosa direttamente da qui — un tocco accidentale
+            // sul widget in tasca non deve poter far scattare un SOS vero.
+            views.setOnClickPendingIntent(
+                R.id.widget_btn_sos,
+                HomeWidgetLaunchIntent.getActivity(context, MainActivity::class.java, Uri.parse("kinly://sos")),
+            )
+            views.setOnClickPendingIntent(
+                R.id.widget_btn_help,
+                HomeWidgetLaunchIntent.getActivity(context, MainActivity::class.java, Uri.parse("kinly://help")),
+            )
+            views.setOnClickPendingIntent(
+                R.id.widget_btn_walk,
+                HomeWidgetLaunchIntent.getActivity(context, MainActivity::class.java, Uri.parse("kinly://walk")),
+            )
 
             appWidgetManager.updateAppWidget(widgetId, views)
         }
