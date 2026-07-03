@@ -112,7 +112,7 @@
   }
   .feature.visible { opacity: 1; transform: translateY(0); }
   .feature.visible:hover { box-shadow: 0 10px 24px rgba(28, 34, 51, 0.08); transform: translateY(-3px); }
-  .feature.hidden-cat { display: none; }
+  .feature.hidden-cat, .story.hidden-cat { display: none; }
   .icon-badge {
     width: 44px; height: 44px;
     border-radius: 13px;
@@ -356,6 +356,69 @@
   .chat-bubble.right { align-self: flex-end; background: var(--primary); border-bottom-right-radius: 4px; }
   .chat-bubble.right .bar { background: rgba(255, 255, 255, 0.55); }
 
+  /* Ping d'arrivo (skeleton): mappa con area sicura + notifica con azione. */
+  .arrival-mock { position: absolute; inset: 0; }
+  .arrival-zone-ring {
+    position: absolute; width: 70px; height: 70px; border-radius: 50%;
+    border: 2px dashed var(--green);
+    background: rgba(35, 193, 107, 0.08);
+  }
+  .arrival-notif {
+    position: absolute; left: 6%; right: 6%; top: 10%;
+    background: var(--surface); border-radius: 14px;
+    padding: 10px 12px;
+    box-shadow: 0 8px 20px rgba(28,34,51,0.16);
+  }
+  .arrival-notif-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .arrival-notif-icon { width: 20px; height: 20px; border-radius: 6px; background: linear-gradient(135deg, var(--green), #1a9c54); flex: none; }
+  .arrival-notif .bar.light { margin-top: 6px; }
+  .arrival-notif-action {
+    margin-top: 10px; height: 24px; border-radius: 8px;
+    background: var(--green);
+    animation: shimmer 2.4s ease-in-out infinite;
+  }
+
+  /* Stato in movimento (skeleton): avatar con una piccola icona attivita'. */
+  .activity-mock { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding-top: 22%; }
+  .activity-avatar-wrap { position: relative; }
+  .activity-avatar-wrap .detail-avatar { animation: shimmer 2.4s ease-in-out infinite; }
+  .activity-badge {
+    position: absolute; bottom: -2px; right: -2px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--primary); border: 3px solid var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+  }
+  .activity-badge svg { width: 13px; height: 13px; }
+
+  /* Ghost Mode temporaneo (skeleton): card con icona + barra di conto alla rovescia. */
+  .ghost-mock { position: absolute; inset: 0; }
+  .ghost-card {
+    position: absolute; left: 8%; right: 8%; top: 30%;
+    background: var(--surface); border-radius: 16px;
+    padding: 14px; text-align: center;
+    box-shadow: 0 8px 20px rgba(28,34,51,0.14);
+  }
+  .ghost-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, #6E7F9E, #3F4A63);
+    margin: 0 auto 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+  }
+  .ghost-icon svg { width: 20px; height: 20px; }
+  .ghost-timer { margin-top: 10px; height: 6px; border-radius: 3px; background: var(--surface-alt); overflow: hidden; }
+  .ghost-timer::after { content: ''; display: block; height: 100%; width: 62%; background: var(--primary); border-radius: 3px; animation: shimmer 2.4s ease-in-out infinite; }
+
+  /* Lista della spesa condivisa (skeleton): righe con checkbox + pill "Ci penso io". */
+  .shoplist-mock { position: absolute; inset: 0; padding: 16% 10% 0; }
+  .shoplist-card { background: var(--surface); border-radius: 14px; padding: 14px; box-shadow: 0 3px 10px rgba(28,34,51,0.08); }
+  .shoplist-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .shoplist-row:last-child { margin-bottom: 0; }
+  .shoplist-check { width: 18px; height: 18px; border-radius: 6px; flex: none; border: 2px solid var(--divider); }
+  .shoplist-check.done { background: var(--green); border-color: var(--green); }
+  .shoplist-claim { margin-left: auto; width: 46px; height: 16px; border-radius: 999px; background: rgba(74, 99, 231, 0.16); }
+
   .plans {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -456,7 +519,7 @@
 
   <section>
     <h2>Cosa fa Kinly</h2>
-    <div class="cat-filters">
+    <div class="cat-filters" id="feature-filters">
       <button class="cat-filter active" data-cat="all">Tutte</button>
       <button class="cat-filter" data-cat="sicurezza">Sicurezza e privacy</button>
       <button class="cat-filter" data-cat="cerchia">Cerchia e comunicazione</button>
@@ -624,8 +687,15 @@
 
   <section id="come-funziona">
     <h2>Come funziona</h2>
+    <div class="cat-filters" id="story-filters">
+      <button class="cat-filter active" data-cat="all">Tutte</button>
+      <button class="cat-filter" data-cat="sicurezza">Sicurezza e privacy</button>
+      <button class="cat-filter" data-cat="cerchia">Cerchia e comunicazione</button>
+      <button class="cat-filter" data-cat="comodita">Comodita' quotidiana</button>
+      <button class="cat-filter" data-cat="plus">Kinly+</button>
+    </div>
     <div class="story-list">
-      <div class="story">
+      <div class="story" data-cat="cerchia">
         <div class="story-media">
           <div class="phone-frame">
             <div class="reg-mock">
@@ -647,7 +717,7 @@
         </div>
       </div>
 
-      <div class="story reverse">
+      <div class="story reverse" data-cat="cerchia">
         <div class="story-media">
           <div class="phone-frame">
             <div class="map-bg"></div>
@@ -677,7 +747,7 @@
         </div>
       </div>
 
-      <div class="story">
+      <div class="story" data-cat="sicurezza">
         <div class="story-media">
           <div class="phone-frame">
             <div class="sos-mock">
@@ -698,7 +768,7 @@
         </div>
       </div>
 
-      <div class="story reverse">
+      <div class="story reverse" data-cat="cerchia">
         <div class="story-media">
           <div class="phone-frame">
             <div class="groups-mock">
@@ -725,7 +795,7 @@
         </div>
       </div>
 
-      <div class="story">
+      <div class="story" data-cat="cerchia">
         <div class="story-media">
           <div class="phone-frame">
             <div class="chat-mock">
@@ -741,7 +811,7 @@
         </div>
       </div>
 
-      <div class="story reverse">
+      <div class="story reverse" data-cat="sicurezza">
         <div class="story-media">
           <div class="phone-frame">
             <div class="settings-mock">
@@ -773,7 +843,7 @@
         </div>
       </div>
 
-      <div class="story">
+      <div class="story" data-cat="sicurezza">
         <div class="story-media">
           <div class="phone-frame">
             <div class="detail-card">
@@ -796,7 +866,7 @@
         </div>
       </div>
 
-      <div class="story reverse">
+      <div class="story reverse" data-cat="plus">
         <div class="story-media">
           <div class="phone-frame">
             <div class="homescreen-mock">
@@ -818,6 +888,108 @@
         <div class="story-text">
           <h3>La tua cerchia sulla schermata home <span class="plus-badge">Kinly+</span></h3>
           <p>Chi conta di piu' sempre a colpo d'occhio, senza aprire l'app: ultima posizione e stato aggiornati da soli (Android).</p>
+        </div>
+      </div>
+
+      <div class="story" data-cat="sicurezza">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="arrival-mock">
+              <div class="map-bg"></div>
+              <div class="arrival-zone-ring" style="top: 44%; left: 26%;"></div>
+              <div class="skel-dot" style="background: var(--green); top: 61%; left: 39%;"></div>
+              <div class="arrival-notif">
+                <div class="arrival-notif-head">
+                  <div class="arrival-notif-icon"></div>
+                  <div class="bar" style="width: 80px; margin: 0;"></div>
+                </div>
+                <div class="bar light" style="width: 60px;"></div>
+                <div class="arrival-notif-action"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="story-text">
+          <h3>Ping d'arrivo con un tocco</h3>
+          <p>Quando entri in un'area sicura, tocchi "Sono arrivato" sulla notifica e la cerchia lo sa subito: niente bisogno di aprire l'app e scrivere (Android).</p>
+        </div>
+      </div>
+
+      <div class="story reverse" data-cat="comodita">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="activity-mock">
+              <div class="activity-avatar-wrap">
+                <div class="detail-avatar" style="width: 56px; height: 56px;"></div>
+                <div class="activity-badge">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="4.2" r="1.6" fill="currentColor" stroke="none"/>
+                    <path d="M12 7.2v5.5l-3 7.3M12 12.7l3 6.3M9.2 10l-2.3 2.3M15 10l2.3 2.3"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="bar" style="width: 90px; margin-top: 16px;"></div>
+              <div class="bar small" style="width: 60px; margin-top: 8px;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="story-text">
+          <h3>Stato in movimento: a piedi o in auto</h3>
+          <p>Vicino all'avatar compare una piccola icona quando qualcuno si sta muovendo a piedi o in auto, dedotta dalla velocita': un dettaglio in piu' senza aprire la scheda della persona.</p>
+        </div>
+      </div>
+
+      <div class="story" data-cat="plus">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="ghost-mock">
+              <div class="map-bg"></div>
+              <div class="ghost-card">
+                <div class="ghost-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3a7 7 0 0 0-7 7v9l2.5-2 2 2 2.5-2 2.5 2 2-2 2.5 2v-9a7 7 0 0 0-7-7Z"/>
+                    <circle cx="9.5" cy="10.5" r="0.6" fill="currentColor" stroke="none"/>
+                    <circle cx="14.5" cy="10.5" r="0.6" fill="currentColor" stroke="none"/>
+                  </svg>
+                </div>
+                <div class="bar" style="width: 100px; margin: 0 auto;"></div>
+                <div class="bar light" style="width: 70px; margin: 8px auto 0;"></div>
+                <div class="ghost-timer"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="story-text">
+          <h3>Ghost Mode temporaneo <span class="plus-badge">Kinly+</span></h3>
+          <p>Per due ore ti rendi invisibile alla cerchia con un tocco, per un imprevisto o un momento tutto tuo: poi torni visibile da solo, senza doverci pensare.</p>
+        </div>
+      </div>
+
+      <div class="story reverse" data-cat="comodita">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="shoplist-mock">
+              <div class="shoplist-card">
+                <div class="shoplist-row">
+                  <div class="shoplist-check done"></div>
+                  <div class="bar" style="width: 70px; margin: 0;"></div>
+                </div>
+                <div class="shoplist-row">
+                  <div class="shoplist-check"></div>
+                  <div class="bar light" style="width: 55px; margin: 0;"></div>
+                  <div class="shoplist-claim"></div>
+                </div>
+                <div class="shoplist-row">
+                  <div class="shoplist-check"></div>
+                  <div class="bar light" style="width: 62px; margin: 0;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="story-text">
+          <h3>Lista della spesa condivisa</h3>
+          <p>Aggiungi cosa serve a casa: chi passa vicino a un negozio la vede e puo' rispondere "Ci penso io", senza messaggi incrociati per il latte finito.</p>
         </div>
       </div>
     </div>
@@ -904,22 +1076,29 @@
   }, { threshold: 0.15 });
   items.forEach(function (el) { observer.observe(el); });
 
-  // Filtro per categoria delle funzioni: evita di dover scorrere tutta la
-  // lista per trovare quello che interessa, man mano che le funzioni
-  // crescono. "Tutte" e' il default, nessuna card e' nascosta all'inizio.
-  var filterButtons = document.querySelectorAll('.cat-filter');
-  var featureCards = document.querySelectorAll('.feature[data-cat]');
-  filterButtons.forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      filterButtons.forEach(function (b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      var cat = btn.getAttribute('data-cat');
-      featureCards.forEach(function (card) {
-        var matches = cat === 'all' || card.getAttribute('data-cat') === cat;
-        card.classList.toggle('hidden-cat', !matches);
+  // Filtro per categoria: evita di dover scorrere tutta la lista per
+  // trovare quello che interessa, sia per le funzioni che per i mockup di
+  // "Come funziona". "Tutte" e' il default, nulla e' nascosto all'inizio.
+  // Ogni gruppo di filtri (uno per sezione) resta indipendente dall'altro.
+  function wireCatFilters(filtersContainerId, cardSelector) {
+    var container = document.getElementById(filtersContainerId);
+    if (!container) return;
+    var filterButtons = container.querySelectorAll('.cat-filter');
+    var cards = document.querySelectorAll(cardSelector);
+    filterButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        filterButtons.forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        var cat = btn.getAttribute('data-cat');
+        cards.forEach(function (card) {
+          var matches = cat === 'all' || card.getAttribute('data-cat') === cat;
+          card.classList.toggle('hidden-cat', !matches);
+        });
       });
     });
-  });
+  }
+  wireCatFilters('feature-filters', '.feature[data-cat]');
+  wireCatFilters('story-filters', '.story[data-cat]');
 </script>
 
 </body>
