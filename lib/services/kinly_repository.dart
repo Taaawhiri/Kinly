@@ -277,7 +277,7 @@ class KinlyRepository {
       'lng': lng,
       'address': address,
       'speed_kmh': speedKmh,
-      'updated_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
     });
   }
 
@@ -478,7 +478,7 @@ class KinlyRepository {
     await supabase.from('support_messages').update({
       'admin_reply': reply,
       'status': 'answered',
-      'replied_at': DateTime.now().toIso8601String(),
+      'replied_at': DateTime.now().toUtc().toIso8601String(),
     }).eq('id', id);
   }
 
@@ -488,7 +488,7 @@ class KinlyRepository {
 
   Future<void> upsertDeviceToken(String token) async {
     await supabase.from('device_tokens').upsert(
-      {'profile_id': _myId, 'token': token, 'updated_at': DateTime.now().toIso8601String()},
+      {'profile_id': _myId, 'token': token, 'updated_at': DateTime.now().toUtc().toIso8601String()},
       onConflict: 'profile_id,token',
     );
   }
@@ -525,7 +525,7 @@ class KinlyRepository {
   Future<void> resolveHelpRequest(String id) async {
     await supabase.from('help_requests').update({
       'status': 'resolved',
-      'resolved_at': DateTime.now().toIso8601String(),
+      'resolved_at': DateTime.now().toUtc().toIso8601String(),
     }).eq('id', id);
   }
 
@@ -565,7 +565,7 @@ class KinlyRepository {
   Future<void> resolveSos(String id) async {
     await supabase.from('sos_alerts').update({
       'status': 'resolved',
-      'resolved_at': DateTime.now().toIso8601String(),
+      'resolved_at': DateTime.now().toUtc().toIso8601String(),
     }).eq('id', id);
   }
 
@@ -592,7 +592,7 @@ class KinlyRepository {
   Future<void> respondToRequest(String requestId, bool accept) async {
     await supabase.from('location_requests').update({
       'status': accept ? 'accepted' : 'declined',
-      'responded_at': DateTime.now().toIso8601String(),
+      'responded_at': DateTime.now().toUtc().toIso8601String(),
     }).eq('id', requestId);
   }
 
@@ -633,7 +633,7 @@ class KinlyRepository {
       'cell_key': cellKey,
       'category': category,
       'place_name': placeName,
-      'fetched_at': DateTime.now().toIso8601String(),
+      'fetched_at': DateTime.now().toUtc().toIso8601String(),
     }, onConflict: 'cell_key');
   }
 
@@ -683,7 +683,7 @@ class KinlyRepository {
   Future<void> claimShoppingListItem({required String itemId, required bool claim}) async {
     await supabase.from('shopping_list_items').update({
       'claimed_by': claim ? _myId : null,
-      'claimed_at': claim ? DateTime.now().toIso8601String() : null,
+      'claimed_at': claim ? DateTime.now().toUtc().toIso8601String() : null,
     }).eq('id', itemId);
   }
 
