@@ -11,6 +11,7 @@ import '../../l10n/app_localizations.dart';
 import '../../services/app_update_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/background_tracking_settings.dart';
+import '../../services/battery_optimization_service.dart';
 import '../../services/biometric_lock_service.dart';
 import '../../services/crash_detection_service.dart';
 import '../../services/emergency_sms_settings.dart';
@@ -48,6 +49,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
 
   LocationPermission? _locationPermission;
   bool? _notificationsEnabled;
+  bool? _batteryOptimizationIgnored;
 
   @override
   void initState() {
@@ -71,12 +73,39 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
         // notifiche invece di un errore, coerente con PushNotificationService.
       }
     }
+    bool? batteryIgnored;
+    if (!kIsWeb && Platform.isAndroid) {
+      batteryIgnored = await BatteryOptimizationService.instance.isIgnoringOptimizations();
+    }
     if (mounted) {
       setState(() {
         _locationPermission = location;
         _notificationsEnabled = notifications;
+        _batteryOptimizationIgnored = batteryIgnored;
       });
     }
+  }
+
+  /// A differenza di posizione/notifiche, qui non ha senso "disattivare":
+  /// se Kinly è già esclusa dal risparmio energetico va bene così, altrimenti
+  /// apriamo la richiesta di sistema (vedi BatteryOptimizationService).
+  Future<void> _fixBatteryOptimization() async {
+    final l10n = AppLocalizations.of(context)!;
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(l10n.privacyBatteryOptimizationDialogTitle),
+        content: Text(l10n.privacyBatteryOptimizationDialogBody),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonNotNow)),
+          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.privacyBatteryOptimizationOpen)),
+        ],
+      ),
+    );
+    if (proceed != true) return;
+    await BatteryOptimizationService.instance.requestIgnoreOptimizations();
+    await _loadPermissionsStatus();
   }
 
   /// Un'app non può disattivare da sola un permesso già concesso: se è già
@@ -240,6 +269,12 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.privacyGrantLocationFirst)),
       );
+    } else if (result == BackgroundTrackingResult.enabled && Platform.isAndroid) {
+      // Proprio il momento in cui conta di più: il tracciamento in
+      // background serve a nulla se il telefono lo sospende comunque per
+      // risparmiare batteria (vedi BatteryOptimizationService).
+      final alreadyIgnored = await BatteryOptimizationService.instance.isIgnoringOptimizations();
+      if (!alreadyIgnored && mounted) await _fixBatteryOptimization();
     }
   }
 
@@ -528,6 +563,16 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                           status: _notificationsEnabled! ? l10n.privacyPermissionNotificationsOn : l10n.privacyPermissionNotificationsOff,
                           value: _notificationsEnabled!,
                           onChanged: _toggleNotificationsPermission,
+                        ),
+                      ],
+                      if (_batteryOptimizationIgnored != null) ...[
+                        const Divider(height: 24),
+                        _PermissionRow(
+                          icon: Icons.battery_saver_outlined,
+                          label: l10n.privacyPermissionBattery,
+                          status: _batteryOptimizationIgnored! ? l10n.privacyPermissionBatteryExempt : l10n.privacyPermissionBatteryRestricted,
+                          value: _batteryOptimizationIgnored!,
+                          onChanged: (_) => _fixBatteryOptimization(),
                         ),
                       ],
                     ],

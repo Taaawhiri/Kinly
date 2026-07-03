@@ -1082,6 +1082,26 @@ class AppLocalizationsEn extends AppLocalizations {
       'To turn this off you need to use your phone\'s system settings.';
 
   @override
+  String get privacyPermissionBattery => 'Battery saver';
+
+  @override
+  String get privacyPermissionBatteryExempt => 'Kinly excluded (recommended)';
+
+  @override
+  String get privacyPermissionBatteryRestricted => 'The system can suspend it';
+
+  @override
+  String get privacyBatteryOptimizationDialogTitle =>
+      'Exclude Kinly from battery saving';
+
+  @override
+  String get privacyBatteryOptimizationDialogBody =>
+      'On some phones (Samsung, Xiaomi, Huawei and similar) the system can suspend Kinly in the background to save power, even with tracking on: location and notifications stop without warning until you reopen the app. Excluding it from battery optimization avoids the problem.';
+
+  @override
+  String get privacyBatteryOptimizationOpen => 'Exclude now';
+
+  @override
   String get privacyAccountHeader => 'Account';
 
   @override

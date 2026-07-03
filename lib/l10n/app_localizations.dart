@@ -1922,6 +1922,42 @@ abstract class AppLocalizations {
   /// **'Per disattivarlo serve usare le impostazioni di sistema del telefono.'**
   String get privacyPermissionDisableFromSystem;
 
+  /// No description provided for @privacyPermissionBattery.
+  ///
+  /// In it, this message translates to:
+  /// **'Risparmio energetico'**
+  String get privacyPermissionBattery;
+
+  /// No description provided for @privacyPermissionBatteryExempt.
+  ///
+  /// In it, this message translates to:
+  /// **'Kinly esclusa (consigliato)'**
+  String get privacyPermissionBatteryExempt;
+
+  /// No description provided for @privacyPermissionBatteryRestricted.
+  ///
+  /// In it, this message translates to:
+  /// **'Il sistema può sospenderla'**
+  String get privacyPermissionBatteryRestricted;
+
+  /// No description provided for @privacyBatteryOptimizationDialogTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Escludi Kinly dal risparmio energetico'**
+  String get privacyBatteryOptimizationDialogTitle;
+
+  /// No description provided for @privacyBatteryOptimizationDialogBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Su alcuni telefoni (Samsung, Xiaomi, Huawei e simili) il sistema può sospendere Kinly in background per risparmiare batteria, anche con il tracciamento attivo: posizione e notifiche si fermano senza avviso finché non riapri l\'app. Escluderla dall\'ottimizzazione batteria evita il problema.'**
+  String get privacyBatteryOptimizationDialogBody;
+
+  /// No description provided for @privacyBatteryOptimizationOpen.
+  ///
+  /// In it, this message translates to:
+  /// **'Escludi ora'**
+  String get privacyBatteryOptimizationOpen;
+
   /// No description provided for @privacyAccountHeader.
   ///
   /// In it, this message translates to:

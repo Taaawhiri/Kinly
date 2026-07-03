@@ -1085,6 +1085,26 @@ class AppLocalizationsIt extends AppLocalizations {
       'Per disattivarlo serve usare le impostazioni di sistema del telefono.';
 
   @override
+  String get privacyPermissionBattery => 'Risparmio energetico';
+
+  @override
+  String get privacyPermissionBatteryExempt => 'Kinly esclusa (consigliato)';
+
+  @override
+  String get privacyPermissionBatteryRestricted => 'Il sistema può sospenderla';
+
+  @override
+  String get privacyBatteryOptimizationDialogTitle =>
+      'Escludi Kinly dal risparmio energetico';
+
+  @override
+  String get privacyBatteryOptimizationDialogBody =>
+      'Su alcuni telefoni (Samsung, Xiaomi, Huawei e simili) il sistema può sospendere Kinly in background per risparmiare batteria, anche con il tracciamento attivo: posizione e notifiche si fermano senza avviso finché non riapri l\'app. Escluderla dall\'ottimizzazione batteria evita il problema.';
+
+  @override
+  String get privacyBatteryOptimizationOpen => 'Escludi ora';
+
+  @override
   String get privacyAccountHeader => 'Account';
 
   @override

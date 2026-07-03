@@ -12,6 +12,12 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+    <!-- Per poter chiedere di essere esclusa dall'ottimizzazione batteria di
+         sistema (vedi BatteryOptimizationService): su alcuni produttori
+         (Samsung, Xiaomi, Huawei...) senza questa esclusione il telefono può
+         sospendere Kinly in background anche con "Tracciamento in
+         background" attivo, fermando posizione e notifiche in silenzio. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <!-- Per scattare una foto profilo dalla schermata avatar (la scelta
          dalla galleria non richiede questo permesso, usa il selettore di
          sistema). -->
