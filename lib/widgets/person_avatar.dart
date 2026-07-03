@@ -46,8 +46,12 @@ class _PersonAvatarState extends State<PersonAvatar> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     final person = widget.person;
     final size = widget.size;
-    final isActive = person.isMe || person.isSharingWithMe;
     final canSeeLocation = person.isMe || person.isSharingWithMe;
+    // "In linea" solo se condivide E l'ultimo aggiornamento è ancora
+    // recente (vedi Person.isStale): altrimenti resta verde per sempre
+    // anche ad app chiusa senza tracciamento in background, dando
+    // l'impressione sbagliata che stia ancora funzionando tutto.
+    final isActive = canSeeLocation && !person.isStale;
     final activity = person.activityStatus;
     final showActivityBadge = widget.showActivityBadge && canSeeLocation && activity != ActivityStatus.stationary;
     final showLowBattery = canSeeLocation && person.isBatteryLow;

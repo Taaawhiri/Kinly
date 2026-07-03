@@ -44,6 +44,20 @@ class LocationTracker with WidgetsBindingObserver {
   Timer? _batteryTimer;
   final _battery = Battery();
 
+  /// "Sto ancora tracciando" a orologio, indipendente dal GPS: senza,
+  /// restando fermi per un po' (distanceFilter = 30m: niente scatta finché
+  /// non ci si muove abbastanza) l'ultimo aggiornamento diventerebbe
+  /// vecchio pur essendo l'app perfettamente viva, indistinguibile da un
+  /// vero "l'app è chiusa/il telefono ha smesso di tracciare". Riscrivere
+  /// lo stesso punto con un orario fresco ogni tot minuti rende invece
+  /// "ultimo aggiornamento recente" un segnale affidabile per il pallino
+  /// verde "in linea" (vedi Person.isStale) — se anche il battito si ferma,
+  /// vuol dire che l'app davvero non gira più.
+  Timer? _heartbeatTimer;
+  Position? _lastPosition;
+  String? _lastAddress;
+  static const _heartbeatInterval = Duration(minutes: 4);
+
   /// Riavvio dello stream dopo un errore/chiusura inattesa (vedi
   /// _handleStreamDown): su alcuni dispositivi, usare un'altra app che
   /// richiede il GPS (tipicamente un navigatore come Google Maps) può far
@@ -126,12 +140,34 @@ class LocationTracker with WidgetsBindingObserver {
 
     _updateBattery();
     _batteryTimer = Timer.periodic(const Duration(minutes: 5), (_) => _updateBattery());
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = Timer.periodic(_heartbeatInterval, (_) => unawaited(_sendHeartbeat()));
 
     try {
       final current = await Geolocator.getCurrentPosition();
       _onPosition(current);
     } catch (_) {
       // Se non è disponibile una posizione immediata, arriverà dallo stream.
+    }
+  }
+
+  /// Riscrive l'ultima posizione nota con un orario fresco, senza aspettare
+  /// un vero nuovo fix GPS: vedi il commento su _heartbeatTimer per il
+  /// perché. Se non abbiamo ancora nessuna posizione in cache non c'è
+  /// niente da "tenere vivo".
+  Future<void> _sendHeartbeat() async {
+    final position = _lastPosition;
+    if (position == null) return;
+    try {
+      await KinlyRepository.instance.upsertMyLocation(
+        lat: position.latitude,
+        lng: position.longitude,
+        address: _lastAddress,
+        speedKmh: null,
+      );
+    } catch (_) {
+      // Un battito mancato non è grave: il prossimo tra qualche minuto
+      // (o un vero aggiornamento di posizione) rimedia da solo.
     }
   }
 
@@ -239,6 +275,10 @@ class LocationTracker with WidgetsBindingObserver {
     _restartTimer?.cancel();
     _restartTimer = null;
     _restartAttempts = 0;
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
+    _lastPosition = null;
+    _lastAddress = null;
     if (_observingLifecycle) {
       WidgetsBinding.instance.removeObserver(this);
       _observingLifecycle = false;
@@ -269,6 +309,8 @@ class LocationTracker with WidgetsBindingObserver {
     _lastProcessedAt = now;
 
     final address = await _reverseGeocode(position.latitude, position.longitude);
+    _lastPosition = position;
+    _lastAddress = address;
     // Position.speed è in m/s e può essere impreciso/negativo da fermi:
     // lo consideriamo solo se il GPS lo ritiene valido (>= 0).
     final speedKmh = (position.speed.isFinite && position.speed >= 0) ? position.speed * 3.6 : null;

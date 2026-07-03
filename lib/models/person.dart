@@ -166,6 +166,18 @@ class Person {
 
   bool get isBatteryLow => batteryPercent > 0 && batteryPercent <= 15;
 
+  /// L'app manda un "battito" ogni pochi minuti anche da fermi apposta per
+  /// questo (vedi LocationTracker._sendHeartbeat): se anche quello si è
+  /// fermato, l'app di quella persona non sta più girando davvero (chiusa
+  /// senza tracciamento in background, telefono spento, offline da un
+  /// po') — non ha senso continuare a mostrarla come "in linea" solo
+  /// perché la modalità di condivisione è "Automatica". La soglia è più
+  /// larga dell'intervallo del battito per non sembrare offline per un
+  /// singolo giro mancato per una rete lenta.
+  static const _staleThreshold = Duration(minutes: 10);
+
+  bool get isStale => DateTime.now().difference(lastUpdate) > _staleThreshold;
+
   String get initials {
     final parts = name.trim().split(RegExp(r'\s+'));
     if (parts.length == 1) return parts.first.substring(0, min(2, parts.first.length)).toUpperCase();
