@@ -55,12 +55,19 @@ class AppUpdateService {
       final dir = await getTemporaryDirectory();
       final file = File('${dir.path}/kinly_update.apk');
       final sink = file.openWrite();
-      await for (final chunk in response.stream) {
-        sink.add(chunk);
-        received += chunk.length;
-        if (total > 0) onProgress?.call(received / total);
+      try {
+        await for (final chunk in response.stream) {
+          sink.add(chunk);
+          received += chunk.length;
+          if (total > 0) onProgress?.call(received / total);
+        }
+      } finally {
+        // Chiudi sempre il sink, anche se lo stream si interrompe a metà
+        // (rete caduta): senza, il file handle resta aperto e in giro resta
+        // un APK troncato che un'installazione successiva tratterebbe come
+        // corrotto.
+        await sink.close();
       }
-      await sink.close();
       return file.path;
     } finally {
       client.close();

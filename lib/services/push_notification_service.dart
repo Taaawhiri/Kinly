@@ -17,6 +17,12 @@ class PushNotificationService {
   final _localNotifications = FlutterLocalNotificationsPlugin();
   String? _lastToken;
   bool _initialized = false;
+  bool _initializing = false;
+  // Conservati per poterli cancellare al logout: senza, un ciclo
+  // logout→login aggiungeva un secondo listener onMessage/onTokenRefresh
+  // ogni volta, moltiplicando notifiche in primo piano e scritture del token.
+  StreamSubscription<RemoteMessage>? _onMessageSub;
+  StreamSubscription<String>? _onTokenRefreshSub;
   void Function(String zoneId)? _onArrivalConfirmed;
   void Function(String fromId)? _onCheckInReply;
 
@@ -64,7 +70,12 @@ class PushNotificationService {
   Future<void> initialize({void Function(String zoneId)? onArrivalConfirmed, void Function(String fromId)? onCheckInReply}) async {
     _onArrivalConfirmed = onArrivalConfirmed;
     _onCheckInReply = onCheckInReply;
-    if (_initialized) return;
+    // Guardia di ri-entranza: initialize() ha molti await prima di
+    // impostare _initialized; senza questo, una seconda chiamata
+    // (es. ensureRegistered durante l'avvio) supererebbe il controllo
+    // `_initialized` e registrerebbe listener e token una seconda volta.
+    if (_initialized || _initializing) return;
+    _initializing = true;
     try {
       await _localNotifications.initialize(
         settings: const InitializationSettings(android: AndroidInitializationSettings('@mipmap/ic_launcher')),
@@ -99,8 +110,8 @@ class PushNotificationService {
       // per sempre senza token, quindi invisibile al server.
       await FirebaseMessaging.instance.requestPermission();
 
-      FirebaseMessaging.onMessage.listen(_showForegroundNotification);
-      FirebaseMessaging.instance.onTokenRefresh.listen((token) {
+      _onMessageSub = FirebaseMessaging.onMessage.listen(_showForegroundNotification);
+      _onTokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen((token) {
         _lastToken = token;
         unawaited(KinlyRepository.instance.upsertDeviceToken(token));
       });
@@ -114,6 +125,8 @@ class PushNotificationService {
     } catch (_) {
       // Firebase non disponibile/configurato su questa piattaforma: l'app
       // resta comunque utilizzabile, solo senza notifiche push.
+    } finally {
+      _initializing = false;
     }
   }
 
@@ -216,6 +229,12 @@ class PushNotificationService {
   /// non tutti quelli dell'account (potrebbero essercene altri su
   /// dispositivi diversi ancora collegati).
   Future<void> unregister() async {
+    // Cancella i listener registrati in initialize(): altrimenti al prossimo
+    // login se ne aggiungerebbero di nuovi sopra i vecchi (notifiche doppie).
+    await _onMessageSub?.cancel();
+    _onMessageSub = null;
+    await _onTokenRefreshSub?.cancel();
+    _onTokenRefreshSub = null;
     final token = _lastToken;
     _lastToken = null;
     _initialized = false;

@@ -25,6 +25,10 @@ class WalkMeHomeService extends ChangeNotifier {
   String? _circleId;
   Timer? _timer;
   bool _triggering = false;
+  // Vero se l'utente conferma l'arrivo MENTRE _onExpired è già partito e sta
+  // aspettando la posizione: senza, una conferma in quella finestra veniva
+  // ignorata e partiva comunque il falso allarme alla cerchia.
+  bool _arrivalConfirmed = false;
 
   bool get isActive => _endsAt != null && _endsAt!.isAfter(DateTime.now());
   DateTime? get endsAt => _endsAt;
@@ -59,6 +63,7 @@ class WalkMeHomeService extends ChangeNotifier {
   /// Conferma l'arrivo (manuale o automatica entrando in area Casa): la
   /// sessione termina senza avvisare nessuno.
   Future<void> confirmArrival() async {
+    _arrivalConfirmed = true;
     await _clear();
     notifyListeners();
   }
@@ -72,6 +77,7 @@ class WalkMeHomeService extends ChangeNotifier {
   Future<void> _onExpired() async {
     if (_triggering) return;
     _triggering = true;
+    _arrivalConfirmed = false;
     final circleId = _circleId;
     await _clear();
     try {
@@ -85,6 +91,9 @@ class WalkMeHomeService extends ChangeNotifier {
         lat = me.lat ?? 0;
         lng = me.lng ?? 0;
       }
+      // Se l'utente ha confermato l'arrivo mentre recuperavamo la posizione,
+      // niente falso allarme.
+      if (_arrivalConfirmed) return;
       final targetCircle = circleId ?? (AppState.instance.circles.isNotEmpty ? AppState.instance.circles.first.id : null);
       if (targetCircle != null) {
         await AppState.instance.triggerHelpRequest(

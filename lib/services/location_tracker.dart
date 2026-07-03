@@ -72,6 +72,9 @@ class LocationTracker with WidgetsBindingObserver {
   // creino due stream di posizione in parallelo, con doppie scritture e un
   // listener che resta appeso senza mai essere cancellato.
   bool _subscribing = false;
+  // Evita che due start() concorrenti (avvio app + ritorno in primo piano)
+  // creino timer doppi prima che _positionSub sia impostato.
+  bool _starting = false;
 
   /// Ultimo stato noto (dentro/fuori) per ogni area sicura, per capire
   /// quando avviene un ingresso o un'uscita senza avvisare al primo
@@ -135,17 +138,27 @@ class LocationTracker with WidgetsBindingObserver {
       WidgetsBinding.instance.addObserver(this);
       _observingLifecycle = true;
     }
-    if (isTracking) return;
-    final granted = await requestPermission();
-    if (!granted) return;
+    if (isTracking || _starting) return;
+    _starting = true;
+    try {
+      final granted = await requestPermission();
+      if (!granted) return;
 
-    _restartAttempts = 0;
-    await _subscribe();
+      _restartAttempts = 0;
+      await _subscribe();
 
-    _updateBattery();
-    _batteryTimer = Timer.periodic(const Duration(minutes: 5), (_) => _updateBattery());
-    _heartbeatTimer?.cancel();
-    _heartbeatTimer = Timer.periodic(_heartbeatInterval, (_) => unawaited(_sendHeartbeat()));
+      _updateBattery();
+      // cancel-before-assign su TUTTI i timer: se start() gira mentre un
+      // vecchio timer è ancora vivo (es. lo stream era morto ma il timer
+      // batteria continuava), non ne resta uno orfano a raddoppiare le
+      // scritture.
+      _batteryTimer?.cancel();
+      _batteryTimer = Timer.periodic(const Duration(minutes: 5), (_) => _updateBattery());
+      _heartbeatTimer?.cancel();
+      _heartbeatTimer = Timer.periodic(_heartbeatInterval, (_) => unawaited(_sendHeartbeat()));
+    } finally {
+      _starting = false;
+    }
 
     try {
       final current = await Geolocator.getCurrentPosition();
@@ -208,7 +221,12 @@ class LocationTracker with WidgetsBindingObserver {
   /// Qualche tentativo con una pausa breve invece di ritentare all'infinito
   /// se il problema è persistente (es. permesso revocato davvero).
   void _handleStreamDown() {
+    // Su onError lo stream può essere ancora vivo: cancellalo prima di
+    // perderne il riferimento, altrimenti resta un listener orfano che può
+    // continuare a consegnare posizioni in parallelo al nuovo stream.
+    final sub = _positionSub;
     _positionSub = null;
+    unawaited(sub?.cancel());
     if (_restartAttempts >= _maxRestartAttempts) return;
     _restartAttempts++;
     _restartTimer?.cancel();
