@@ -242,6 +242,18 @@ abstract class AppLocalizations {
   /// **'Scegli la lingua'**
   String get languagePickerTitle;
 
+  /// No description provided for @homeWidgetTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'La tua cerchia'**
+  String get homeWidgetTitle;
+
+  /// No description provided for @homeWidgetEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuno sta condividendo ora'**
+  String get homeWidgetEmpty;
+
   /// No description provided for @commonCancel.
   ///
   /// In it, this message translates to:

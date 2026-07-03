@@ -30,6 +30,9 @@
   "languageEnglish": "English",
   "languagePickerTitle": "Choose language",
 
+  "homeWidgetTitle": "Your circle",
+  "homeWidgetEmpty": "No one is sharing right now",
+
   "commonCancel": "Cancel",
   "commonClose": "Close",
   "commonNo": "No",

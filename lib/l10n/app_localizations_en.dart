@@ -87,6 +87,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languagePickerTitle => 'Choose language';
 
   @override
+  String get homeWidgetTitle => 'Your circle';
+
+  @override
+  String get homeWidgetEmpty => 'No one is sharing right now';
+
+  @override
   String get commonCancel => 'Cancel';
 
   @override

@@ -87,6 +87,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get languagePickerTitle => 'Scegli la lingua';
 
   @override
+  String get homeWidgetTitle => 'La tua cerchia';
+
+  @override
+  String get homeWidgetEmpty => 'Nessuno sta condividendo ora';
+
+  @override
   String get commonCancel => 'Annulla';
 
   @override

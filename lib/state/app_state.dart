@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../l10n/app_localizations.dart';
 import '../models/circle_expense.dart';
 import '../models/circle_group.dart';
 import '../models/circle_message.dart';
@@ -20,12 +21,14 @@ import '../models/speed_event.dart';
 import '../models/support_message.dart';
 import '../services/auth_service.dart';
 import '../services/crash_detection_service.dart';
+import '../services/home_widget_service.dart';
 import '../services/kinly_repository.dart';
 import '../services/location_tracker.dart';
 import '../services/push_notification_service.dart';
 import '../services/walk_me_home_service.dart';
 import '../utils/circle_icons.dart';
 import '../utils/color_hex.dart';
+import 'locale_controller.dart';
 
 /// Stato dell'app: chi sono, le mie cerchie, chi ne fa parte e le richieste
 /// di posizione in corso. I dati arrivano da Supabase (query + realtime); le
@@ -269,6 +272,8 @@ class AppState extends ChangeNotifier {
       _circleSharingOverrides = {
         for (final r in circleSettingsRows) r['circle_id'] as String: SharingModeData.fromDb(r['sharing_mode'] as String),
       };
+
+      unawaited(HomeWidgetService.instance.update(_others, lookupAppLocalizations(LocaleController.instance.locale)));
 
       loadError = null;
     } catch (e) {

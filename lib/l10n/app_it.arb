@@ -32,6 +32,9 @@
   "languageEnglish": "English",
   "languagePickerTitle": "Scegli la lingua",
 
+  "homeWidgetTitle": "La tua cerchia",
+  "homeWidgetEmpty": "Nessuno sta condividendo ora",
+
   "commonCancel": "Annulla",
   "commonClose": "Chiudi",
   "commonNo": "No",
