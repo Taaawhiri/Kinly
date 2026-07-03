@@ -1468,12 +1468,41 @@ grant update (
 -- =========================================================================
 
 -- public.notify_send_push() chiama la Edge Function send-push via pg_net
--- (creata a mano nell'SQL Editor in una sessione precedente, non tracciata
--- qui: se questo script viene eseguito su un progetto nuovo da zero, va
--- ricreata prima di questi trigger, altrimenti falliscono con "function
--- does not exist"). Ogni tabella che deve generare una notifica ha un
--- trigger AFTER INSERT che la richiama: send-push decide il testo giusto
--- in base al nome della tabella (vedi supabase/functions/send-push).
+-- (estensione http del database). Ogni tabella che deve generare una
+-- notifica ha un trigger AFTER INSERT che la richiama: send-push decide il
+-- testo giusto in base al nome della tabella (vedi supabase/functions/send-push).
+--
+-- NOTA: l'URL del progetto e la anon key qui sotto sono quelli del progetto
+-- di sviluppo di default (vedi lib/services/supabase_client.dart). Se esegui
+-- questo schema su un ALTRO progetto Supabase, sostituiscili con i tuoi
+-- (Project Settings -> API). La anon key è pubblica (protetta dalle policy
+-- RLS), serve solo perché il gateway delle Edge Function accetti la
+-- chiamata; send-push usa poi la service_role key dal proprio ambiente.
+create extension if not exists pg_net;
+
+create or replace function public.notify_send_push()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform net.http_post(
+    url := 'https://tteqhmlcsgduuzlcqbrt.supabase.co/functions/v1/send-push',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXFobWxjc2dkdXV6bGNxYnJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4Njg2MzAsImV4cCI6MjA5ODQ0NDYzMH0.A1MC_Qma7lgN4ZDl-MDx-pmi0Rh5ZAcLcMHs_lAgYIc'
+    ),
+    body := jsonb_build_object(
+      'type', TG_OP,
+      'table', TG_TABLE_NAME,
+      'record', to_jsonb(NEW)
+    )
+  );
+  return NEW;
+end;
+$$;
+
 drop trigger if exists send_push_trigger on public.sos_alerts;
 create trigger send_push_trigger
   after insert on public.sos_alerts
