@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pallino "avatar" del widget: un cerchio pieno bianco, colorato al volo
+     via setColorFilter (vedi KinlyWidgetProvider) con il colore vero della
+     persona, o con un colore d'esempio quando nessuno condivide ancora. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="#FFFFFF" />
+</shape>

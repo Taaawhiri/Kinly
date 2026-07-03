@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:home_widget/home_widget.dart';
 import '../l10n/app_localizations.dart';
 import '../models/person.dart';
+import '../theme/app_theme.dart';
+import '../utils/color_hex.dart';
 
 /// Aggiorna il widget della schermata home di Android con un riassunto
 /// della cerchia (fino a 3 persone con l'ultima posizione nota). Chiamato
@@ -37,15 +39,24 @@ class HomeWidgetService {
       if (visible.isEmpty) {
         // Niente da mostrare ancora: invece di lasciarlo vuoto, un esempio
         // "finto" (in grigio lato Android, vedi KinlyWidgetProvider) fa
-        // capire subito cosa aspettarsi appena qualcuno condivide.
+        // capire subito cosa aspettarsi appena qualcuno condivide. I
+        // pallini colorati usano gli stessi colori del sito, per sembrare
+        // un vero mockup e non un semplice elenco di testo.
         await HomeWidget.saveWidgetData<String>('line1', l10n.homeWidgetPreviewHint);
         await HomeWidget.saveWidgetData<String>('line2', l10n.homeWidgetPreviewLine1);
         await HomeWidget.saveWidgetData<String>('line3', l10n.homeWidgetPreviewLine2);
+        await HomeWidget.saveWidgetData<String>('line1Color', AppTheme.primary.toHex());
+        await HomeWidget.saveWidgetData<String>('line2Color', AppTheme.accentCoral.toHex());
+        await HomeWidget.saveWidgetData<String>('line3Color', AppTheme.accentAmber.toHex());
         await HomeWidget.saveWidgetData<String>('isPreview', '1');
       } else {
+        String colorFor(int i) => i < visible.length ? visible[i].color.toHex() : '';
         await HomeWidget.saveWidgetData<String>('line1', lineFor(0));
         await HomeWidget.saveWidgetData<String>('line2', lineFor(1));
         await HomeWidget.saveWidgetData<String>('line3', lineFor(2));
+        await HomeWidget.saveWidgetData<String>('line1Color', colorFor(0));
+        await HomeWidget.saveWidgetData<String>('line2Color', colorFor(1));
+        await HomeWidget.saveWidgetData<String>('line3Color', colorFor(2));
         await HomeWidget.saveWidgetData<String>('isPreview', '0');
       }
       await HomeWidget.updateWidget(androidName: 'KinlyWidgetProvider');
