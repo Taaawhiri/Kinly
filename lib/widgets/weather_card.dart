@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../services/weather_service.dart';
 
 /// Card del meteo nel punto dato: uno sguardo veloce a cosa sta vivendo un
@@ -40,6 +41,7 @@ class _WeatherCardState extends State<WeatherCard> {
           return const SizedBox.shrink();
         }
         final weather = snapshot.data!;
+        final l10n = AppLocalizations.of(context)!;
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -60,7 +62,7 @@ class _WeatherCardState extends State<WeatherCard> {
                       style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900),
                     ),
                     Text(
-                      widget.placeLabel != null ? '${weather.label} · ${widget.placeLabel}' : weather.label,
+                      widget.placeLabel != null ? '${weather.label(l10n)} · ${widget.placeLabel}' : weather.label(l10n),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 12.5, fontWeight: FontWeight.w600),

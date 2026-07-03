@@ -2039,4 +2039,128 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get joinCircleFormatHint =>
       'Chiedi il codice a chi ha creato la cerchia: ha il formato XXX-0000.';
+
+  @override
+  String get sharingModeAutomatic => 'Automatica';
+
+  @override
+  String get sharingModeOnRequest => 'Su richiesta';
+
+  @override
+  String get sharingModePaused => 'Sospesa';
+
+  @override
+  String get sharingModeFuzzy => 'Approssimativa';
+
+  @override
+  String get sharingModeAutomaticDesc =>
+      'La tua posizione è sempre visibile alla tua cerchia, in tempo reale.';
+
+  @override
+  String get sharingModeOnRequestDesc =>
+      'Nessuno vede la tua posizione finché non approvi una richiesta.';
+
+  @override
+  String get sharingModePausedDesc =>
+      'Modalità fantasma: sei invisibile, nessuno può chiedere dove sei.';
+
+  @override
+  String get sharingModeFuzzyDesc =>
+      'La tua cerchia vede solo la zona (circa 1 km), mai il punto esatto.';
+
+  @override
+  String get helpReqReasonFlatTire => 'Gomma bucata';
+
+  @override
+  String get helpReqReasonAccident => 'Incidente';
+
+  @override
+  String get helpReqReasonFollowed => 'Mi sento seguito/a';
+
+  @override
+  String get helpReqReasonLowBattery => 'Batteria scarica';
+
+  @override
+  String get helpReqReasonOther => 'Altro';
+
+  @override
+  String get pingKindCoffee => 'Un caffè?';
+
+  @override
+  String get pingKindTraffic => 'Occhio al traffico';
+
+  @override
+  String get pingKindHighFive => 'High five';
+
+  @override
+  String get safeZoneKindHome => 'Casa';
+
+  @override
+  String get safeZoneKindWork => 'Lavoro';
+
+  @override
+  String get safeZoneKindSchool => 'Scuola';
+
+  @override
+  String get safeZoneKindOther => 'Altro';
+
+  @override
+  String get personLastUpdateNow => 'Proprio ora';
+
+  @override
+  String personLastUpdateMinutes(int minutes) {
+    return '$minutes min fa';
+  }
+
+  @override
+  String personLastUpdateHours(int hours) {
+    return '$hours h fa';
+  }
+
+  @override
+  String personLastUpdateDays(int days) {
+    return '$days g fa';
+  }
+
+  @override
+  String get weatherClear => 'Sereno';
+
+  @override
+  String get weatherPartlyCloudy => 'Poco nuvoloso';
+
+  @override
+  String get weatherOvercast => 'Coperto';
+
+  @override
+  String get weatherFog => 'Nebbia';
+
+  @override
+  String get weatherDrizzle => 'Pioggerella';
+
+  @override
+  String get weatherRain => 'Pioggia';
+
+  @override
+  String get weatherSnow => 'Neve';
+
+  @override
+  String get weatherShowers => 'Rovesci';
+
+  @override
+  String get weatherSnowShowers => 'Rovesci di neve';
+
+  @override
+  String get weatherStorm => 'Temporale';
+
+  @override
+  String get weatherNow => 'Al momento';
+
+  @override
+  String get tripReplayPause => 'Pausa';
+
+  @override
+  String get tripReplayWatch => 'Rivedi il tragitto';
+
+  @override
+  String get mapWaitingForLocation => 'In attesa della posizione…';
 }

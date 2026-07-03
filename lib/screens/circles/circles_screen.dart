@@ -212,7 +212,7 @@ class _CircleSharingModeSheet extends StatelessWidget {
                 const SizedBox(height: 14),
                 _SharingOptionTile(
                   label: l10n.circlesUseGeneralMode,
-                  description: l10n.circlesGeneralModeDescription(state.myMode.label),
+                  description: l10n.circlesGeneralModeDescription(state.myMode.label(l10n)),
                   icon: Icons.settings_backup_restore_rounded,
                   color: AppTheme.textSecondary,
                   selected: override == null,
@@ -223,8 +223,8 @@ class _CircleSharingModeSheet extends StatelessWidget {
                 ),
                 for (final mode in SharingMode.values)
                   _SharingOptionTile(
-                    label: mode.label,
-                    description: mode.description,
+                    label: mode.label(l10n),
+                    description: mode.description(l10n),
                     icon: mode.icon,
                     color: mode.color,
                     selected: override == mode,

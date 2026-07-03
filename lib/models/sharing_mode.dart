@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 
 /// Come una persona condivide (o non condivide) la propria posizione.
@@ -33,29 +34,29 @@ extension SharingModeData on SharingMode {
     }
   }
 
-  String get label {
+  String label(AppLocalizations l10n) {
     switch (this) {
       case SharingMode.automatic:
-        return 'Automatica';
+        return l10n.sharingModeAutomatic;
       case SharingMode.onRequest:
-        return 'Su richiesta';
+        return l10n.sharingModeOnRequest;
       case SharingMode.paused:
-        return 'Sospesa';
+        return l10n.sharingModePaused;
       case SharingMode.fuzzy:
-        return 'Approssimativa';
+        return l10n.sharingModeFuzzy;
     }
   }
 
-  String get description {
+  String description(AppLocalizations l10n) {
     switch (this) {
       case SharingMode.automatic:
-        return 'La tua posizione è sempre visibile alla tua cerchia, in tempo reale.';
+        return l10n.sharingModeAutomaticDesc;
       case SharingMode.onRequest:
-        return 'Nessuno vede la tua posizione finché non approvi una richiesta.';
+        return l10n.sharingModeOnRequestDesc;
       case SharingMode.paused:
-        return 'Modalità fantasma: sei invisibile, nessuno può chiedere dove sei.';
+        return l10n.sharingModePausedDesc;
       case SharingMode.fuzzy:
-        return 'La tua cerchia vede solo la zona (circa 1 km), mai il punto esatto.';
+        return l10n.sharingModeFuzzyDesc;
     }
   }
 

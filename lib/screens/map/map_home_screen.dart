@@ -736,7 +736,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(zone.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
-                        Text(AppLocalizations.of(sheetContext)!.mapSafeZoneLabelAndRadius(zone.kind.label, zone.radiusMeters), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                        Text(AppLocalizations.of(sheetContext)!.mapSafeZoneLabelAndRadius(zone.kind.label(AppLocalizations.of(sheetContext)!), zone.radiusMeters), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
                       ],
                     ),
                   ),
@@ -829,7 +829,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             key: ValueKey('help_${request.id}'),
             child: _HelpBanner(
               personName: state.personById(request.profileId)?.name ?? someone,
-              reasonLabel: request.reason.label,
+              reasonLabel: request.reason.label(AppLocalizations.of(context)!),
               onTap: () {
                 final person = state.personById(request.profileId);
                 if (person != null) {
@@ -1556,7 +1556,7 @@ class _PingBanner extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              '$personName: ${kind.label}',
+              '$personName: ${kind.label(AppLocalizations.of(context)!)}',
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AppTheme.textPrimary),
             ),
           ),
@@ -1709,7 +1709,7 @@ class _ReasonCard extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                reason.label,
+                reason.label(AppLocalizations.of(context)!),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AppTheme.textPrimary),

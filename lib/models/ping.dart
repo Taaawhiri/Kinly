@@ -1,3 +1,5 @@
+import '../l10n/app_localizations.dart';
+
 /// Un tocco rapido su una persona sulla mappa, senza scrivere: un'emoji con
 /// un significato preciso invece di un messaggio.
 enum PingKind { coffee, traffic, highFive }
@@ -21,10 +23,10 @@ extension PingKindData on PingKind {
         PingKind.highFive => '🖐️',
       };
 
-  String get label => switch (this) {
-        PingKind.coffee => 'Un caffè?',
-        PingKind.traffic => 'Occhio al traffico',
-        PingKind.highFive => 'High five',
+  String label(AppLocalizations l10n) => switch (this) {
+        PingKind.coffee => l10n.pingKindCoffee,
+        PingKind.traffic => l10n.pingKindTraffic,
+        PingKind.highFive => l10n.pingKindHighFive,
       };
 }
 

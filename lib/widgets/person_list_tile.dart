@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
 import 'person_avatar.dart';
@@ -23,6 +24,7 @@ class PersonListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canSeeLocation = person.isMe || person.isSharingWithMe;
+    final l10n = AppLocalizations.of(context)!;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -39,7 +41,7 @@ class PersonListTile extends StatelessWidget {
                   Text(person.name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.textPrimary)),
                   const SizedBox(height: 2),
                   Text(
-                    canSeeLocation ? '${person.address} · ${person.lastUpdateLabel}' : person.address,
+                    canSeeLocation ? '${person.address} · ${person.lastUpdateLabel(l10n)}' : person.address,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
@@ -51,7 +53,7 @@ class PersonListTile extends StatelessWidget {
                       runSpacing: 4,
                       children: [
                         if (showBadge) SharingModeBadge(mode: person.mode, dense: true),
-                        if (canSeeLocation && person.isBatteryLow) const _LowBatteryTag(),
+                        if (canSeeLocation && person.isBatteryLow) _LowBatteryTag(label: l10n.helpReqReasonLowBattery),
                       ],
                     ),
                   ],
@@ -67,19 +69,20 @@ class PersonListTile extends StatelessWidget {
 }
 
 class _LowBatteryTag extends StatelessWidget {
-  const _LowBatteryTag();
+  const _LowBatteryTag({required this.label});
+  final String label;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(color: AppTheme.accentCoral.withOpacity(0.14), borderRadius: BorderRadius.circular(20)),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.battery_alert_rounded, size: 12, color: AppTheme.accentCoral),
-          SizedBox(width: 3),
-          Text('Batteria scarica', style: TextStyle(color: AppTheme.accentCoral, fontWeight: FontWeight.w700, fontSize: 10.5)),
+          const Icon(Icons.battery_alert_rounded, size: 12, color: AppTheme.accentCoral),
+          const SizedBox(width: 3),
+          Text(label, style: TextStyle(color: AppTheme.accentCoral, fontWeight: FontWeight.w700, fontSize: 10.5)),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'sharing_mode.dart';
 
 /// Stato dinamico dedotto dall'ultima velocità nota: nessun sensore in più,
@@ -165,12 +166,12 @@ class Person {
     return (parts.first.substring(0, 1) + parts.last.substring(0, 1)).toUpperCase();
   }
 
-  String get lastUpdateLabel {
+  String lastUpdateLabel(AppLocalizations l10n) {
     final diff = DateTime.now().difference(lastUpdate);
-    if (diff.inMinutes < 1) return 'Proprio ora';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} min fa';
-    if (diff.inHours < 24) return '${diff.inHours} h fa';
-    return '${diff.inDays} g fa';
+    if (diff.inMinutes < 1) return l10n.personLastUpdateNow;
+    if (diff.inMinutes < 60) return l10n.personLastUpdateMinutes(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.personLastUpdateHours(diff.inHours);
+    return l10n.personLastUpdateDays(diff.inDays);
   }
 
   Person copyWith({

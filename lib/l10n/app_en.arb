@@ -610,5 +610,51 @@
   "joinCircleMemberLimitMessage": "This circle has already reached the free plan's limit of 6 people.",
   "joinCircleError": "We couldn't verify the code. Please try again.",
   "joinCircleSubmit": "Join",
-  "joinCircleFormatHint": "Ask whoever created the circle for the code: it has the format XXX-0000."
+  "joinCircleFormatHint": "Ask whoever created the circle for the code: it has the format XXX-0000.",
+
+  "sharingModeAutomatic": "Automatic",
+  "sharingModeOnRequest": "On request",
+  "sharingModePaused": "Paused",
+  "sharingModeFuzzy": "Approximate",
+  "sharingModeAutomaticDesc": "Your location is always visible to your circle, in real time.",
+  "sharingModeOnRequestDesc": "No one sees your location until you approve a request.",
+  "sharingModePausedDesc": "Ghost mode: you're invisible, no one can ask where you are.",
+  "sharingModeFuzzyDesc": "Your circle only sees the general area (about 1 km), never the exact point.",
+
+  "helpReqReasonFlatTire": "Flat tire",
+  "helpReqReasonAccident": "Accident",
+  "helpReqReasonFollowed": "I feel followed",
+  "helpReqReasonLowBattery": "Low battery",
+  "helpReqReasonOther": "Other",
+
+  "pingKindCoffee": "Coffee?",
+  "pingKindTraffic": "Watch out for traffic",
+  "pingKindHighFive": "High five",
+
+  "safeZoneKindHome": "Home",
+  "safeZoneKindWork": "Work",
+  "safeZoneKindSchool": "School",
+  "safeZoneKindOther": "Other",
+
+  "personLastUpdateNow": "Just now",
+  "personLastUpdateMinutes": "{minutes} min ago",
+  "personLastUpdateHours": "{hours} h ago",
+  "personLastUpdateDays": "{days} d ago",
+
+  "weatherClear": "Clear",
+  "weatherPartlyCloudy": "Partly cloudy",
+  "weatherOvercast": "Overcast",
+  "weatherFog": "Fog",
+  "weatherDrizzle": "Drizzle",
+  "weatherRain": "Rain",
+  "weatherSnow": "Snow",
+  "weatherShowers": "Showers",
+  "weatherSnowShowers": "Snow showers",
+  "weatherStorm": "Storm",
+  "weatherNow": "Right now",
+
+  "tripReplayPause": "Pause",
+  "tripReplayWatch": "Watch the trip",
+
+  "mapWaitingForLocation": "Waiting for location…"
 }

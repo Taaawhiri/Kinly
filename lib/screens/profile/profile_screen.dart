@@ -385,6 +385,7 @@ class _ModeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -410,8 +411,8 @@ class _ModeCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(mode.label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
-                  Text(mode.description, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.3)),
+                  Text(mode.label(l10n), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
+                  Text(mode.description(l10n), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.3)),
                 ],
               ),
             ),

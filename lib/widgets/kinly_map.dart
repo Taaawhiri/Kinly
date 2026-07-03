@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
+import '../l10n/app_localizations.dart';
 import '../models/meeting_point.dart';
 import '../models/person.dart';
 import '../models/safe_zone.dart';
@@ -175,7 +176,7 @@ class _KinlyMapState extends State<KinlyMap> {
         color: const Color(0xFFEEF1FA),
         alignment: Alignment.center,
         child: Text(
-          'In attesa della posizione…',
+          AppLocalizations.of(context)!.mapWaitingForLocation,
           style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
         ),
       );

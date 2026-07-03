@@ -223,7 +223,7 @@ class _SafeZoneCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(zone.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
-                    Text(l10n.safeZonesKindRadius(zone.kind.label, zone.radiusMeters), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                    Text(l10n.safeZonesKindRadius(zone.kind.label(l10n), zone.radiusMeters), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
                   ],
                 ),
               ),
@@ -447,7 +447,7 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
               children: [
                 for (final kind in SafeZoneKind.values)
                   ChoiceChip(
-                    label: Text(kind.label),
+                    label: Text(kind.label(l10n)),
                     avatar: Icon(kind.icon, size: 16),
                     selected: _kind == kind,
                     onSelected: (_) => setState(() => _kind = kind),

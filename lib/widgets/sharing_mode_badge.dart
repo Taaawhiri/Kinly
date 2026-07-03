@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/sharing_mode.dart';
 
 /// Piccolo badge colorato che riassume la modalità di condivisione.
@@ -22,7 +23,7 @@ class SharingModeBadge extends StatelessWidget {
           Icon(mode.icon, size: dense ? 12 : 14, color: mode.color),
           SizedBox(width: dense ? 4 : 6),
           Text(
-            mode.label,
+            mode.label(AppLocalizations.of(context)!),
             style: TextStyle(color: mode.color, fontWeight: FontWeight.w700, fontSize: dense ? 11 : 12.5),
           ),
         ],

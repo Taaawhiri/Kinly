@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 /// Tipo di luogo di un'area sicura: usato solo per scegliere un'icona e per
 /// personalizzare il testo delle notifiche push di ingresso/uscita (vedi
@@ -26,11 +27,11 @@ extension SafeZoneKindData on SafeZoneKind {
     }
   }
 
-  String get label => switch (this) {
-        SafeZoneKind.home => 'Casa',
-        SafeZoneKind.work => 'Lavoro',
-        SafeZoneKind.school => 'Scuola',
-        SafeZoneKind.other => 'Altro',
+  String label(AppLocalizations l10n) => switch (this) {
+        SafeZoneKind.home => l10n.safeZoneKindHome,
+        SafeZoneKind.work => l10n.safeZoneKindWork,
+        SafeZoneKind.school => l10n.safeZoneKindSchool,
+        SafeZoneKind.other => l10n.safeZoneKindOther,
       };
 
   IconData get icon => switch (this) {

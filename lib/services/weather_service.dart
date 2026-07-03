@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../l10n/app_localizations.dart';
 
 /// Meteo attuale in un punto, tradotto dal codice WMO di Open-Meteo (API
 /// gratuita, senza chiave) in qualcosa di leggibile in italiano.
@@ -11,7 +12,7 @@ class WeatherInfo {
   final int code;
   final bool isDay;
 
-  String get label => _labelForCode(code);
+  String label(AppLocalizations l10n) => _labelForCode(code, l10n);
   IconData get icon => _iconForCode(code, isDay);
 
   /// Colori del gradiente della card, coerenti con condizione e ora del
@@ -27,18 +28,18 @@ class WeatherInfo {
     return const [Color(0xFF4FA8E8), Color(0xFF2E7BC7)];
   }
 
-  static String _labelForCode(int code) {
-    if (code == 0) return 'Sereno';
-    if (code <= 2) return 'Poco nuvoloso';
-    if (code == 3) return 'Coperto';
-    if (code == 45 || code == 48) return 'Nebbia';
-    if (code >= 51 && code <= 57) return 'Pioggerella';
-    if (code >= 61 && code <= 67) return 'Pioggia';
-    if (code >= 71 && code <= 77) return 'Neve';
-    if (code >= 80 && code <= 82) return 'Rovesci';
-    if (code >= 85 && code <= 86) return 'Rovesci di neve';
-    if (code >= 95) return 'Temporale';
-    return 'Al momento';
+  static String _labelForCode(int code, AppLocalizations l10n) {
+    if (code == 0) return l10n.weatherClear;
+    if (code <= 2) return l10n.weatherPartlyCloudy;
+    if (code == 3) return l10n.weatherOvercast;
+    if (code == 45 || code == 48) return l10n.weatherFog;
+    if (code >= 51 && code <= 57) return l10n.weatherDrizzle;
+    if (code >= 61 && code <= 67) return l10n.weatherRain;
+    if (code >= 71 && code <= 77) return l10n.weatherSnow;
+    if (code >= 80 && code <= 82) return l10n.weatherShowers;
+    if (code >= 85 && code <= 86) return l10n.weatherSnowShowers;
+    if (code >= 95) return l10n.weatherStorm;
+    return l10n.weatherNow;
   }
 
   static IconData _iconForCode(int code, bool isDay) {

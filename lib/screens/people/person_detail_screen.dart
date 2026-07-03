@@ -81,7 +81,7 @@ class PersonDetailScreen extends StatelessWidget {
                           _PingRow(person: person),
                         ],
                         const SizedBox(height: 14),
-                        if (canSee) _InfoRow(icon: Icons.access_time, label: l10n.personUpdatedAt(person.lastUpdateLabel)),
+                        if (canSee) _InfoRow(icon: Icons.access_time, label: l10n.personUpdatedAt(person.lastUpdateLabel(l10n))),
                         if (canSee) const SizedBox(height: 10),
                         if (canSee) _InfoRow(icon: _batteryIcon(person.batteryPercent), label: l10n.personBatteryPercent(person.batteryPercent)),
                         if (canSee && person.lat != null && person.lng != null) ...[
@@ -271,7 +271,7 @@ class _PingRowState extends State<_PingRow> {
             child: OutlinedButton.icon(
               onPressed: _sent != null ? null : () => _send(kind),
               icon: Text(kind.emoji, style: const TextStyle(fontSize: 16)),
-              label: Text(_sent == kind ? l10n.personPingSent : kind.label),
+              label: Text(_sent == kind ? l10n.personPingSent : kind.label(l10n)),
               style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
             ),
           ),

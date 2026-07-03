@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 /// Motivo predefinito di una richiesta di aiuto: un gradino sotto l'SOS,
 /// per situazioni che non sono un'emergenza ma per cui vuoi avvisare
@@ -30,12 +31,12 @@ extension HelpRequestReasonData on HelpRequestReason {
     }
   }
 
-  String get label => switch (this) {
-        HelpRequestReason.flatTire => 'Gomma bucata',
-        HelpRequestReason.accident => 'Incidente',
-        HelpRequestReason.followed => 'Mi sento seguito/a',
-        HelpRequestReason.lowBattery => 'Batteria scarica',
-        HelpRequestReason.other => 'Altro',
+  String label(AppLocalizations l10n) => switch (this) {
+        HelpRequestReason.flatTire => l10n.helpReqReasonFlatTire,
+        HelpRequestReason.accident => l10n.helpReqReasonAccident,
+        HelpRequestReason.followed => l10n.helpReqReasonFollowed,
+        HelpRequestReason.lowBattery => l10n.helpReqReasonLowBattery,
+        HelpRequestReason.other => l10n.helpReqReasonOther,
       };
 
   IconData get icon => switch (this) {

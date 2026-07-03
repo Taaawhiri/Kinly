@@ -3535,6 +3535,234 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Chiedi il codice a chi ha creato la cerchia: ha il formato XXX-0000.'**
   String get joinCircleFormatHint;
+
+  /// No description provided for @sharingModeAutomatic.
+  ///
+  /// In it, this message translates to:
+  /// **'Automatica'**
+  String get sharingModeAutomatic;
+
+  /// No description provided for @sharingModeOnRequest.
+  ///
+  /// In it, this message translates to:
+  /// **'Su richiesta'**
+  String get sharingModeOnRequest;
+
+  /// No description provided for @sharingModePaused.
+  ///
+  /// In it, this message translates to:
+  /// **'Sospesa'**
+  String get sharingModePaused;
+
+  /// No description provided for @sharingModeFuzzy.
+  ///
+  /// In it, this message translates to:
+  /// **'Approssimativa'**
+  String get sharingModeFuzzy;
+
+  /// No description provided for @sharingModeAutomaticDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'La tua posizione è sempre visibile alla tua cerchia, in tempo reale.'**
+  String get sharingModeAutomaticDesc;
+
+  /// No description provided for @sharingModeOnRequestDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuno vede la tua posizione finché non approvi una richiesta.'**
+  String get sharingModeOnRequestDesc;
+
+  /// No description provided for @sharingModePausedDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Modalità fantasma: sei invisibile, nessuno può chiedere dove sei.'**
+  String get sharingModePausedDesc;
+
+  /// No description provided for @sharingModeFuzzyDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'La tua cerchia vede solo la zona (circa 1 km), mai il punto esatto.'**
+  String get sharingModeFuzzyDesc;
+
+  /// No description provided for @helpReqReasonFlatTire.
+  ///
+  /// In it, this message translates to:
+  /// **'Gomma bucata'**
+  String get helpReqReasonFlatTire;
+
+  /// No description provided for @helpReqReasonAccident.
+  ///
+  /// In it, this message translates to:
+  /// **'Incidente'**
+  String get helpReqReasonAccident;
+
+  /// No description provided for @helpReqReasonFollowed.
+  ///
+  /// In it, this message translates to:
+  /// **'Mi sento seguito/a'**
+  String get helpReqReasonFollowed;
+
+  /// No description provided for @helpReqReasonLowBattery.
+  ///
+  /// In it, this message translates to:
+  /// **'Batteria scarica'**
+  String get helpReqReasonLowBattery;
+
+  /// No description provided for @helpReqReasonOther.
+  ///
+  /// In it, this message translates to:
+  /// **'Altro'**
+  String get helpReqReasonOther;
+
+  /// No description provided for @pingKindCoffee.
+  ///
+  /// In it, this message translates to:
+  /// **'Un caffè?'**
+  String get pingKindCoffee;
+
+  /// No description provided for @pingKindTraffic.
+  ///
+  /// In it, this message translates to:
+  /// **'Occhio al traffico'**
+  String get pingKindTraffic;
+
+  /// No description provided for @pingKindHighFive.
+  ///
+  /// In it, this message translates to:
+  /// **'High five'**
+  String get pingKindHighFive;
+
+  /// No description provided for @safeZoneKindHome.
+  ///
+  /// In it, this message translates to:
+  /// **'Casa'**
+  String get safeZoneKindHome;
+
+  /// No description provided for @safeZoneKindWork.
+  ///
+  /// In it, this message translates to:
+  /// **'Lavoro'**
+  String get safeZoneKindWork;
+
+  /// No description provided for @safeZoneKindSchool.
+  ///
+  /// In it, this message translates to:
+  /// **'Scuola'**
+  String get safeZoneKindSchool;
+
+  /// No description provided for @safeZoneKindOther.
+  ///
+  /// In it, this message translates to:
+  /// **'Altro'**
+  String get safeZoneKindOther;
+
+  /// No description provided for @personLastUpdateNow.
+  ///
+  /// In it, this message translates to:
+  /// **'Proprio ora'**
+  String get personLastUpdateNow;
+
+  /// No description provided for @personLastUpdateMinutes.
+  ///
+  /// In it, this message translates to:
+  /// **'{minutes} min fa'**
+  String personLastUpdateMinutes(int minutes);
+
+  /// No description provided for @personLastUpdateHours.
+  ///
+  /// In it, this message translates to:
+  /// **'{hours} h fa'**
+  String personLastUpdateHours(int hours);
+
+  /// No description provided for @personLastUpdateDays.
+  ///
+  /// In it, this message translates to:
+  /// **'{days} g fa'**
+  String personLastUpdateDays(int days);
+
+  /// No description provided for @weatherClear.
+  ///
+  /// In it, this message translates to:
+  /// **'Sereno'**
+  String get weatherClear;
+
+  /// No description provided for @weatherPartlyCloudy.
+  ///
+  /// In it, this message translates to:
+  /// **'Poco nuvoloso'**
+  String get weatherPartlyCloudy;
+
+  /// No description provided for @weatherOvercast.
+  ///
+  /// In it, this message translates to:
+  /// **'Coperto'**
+  String get weatherOvercast;
+
+  /// No description provided for @weatherFog.
+  ///
+  /// In it, this message translates to:
+  /// **'Nebbia'**
+  String get weatherFog;
+
+  /// No description provided for @weatherDrizzle.
+  ///
+  /// In it, this message translates to:
+  /// **'Pioggerella'**
+  String get weatherDrizzle;
+
+  /// No description provided for @weatherRain.
+  ///
+  /// In it, this message translates to:
+  /// **'Pioggia'**
+  String get weatherRain;
+
+  /// No description provided for @weatherSnow.
+  ///
+  /// In it, this message translates to:
+  /// **'Neve'**
+  String get weatherSnow;
+
+  /// No description provided for @weatherShowers.
+  ///
+  /// In it, this message translates to:
+  /// **'Rovesci'**
+  String get weatherShowers;
+
+  /// No description provided for @weatherSnowShowers.
+  ///
+  /// In it, this message translates to:
+  /// **'Rovesci di neve'**
+  String get weatherSnowShowers;
+
+  /// No description provided for @weatherStorm.
+  ///
+  /// In it, this message translates to:
+  /// **'Temporale'**
+  String get weatherStorm;
+
+  /// No description provided for @weatherNow.
+  ///
+  /// In it, this message translates to:
+  /// **'Al momento'**
+  String get weatherNow;
+
+  /// No description provided for @tripReplayPause.
+  ///
+  /// In it, this message translates to:
+  /// **'Pausa'**
+  String get tripReplayPause;
+
+  /// No description provided for @tripReplayWatch.
+  ///
+  /// In it, this message translates to:
+  /// **'Rivedi il tragitto'**
+  String get tripReplayWatch;
+
+  /// No description provided for @mapWaitingForLocation.
+  ///
+  /// In it, this message translates to:
+  /// **'In attesa della posizione…'**
+  String get mapWaitingForLocation;
 }
 
 class _AppLocalizationsDelegate

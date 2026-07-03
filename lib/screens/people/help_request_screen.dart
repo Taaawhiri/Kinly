@@ -103,7 +103,7 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              isMine ? l10n.helpRequestYouAsked(reason.label) : l10n.helpRequestPersonNeeds(widget.person.name, reason.label),
+                              isMine ? l10n.helpRequestYouAsked(reason.label(l10n)) : l10n.helpRequestPersonNeeds(widget.person.name, reason.label(l10n)),
                               style: TextStyle(fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
                             ),
                           ),

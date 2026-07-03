@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
+import '../l10n/app_localizations.dart';
 import '../models/location_history_point.dart';
 import '../theme/app_theme.dart';
 import '../utils/color_hex.dart';
@@ -64,6 +65,7 @@ class _TripRouteMapState extends State<TripRouteMap> with SingleTickerProviderSt
   }
 
   Widget _buildReplayBar() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       color: AppTheme.surface,
       padding: const EdgeInsets.fromLTRB(4, 4, 16, 4),
@@ -72,7 +74,7 @@ class _TripRouteMapState extends State<TripRouteMap> with SingleTickerProviderSt
           IconButton(
             icon: Icon(_playback.isAnimating ? Icons.pause_circle_filled_rounded : Icons.play_circle_fill_rounded, size: 32, color: AppTheme.primary),
             onPressed: _routeReady ? _togglePlayback : null,
-            tooltip: _playback.isAnimating ? 'Pausa' : 'Rivedi il tragitto',
+            tooltip: _playback.isAnimating ? l10n.tripReplayPause : l10n.tripReplayWatch,
           ),
           Expanded(
             child: SliderTheme(
@@ -90,7 +92,7 @@ class _TripRouteMapState extends State<TripRouteMap> with SingleTickerProviderSt
           SizedBox(
             width: 46,
             child: Text(
-              _elapsedLabel(_playback.value),
+              _elapsedLabel(l10n, _playback.value),
               textAlign: TextAlign.right,
               style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
             ),
@@ -111,12 +113,12 @@ class _TripRouteMapState extends State<TripRouteMap> with SingleTickerProviderSt
   /// Tempo trascorso NEL tragitto vero alla posizione attuale del cursore
   /// (non il tempo di riproduzione, compresso): dà il senso di quanto sia
   /// durato davvero quel tratto.
-  String _elapsedLabel(double progress) {
+  String _elapsedLabel(AppLocalizations l10n, double progress) {
     final points = widget.points;
     if (points.length < 2) return '';
     final totalMinutes = points.last.recordedAt.difference(points.first.recordedAt).inMinutes;
     final elapsedMinutes = (totalMinutes * progress).round();
-    return '$elapsedMinutes min';
+    return l10n.statsMinutes(elapsedMinutes);
   }
 
   Future<void> _drawRoute() async {

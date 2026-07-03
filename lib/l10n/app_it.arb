@@ -686,5 +686,54 @@
   "joinCircleMemberLimitMessage": "Questa cerchia ha già raggiunto il limite di 6 persone del piano gratuito.",
   "joinCircleError": "Non siamo riusciti a verificare il codice. Riprova.",
   "joinCircleSubmit": "Entra",
-  "joinCircleFormatHint": "Chiedi il codice a chi ha creato la cerchia: ha il formato XXX-0000."
+  "joinCircleFormatHint": "Chiedi il codice a chi ha creato la cerchia: ha il formato XXX-0000.",
+
+  "sharingModeAutomatic": "Automatica",
+  "sharingModeOnRequest": "Su richiesta",
+  "sharingModePaused": "Sospesa",
+  "sharingModeFuzzy": "Approssimativa",
+  "sharingModeAutomaticDesc": "La tua posizione è sempre visibile alla tua cerchia, in tempo reale.",
+  "sharingModeOnRequestDesc": "Nessuno vede la tua posizione finché non approvi una richiesta.",
+  "sharingModePausedDesc": "Modalità fantasma: sei invisibile, nessuno può chiedere dove sei.",
+  "sharingModeFuzzyDesc": "La tua cerchia vede solo la zona (circa 1 km), mai il punto esatto.",
+
+  "helpReqReasonFlatTire": "Gomma bucata",
+  "helpReqReasonAccident": "Incidente",
+  "helpReqReasonFollowed": "Mi sento seguito/a",
+  "helpReqReasonLowBattery": "Batteria scarica",
+  "helpReqReasonOther": "Altro",
+
+  "pingKindCoffee": "Un caffè?",
+  "pingKindTraffic": "Occhio al traffico",
+  "pingKindHighFive": "High five",
+
+  "safeZoneKindHome": "Casa",
+  "safeZoneKindWork": "Lavoro",
+  "safeZoneKindSchool": "Scuola",
+  "safeZoneKindOther": "Altro",
+
+  "personLastUpdateNow": "Proprio ora",
+  "personLastUpdateMinutes": "{minutes} min fa",
+  "@personLastUpdateMinutes": {"placeholders": {"minutes": {"type": "int"}}},
+  "personLastUpdateHours": "{hours} h fa",
+  "@personLastUpdateHours": {"placeholders": {"hours": {"type": "int"}}},
+  "personLastUpdateDays": "{days} g fa",
+  "@personLastUpdateDays": {"placeholders": {"days": {"type": "int"}}},
+
+  "weatherClear": "Sereno",
+  "weatherPartlyCloudy": "Poco nuvoloso",
+  "weatherOvercast": "Coperto",
+  "weatherFog": "Nebbia",
+  "weatherDrizzle": "Pioggerella",
+  "weatherRain": "Pioggia",
+  "weatherSnow": "Neve",
+  "weatherShowers": "Rovesci",
+  "weatherSnowShowers": "Rovesci di neve",
+  "weatherStorm": "Temporale",
+  "weatherNow": "Al momento",
+
+  "tripReplayPause": "Pausa",
+  "tripReplayWatch": "Rivedi il tragitto",
+
+  "mapWaitingForLocation": "In attesa della posizione…"
 }
