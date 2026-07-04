@@ -177,6 +177,7 @@
         android:layout_weight="1">
 
         <LinearLayout
+            android:id="@+id/widget_rows_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -426,6 +427,55 @@
                     </LinearLayout>
                 </FrameLayout>
             </LinearLayout>
+        </LinearLayout>
+
+        <!-- Quando condivide una sola persona, mostra lei sola più grande
+             invece delle 3 righe compatte pensate per riempirsi: altrimenti,
+             specie su un widget ridimensionato bello alto, restava un
+             avatarino piccolo perso in un mare di spazio vuoto sopra e
+             sotto (vedi KinlyWidgetProvider). -->
+        <LinearLayout
+            android:id="@+id/widget_solo_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:visibility="gone">
+
+            <FrameLayout android:layout_width="64dp" android:layout_height="64dp">
+                <ImageView
+                    android:id="@+id/widget_solo_dot"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/widget_dot" />
+                <ImageView
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/widget_person_icon" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/widget_solo_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="#222533" />
+
+            <TextView
+                android:id="@+id/widget_solo_sub"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="13.5sp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="#8A90A6" />
         </LinearLayout>
     </FrameLayout>
 </LinearLayout>

@@ -121,6 +121,8 @@ class KinlyWidgetProvider : AppWidgetProvider() {
                     // Righe puramente illustrative (pallino + barre), niente
                     // testo: rappresentano genericamente "qui comparirà chi
                     // condivide", non un esempio specifico da leggere.
+                    views.setViewVisibility(R.id.widget_solo_group, View.GONE)
+                    views.setViewVisibility(R.id.widget_rows_group, View.VISIBLE)
                     setPreviewRow(
                         views, context,
                         rowId = R.id.widget_row1, dotId = R.id.widget_dot1,
@@ -137,30 +139,57 @@ class KinlyWidgetProvider : AppWidgetProvider() {
                     views.setViewVisibility(R.id.widget_divider3, View.GONE)
                 } else {
                     val prefix = "c${circleIndex}_"
-                    setDataRow(
-                        views, context,
-                        rowId = R.id.widget_row1, dividerId = null, dotId = R.id.widget_dot1,
-                        textGroupId = R.id.widget_text_group1, barsGroupId = R.id.widget_bars_group1,
-                        nameId = R.id.widget_name1, subId = R.id.widget_sub1,
-                        name = prefs.getString("${prefix}name1", "") ?: "", sub = prefs.getString("${prefix}sub1", "") ?: "",
-                        personId = prefs.getString("${prefix}id1", null), colorHex = prefs.getString("${prefix}color1", null),
-                    )
-                    setDataRow(
-                        views, context,
-                        rowId = R.id.widget_row2, dividerId = R.id.widget_divider2, dotId = R.id.widget_dot2,
-                        textGroupId = R.id.widget_text_group2, barsGroupId = R.id.widget_bars_group2,
-                        nameId = R.id.widget_name2, subId = R.id.widget_sub2,
-                        name = prefs.getString("${prefix}name2", "") ?: "", sub = prefs.getString("${prefix}sub2", "") ?: "",
-                        personId = prefs.getString("${prefix}id2", null), colorHex = prefs.getString("${prefix}color2", null),
-                    )
-                    setDataRow(
-                        views, context,
-                        rowId = R.id.widget_row3, dividerId = R.id.widget_divider3, dotId = R.id.widget_dot3,
-                        textGroupId = R.id.widget_text_group3, barsGroupId = R.id.widget_bars_group3,
-                        nameId = R.id.widget_name3, subId = R.id.widget_sub3,
-                        name = prefs.getString("${prefix}name3", "") ?: "", sub = prefs.getString("${prefix}sub3", "") ?: "",
-                        personId = prefs.getString("${prefix}id3", null), colorHex = prefs.getString("${prefix}color3", null),
-                    )
+                    val name1 = prefs.getString("${prefix}name1", "") ?: ""
+                    val name2 = prefs.getString("${prefix}name2", "") ?: ""
+                    val name3 = prefs.getString("${prefix}name3", "") ?: ""
+                    val shownCount = listOf(name1, name2, name3).count { it.isNotEmpty() }
+
+                    if (shownCount == 1) {
+                        // Una sola persona: mostrarla piccola in un angolo di
+                        // una card che può essere anche molto grande (l'utente
+                        // può ridimensionare il widget a piacere) lasciava un
+                        // vuoto enorme intorno. Qui la mostriamo invece grande
+                        // e centrata, l'unica cosa da guardare.
+                        views.setViewVisibility(R.id.widget_rows_group, View.GONE)
+                        views.setViewVisibility(R.id.widget_solo_group, View.VISIBLE)
+                        views.setTextViewText(R.id.widget_solo_name, name1)
+                        views.setTextViewText(R.id.widget_solo_sub, prefs.getString("${prefix}sub1", "") ?: "")
+                        views.setInt(R.id.widget_solo_dot, "setColorFilter", parseDotColor(prefs.getString("${prefix}color1", null)))
+                        val personId = prefs.getString("${prefix}id1", null)
+                        if (!personId.isNullOrEmpty()) {
+                            views.setOnClickPendingIntent(
+                                R.id.widget_solo_group,
+                                HomeWidgetLaunchIntent.getActivity(context, MainActivity::class.java, Uri.parse("kinly://person/$personId")),
+                            )
+                        }
+                    } else {
+                        views.setViewVisibility(R.id.widget_solo_group, View.GONE)
+                        views.setViewVisibility(R.id.widget_rows_group, View.VISIBLE)
+                        setDataRow(
+                            views, context,
+                            rowId = R.id.widget_row1, dividerId = null, dotId = R.id.widget_dot1,
+                            textGroupId = R.id.widget_text_group1, barsGroupId = R.id.widget_bars_group1,
+                            nameId = R.id.widget_name1, subId = R.id.widget_sub1,
+                            name = name1, sub = prefs.getString("${prefix}sub1", "") ?: "",
+                            personId = prefs.getString("${prefix}id1", null), colorHex = prefs.getString("${prefix}color1", null),
+                        )
+                        setDataRow(
+                            views, context,
+                            rowId = R.id.widget_row2, dividerId = R.id.widget_divider2, dotId = R.id.widget_dot2,
+                            textGroupId = R.id.widget_text_group2, barsGroupId = R.id.widget_bars_group2,
+                            nameId = R.id.widget_name2, subId = R.id.widget_sub2,
+                            name = name2, sub = prefs.getString("${prefix}sub2", "") ?: "",
+                            personId = prefs.getString("${prefix}id2", null), colorHex = prefs.getString("${prefix}color2", null),
+                        )
+                        setDataRow(
+                            views, context,
+                            rowId = R.id.widget_row3, dividerId = R.id.widget_divider3, dotId = R.id.widget_dot3,
+                            textGroupId = R.id.widget_text_group3, barsGroupId = R.id.widget_bars_group3,
+                            nameId = R.id.widget_name3, subId = R.id.widget_sub3,
+                            name = name3, sub = prefs.getString("${prefix}sub3", "") ?: "",
+                            personId = prefs.getString("${prefix}id3", null), colorHex = prefs.getString("${prefix}color3", null),
+                        )
+                    }
                 }
             }
 
