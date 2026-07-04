@@ -2688,6 +2688,68 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ghostModeEndNow => 'End now';
 
   @override
+  String get dndCardTitle => 'Do not disturb';
+
+  @override
+  String get dndCardDescriptionOff =>
+      'Your location stays shared: it only silences messages, requests and pings.';
+
+  @override
+  String dndActiveWithRemaining(String duration) {
+    return 'Active — $duration left';
+  }
+
+  @override
+  String get dndActiveManual => 'Active — until you turn it off';
+
+  @override
+  String dndRemainingHoursMinutes(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String dndRemainingMinutesOnly(int minutes) {
+    return '${minutes}m';
+  }
+
+  @override
+  String get dndActivateButton => 'Activate';
+
+  @override
+  String get dndDeactivateButton => 'Deactivate';
+
+  @override
+  String get dndSheetTitle => 'Do not disturb';
+
+  @override
+  String get dndSheetSubtitle =>
+      'Your location stays shared: it only silences messages, location requests and pings. SOS, help requests and danger zones always still notify.';
+
+  @override
+  String get dndOption1Hour => '1 hour';
+
+  @override
+  String get dndOption3Hours => '3 hours';
+
+  @override
+  String get dndOptionTonight => 'Until tonight';
+
+  @override
+  String get dndOptionManual => 'Manual';
+
+  @override
+  String get dndDeactivateNow => 'Deactivate now';
+
+  @override
+  String personDetailDndActiveWithRemaining(String duration) {
+    return 'Do not disturb — $duration left';
+  }
+
+  @override
+  String get personDetailDndActiveManual =>
+      'Do not disturb — until they turn it off';
+
+  @override
   String get helpReqReasonFlatTire => 'Flat tire';
 
   @override

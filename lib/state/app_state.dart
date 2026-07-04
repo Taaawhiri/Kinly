@@ -482,6 +482,8 @@ class AppState extends ChangeNotifier {
       premiumTier: person.premiumTier,
       phoneNumber: person.phoneNumber,
       weeklySummaryEnabled: person.weeklySummaryEnabled,
+      dndUntil: person.dndUntil,
+      dndManual: person.dndManual,
     );
   }
 
@@ -521,6 +523,8 @@ class AppState extends ChangeNotifier {
       premiumTier: PremiumTierData.fromDb(profile['premium_tier'] as String?),
       phoneNumber: profile['phone_number'] as String?,
       weeklySummaryEnabled: profile['weekly_summary_enabled'] as bool? ?? true,
+      dndUntil: profile['dnd_until'] != null ? DateTime.parse(profile['dnd_until'] as String).toLocal() : null,
+      dndManual: profile['dnd_manual'] as bool? ?? false,
     );
   }
 
@@ -995,6 +999,28 @@ class AppState extends ChangeNotifier {
     _ghostUntil = null;
     notifyListeners();
     await _repo.updateGhostUntil(null);
+    unawaited(_refreshData().then((_) => notifyListeners()));
+  }
+
+  // ---------------------------------------------------------------------
+  // Non disturbare (gratuita: non tocca la posizione, solo le notifiche)
+  // ---------------------------------------------------------------------
+
+  /// [duration] null attiva la modalità "Manuale" (resta finché non la
+  /// disattivo); altrimenti è a tempo (1 ora, 3 ore, fino a stasera...).
+  Future<void> activateDnd({Duration? duration}) async {
+    final until = duration == null ? null : DateTime.now().add(duration);
+    final manual = duration == null;
+    if (_me != null) _me = _me!.copyWith(dndUntil: until, clearDndUntil: until == null, dndManual: manual);
+    notifyListeners();
+    await _repo.updateDnd(until: until, manual: manual);
+    unawaited(_refreshData().then((_) => notifyListeners()));
+  }
+
+  Future<void> deactivateDnd() async {
+    if (_me != null) _me = _me!.copyWith(clearDndUntil: true, dndManual: false);
+    notifyListeners();
+    await _repo.updateDnd(until: null, manual: false);
     unawaited(_refreshData().then((_) => notifyListeners()));
   }
 

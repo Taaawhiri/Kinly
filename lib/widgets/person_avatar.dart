@@ -3,6 +3,7 @@ import '../models/person.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar_catalog.dart';
 import '../utils/generative_avatar.dart';
+import 'pulse_ring.dart';
 
 /// Avatar circolare con iniziali e, opzionalmente, un puntino di stato
 /// (verde = condivide ora, grigio = no). Il puntino fa un piccolo "battito"
@@ -53,7 +54,13 @@ class _PersonAvatarState extends State<PersonAvatar> with SingleTickerProviderSt
     // l'impressione sbagliata che stia ancora funzionando tutto.
     final isActive = canSeeLocation && !person.isStale;
     final activity = person.activityStatus;
-    final showActivityBadge = widget.showActivityBadge && canSeeLocation && activity != ActivityStatus.stationary;
+    // Non disturbare prende lo stesso angolo del badge attività (e lo
+    // sostituisce, non si sovrappongono): è una preferenza di notifica, non
+    // legata alla posizione, quindi resta visibile anche a chi non vede
+    // dove si trova questa persona (basta condividere una cerchia).
+    final isDnd = person.isDndActive;
+    final showActivityBadge = !isDnd && widget.showActivityBadge && canSeeLocation && activity != ActivityStatus.stationary;
+    final showDndBadge = isDnd && widget.showActivityBadge;
     final showLowBattery = canSeeLocation && person.isBatteryLow;
     final avatar = AvatarCatalog.find(person.avatarKey);
     final generativeSeed = GenerativeAvatar.isGenerativeKey(person.avatarKey) ? GenerativeAvatar.seedFromKey(person.avatarKey!) : null;
@@ -158,6 +165,26 @@ class _PersonAvatarState extends State<PersonAvatar> with SingleTickerProviderSt
                 ),
                 alignment: Alignment.center,
                 child: Icon(activity.icon, size: size * 0.2, color: Colors.white),
+              ),
+            ),
+          if (showDndBadge)
+            Positioned(
+              left: -size * 0.04,
+              bottom: -size * 0.02,
+              child: PulseRing(
+                color: AppTheme.accentAmber,
+                size: size * 0.34,
+                child: Container(
+                  width: size * 0.34,
+                  height: size * 0.34,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppTheme.accentAmber,
+                    border: Border.all(color: Colors.white, width: size * 0.05),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(Icons.notifications_off_rounded, size: size * 0.2, color: Colors.white),
+                ),
               ),
             ),
           if (canSeeLocation && (person.isBirthdayToday || person.hasActiveStatus))

@@ -98,6 +98,15 @@ alter table public.profiles add column if not exists auto_ghost_end time;
 -- nulla a mano né lato client né lato server.
 alter table public.profiles add column if not exists ghost_until timestamptz;
 
+-- Non disturbare: a differenza di Ghost Mode, la posizione resta condivisa
+-- esattamente come sempre — cambia solo cosa arriva come notifica push (vedi
+-- send-push, che silenzia messaggi/richieste di posizione/ping per chi ce
+-- l'ha attivo, mai SOS/richieste di aiuto/zone pericolose). dnd_until è per
+-- le durate a tempo (1 ora, 3 ore, fino a stasera); dnd_manual per "resta
+-- attivo finché non lo disattivo io". Attivo se l'uno o l'altro lo sono.
+alter table public.profiles add column if not exists dnd_until timestamptz;
+alter table public.profiles add column if not exists dnd_manual boolean not null default false;
+
 -- Avatar scelto tra un set predefinito (stile Netflix): null = mostra le
 -- iniziali colorate come prima, il valore è una chiave interpretata dal
 -- client (vedi lib/utils/avatar_catalog.dart), non un'immagine caricata.

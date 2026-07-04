@@ -440,6 +440,26 @@ async function buildNotification(supabase: SupabaseClient, table: string, record
   }
 }
 
+/// Tabelle "di cortesia": chi ha Non disturbare attivo non riceve la push,
+/// il dato arriva comunque nell'app appena la riapre. SOS, richieste di
+/// aiuto e zone pericolose (sos_alerts, help_requests, safe_zone_events)
+/// restano sempre fuori da questo insieme di proposito: devono passare
+/// sempre, senza eccezioni.
+const DND_MUTED_TABLES = new Set(['circle_messages', 'location_requests', 'pings']);
+
+async function filterDndRecipients(supabase: SupabaseClient, recipients: string[]): Promise<string[]> {
+  if (recipients.length === 0) return recipients;
+  const { data } = await supabase.from('profiles').select('id, dnd_until, dnd_manual').in('id', recipients);
+  if (!data) return recipients;
+  const now = Date.now();
+  const mutedIds = new Set(
+    (data as { id: string; dnd_until: string | null; dnd_manual: boolean }[])
+      .filter((p) => p.dnd_manual || (p.dnd_until !== null && new Date(p.dnd_until).getTime() > now))
+      .map((p) => p.id),
+  );
+  return recipients.filter((id) => !mutedIds.has(id));
+}
+
 Deno.serve(async (req) => {
   try {
     const account: ServiceAccount = JSON.parse(Deno.env.get('FIREBASE_SERVICE_ACCOUNT') ?? '{}');
@@ -457,6 +477,11 @@ Deno.serve(async (req) => {
 
     const plan = await buildNotification(supabase, table, record);
     if (!plan || plan.recipients.length === 0) return new Response('ok', { status: 200 });
+
+    if (DND_MUTED_TABLES.has(table)) {
+      plan.recipients = await filterDndRecipients(supabase, plan.recipients);
+      if (plan.recipients.length === 0) return new Response('ok', { status: 200 });
+    }
 
     const { data: tokens } = await supabase.from('device_tokens').select('token').in('profile_id', plan.recipients);
     if (!tokens || tokens.length === 0) return new Response('ok', { status: 200 });

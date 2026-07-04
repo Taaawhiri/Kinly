@@ -66,6 +66,8 @@ class Person {
     this.premiumTier = PremiumTier.none,
     this.phoneNumber,
     this.weeklySummaryEnabled = true,
+    this.dndUntil,
+    this.dndManual = false,
   });
 
   final String id;
@@ -145,6 +147,32 @@ class Person {
   /// qui non serve mostrarlo.
   final bool weeklySummaryEnabled;
 
+  /// Non disturbare (a tempo): valido finché non è passato. La posizione
+  /// resta condivisa come sempre — silenzia solo messaggi, richieste di
+  /// posizione e ping (vedi la Edge Function send-push). Visibile a chiunque
+  /// condivida una cerchia con questa persona, non solo a chi ne vede la
+  /// posizione: è una preferenza di notifica, non un dato di posizione.
+  final DateTime? dndUntil;
+
+  /// Non disturbare "manuale": resta attivo finché la persona non lo
+  /// disattiva a mano, indipendentemente da [dndUntil].
+  final bool dndManual;
+
+  bool get isDndActive => dndManual || (dndUntil != null && dndUntil!.isAfter(DateTime.now()));
+
+  /// Quanto manca alla scadenza di un Non disturbare a tempo: null se è
+  /// manuale (nessuna scadenza) o non è attivo. Mai un orario esatto di
+  /// fine mostrato all'utente: solo una durata relativa (vedi dove viene
+  /// usato), per non rivelare a terzi la propria routine da un semplice
+  /// conto alla rovescia.
+  Duration? get dndRemaining {
+    if (dndManual) return null;
+    final until = dndUntil;
+    if (until == null) return null;
+    final remaining = until.difference(DateTime.now());
+    return remaining.isNegative ? null : remaining;
+  }
+
   bool get hasActiveStatus => statusEmoji != null && statusExpiresAt != null && statusExpiresAt!.isAfter(DateTime.now());
 
   bool get isBirthdayToday {
@@ -216,6 +244,9 @@ class Person {
     String? phoneNumber,
     bool clearPhoneNumber = false,
     bool? weeklySummaryEnabled,
+    DateTime? dndUntil,
+    bool clearDndUntil = false,
+    bool? dndManual,
   }) {
     return Person(
       id: id,
@@ -245,6 +276,8 @@ class Person {
       premiumTier: premiumTier,
       phoneNumber: clearPhoneNumber ? null : (phoneNumber ?? this.phoneNumber),
       weeklySummaryEnabled: weeklySummaryEnabled ?? this.weeklySummaryEnabled,
+      dndUntil: clearDndUntil ? null : (dndUntil ?? this.dndUntil),
+      dndManual: dndManual ?? this.dndManual,
     );
   }
 }

@@ -5,6 +5,8 @@ import '../../state/app_state.dart';
 import '../../state/locale_controller.dart';
 import '../../state/theme_controller.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/dnd_label.dart';
+import '../../widgets/dnd_sheet.dart';
 import '../../widgets/person_avatar.dart';
 import '../circles/circles_screen.dart';
 import '../premium/paywall_screen.dart';
@@ -166,6 +168,8 @@ class ProfileScreen extends StatelessWidget {
                 _ModeCard(mode: mode, selected: state.myMode == mode, onTap: () => state.setMyMode(mode)),
               const SizedBox(height: 10),
               const _GhostModeCard(),
+              const SizedBox(height: 10),
+              const _DndModeCard(),
               const SizedBox(height: 24),
               _Header(l10n.profileYourCirclesHeader),
               const SizedBox(height: 10),
@@ -562,6 +566,52 @@ class _GhostModeCard extends StatelessWidget {
           TextButton(
             onPressed: () => active ? state.cancelTemporaryGhostMode() : state.startTemporaryGhostMode(_duration),
             child: Text(active ? l10n.ghostModeEndNow : l10n.ghostModeActivate),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A differenza di Ghost Mode, gratuita: non tocca la posizione, silenzia
+/// solo le notifiche di cortesia (messaggi, richieste, ping). Tocca "Attiva"
+/// per scegliere una durata (foglio condiviso con il pulsante rapido sulla
+/// mappa); "Disattiva" invece agisce subito, senza aprire nulla.
+class _DndModeCard extends StatelessWidget {
+  const _DndModeCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final state = AppState.instance;
+    final active = state.me.isDndActive;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: active ? AppTheme.accentAmber.withOpacity(0.12) : AppTheme.surfaceAlt,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: active ? AppTheme.accentAmber.withOpacity(0.4) : Colors.transparent, width: 1.6),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.notifications_off_rounded, color: active ? AppTheme.accentAmber : AppTheme.textSecondary, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.dndCardTitle, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                Text(
+                  active ? dndStatusLabel(l10n, state.me) : l10n.dndCardDescriptionOff,
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.3),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: () => active ? state.deactivateDnd() : showDndOptionsSheet(context),
+            child: Text(active ? l10n.dndDeactivateButton : l10n.dndActivateButton),
           ),
         ],
       ),

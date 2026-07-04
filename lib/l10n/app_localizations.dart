@@ -4658,6 +4658,108 @@ abstract class AppLocalizations {
   /// **'Termina ora'**
   String get ghostModeEndNow;
 
+  /// No description provided for @dndCardTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Non disturbare'**
+  String get dndCardTitle;
+
+  /// No description provided for @dndCardDescriptionOff.
+  ///
+  /// In it, this message translates to:
+  /// **'La posizione resta condivisa: silenzi solo messaggi, richieste e ping.'**
+  String get dndCardDescriptionOff;
+
+  /// No description provided for @dndActiveWithRemaining.
+  ///
+  /// In it, this message translates to:
+  /// **'Attivo — ancora per {duration}'**
+  String dndActiveWithRemaining(String duration);
+
+  /// No description provided for @dndActiveManual.
+  ///
+  /// In it, this message translates to:
+  /// **'Attivo — finché non la disattivi'**
+  String get dndActiveManual;
+
+  /// No description provided for @dndRemainingHoursMinutes.
+  ///
+  /// In it, this message translates to:
+  /// **'{hours}h {minutes}min'**
+  String dndRemainingHoursMinutes(int hours, int minutes);
+
+  /// No description provided for @dndRemainingMinutesOnly.
+  ///
+  /// In it, this message translates to:
+  /// **'{minutes}min'**
+  String dndRemainingMinutesOnly(int minutes);
+
+  /// No description provided for @dndActivateButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Attiva'**
+  String get dndActivateButton;
+
+  /// No description provided for @dndDeactivateButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Disattiva'**
+  String get dndDeactivateButton;
+
+  /// No description provided for @dndSheetTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Non disturbare'**
+  String get dndSheetTitle;
+
+  /// No description provided for @dndSheetSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'La posizione resta condivisa: silenzi solo messaggi, richieste di posizione e ping. SOS, richieste di aiuto e zone pericolose restano sempre attivi.'**
+  String get dndSheetSubtitle;
+
+  /// No description provided for @dndOption1Hour.
+  ///
+  /// In it, this message translates to:
+  /// **'1 ora'**
+  String get dndOption1Hour;
+
+  /// No description provided for @dndOption3Hours.
+  ///
+  /// In it, this message translates to:
+  /// **'3 ore'**
+  String get dndOption3Hours;
+
+  /// No description provided for @dndOptionTonight.
+  ///
+  /// In it, this message translates to:
+  /// **'Fino a stasera'**
+  String get dndOptionTonight;
+
+  /// No description provided for @dndOptionManual.
+  ///
+  /// In it, this message translates to:
+  /// **'Manuale'**
+  String get dndOptionManual;
+
+  /// No description provided for @dndDeactivateNow.
+  ///
+  /// In it, this message translates to:
+  /// **'Disattiva ora'**
+  String get dndDeactivateNow;
+
+  /// No description provided for @personDetailDndActiveWithRemaining.
+  ///
+  /// In it, this message translates to:
+  /// **'Non disturbare — ancora per {duration}'**
+  String personDetailDndActiveWithRemaining(String duration);
+
+  /// No description provided for @personDetailDndActiveManual.
+  ///
+  /// In it, this message translates to:
+  /// **'Non disturbare — finché non la disattiva'**
+  String get personDetailDndActiveManual;
+
   /// No description provided for @helpReqReasonFlatTire.
   ///
   /// In it, this message translates to:

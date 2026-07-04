@@ -169,6 +169,15 @@ class KinlyRepository {
     await supabase.from('profiles').update({'ghost_until': until?.toUtc().toIso8601String()}).eq('id', _myId);
   }
 
+  /// [until] null e [manual] true = "Manuale" (resta attivo finché non lo
+  /// disattivo); [until] valorizzato = a tempo; entrambi assenti disattiva.
+  Future<void> updateDnd({DateTime? until, required bool manual}) async {
+    await supabase.from('profiles').update({
+      'dnd_until': until?.toUtc().toIso8601String(),
+      'dnd_manual': manual,
+    }).eq('id', _myId);
+  }
+
   // ---------------------------------------------------------------------
   // Cerchie
   // ---------------------------------------------------------------------

@@ -8,6 +8,7 @@ import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/battery_icon.dart';
 import '../../utils/directions_launcher.dart';
+import '../../utils/dnd_label.dart';
 import '../../widgets/kinly_map.dart';
 import '../../widgets/sharing_mode_badge.dart';
 import '../../widgets/weather_card.dart';
@@ -107,6 +108,25 @@ class PersonDetailScreen extends StatelessWidget {
                           Text(
                             '${person.statusEmoji} ${person.statusText ?? ''}'.trim(),
                             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary),
+                          ),
+                        ],
+                        if (!person.isMe && person.isDndActive) ...[
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(color: AppTheme.accentAmber.withOpacity(0.13), borderRadius: BorderRadius.circular(12)),
+                            child: Row(
+                              children: [
+                                Icon(Icons.notifications_off_rounded, size: 16, color: AppTheme.accentAmber),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    personDndLabel(l10n, person),
+                                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AppTheme.textPrimary),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                         if (!person.isMe && canSee && person.lat != null) ...[

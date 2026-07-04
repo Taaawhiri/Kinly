@@ -27,10 +27,12 @@ import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/blurred_bottom_sheet.dart';
 import '../../widgets/circle_chip.dart';
+import '../../widgets/dnd_sheet.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/entrance_fade.dart';
 import '../../widgets/kinly_map.dart';
 import '../../widgets/person_list_tile.dart';
+import '../../widgets/pulse_ring.dart';
 import '../../widgets/pwa_install_banner.dart';
 import '../circles/meeting_point_screen.dart';
 import '../people/help_request_screen.dart';
@@ -1022,6 +1024,10 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               ],
             ),
           ),
+          const Padding(
+            padding: EdgeInsets.only(right: 8),
+            child: _DndQuickButton(),
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: _CenterOnMeButton(loading: _centering, onTap: _centerOnMyLocation),
@@ -1937,6 +1943,44 @@ class _CenterOnMeButton extends StatelessWidget {
               : SizedBox(width: 20, height: 20, child: CustomPaint(painter: _GpsIconPainter(color: AppTheme.primary))),
         ),
       ),
+    );
+  }
+}
+
+/// Attivazione al volo di Non disturbare senza passare dal Profilo: un
+/// tocco attiva/disattiva subito con la durata più comune (3 ore), una
+/// pressione lunga apre lo stesso foglio con tutte le durate (condiviso con
+/// la card in Profilo, sempre coerenti tra loro). L'anello ambra pulsante
+/// lo rende riconoscibile anche da fermo, senza dover leggere nulla.
+class _DndQuickButton extends StatelessWidget {
+  const _DndQuickButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: AppState.instance,
+      builder: (context, _) {
+        final state = AppState.instance;
+        final active = state.me.isDndActive;
+        final button = Material(
+          color: active ? AppTheme.accentAmber : AppTheme.surface,
+          shape: const CircleBorder(),
+          elevation: 3,
+          child: InkWell(
+            onTap: () => active ? state.deactivateDnd() : state.activateDnd(duration: const Duration(hours: 3)),
+            onLongPress: () => showDndOptionsSheet(context),
+            customBorder: const CircleBorder(),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Icon(Icons.notifications_off_rounded, size: 20, color: active ? Colors.white : AppTheme.textSecondary),
+            ),
+          ),
+        );
+        return Semantics(
+          label: AppLocalizations.of(context)!.dndCardTitle,
+          child: active ? PulseRing(color: AppTheme.accentAmber, size: 44, child: button) : button,
+        );
+      },
     );
   }
 }
