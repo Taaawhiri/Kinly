@@ -1,0 +1,39 @@
+name: Cambia visibilità repo
+
+# Workflow manuale per rendere la repo pubblica o privata al volo, senza
+# passare dalle impostazioni di GitHub: utile per tenerla privata di
+# default e aprirla solo per il tempo di far scaricare un aggiornamento ai
+# beta tester (che trovano l'APK tramite l'API pubblica delle release, vedi
+# app_update_service.dart).
+#
+# Il GITHUB_TOKEN automatico di Actions non basta: cambiare la visibilità
+# di una repo richiede un permesso di amministrazione che quel token non
+# ha mai. Serve un Personal Access Token "fine-grained" con permesso
+# "Administration: Read and write" SOLO su questa repo (non sull'intero
+# account), salvato come secret REPO_ADMIN_PAT — vedi le istruzioni date
+# in chat per crearlo.
+on:
+  workflow_dispatch:
+    inputs:
+      visibility:
+        description: "Rendi la repo pubblica o privata"
+        required: true
+        type: choice
+        options:
+          - public
+          - private
+
+jobs:
+  toggle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cambia visibilità
+        env:
+          GH_TOKEN: ${{ secrets.REPO_ADMIN_PAT }}
+        run: |
+          if [ "${{ inputs.visibility }}" = "private" ]; then
+            gh api -X PATCH "repos/${{ github.repository }}" -F private=true
+          else
+            gh api -X PATCH "repos/${{ github.repository }}" -F private=false
+          fi
+          echo "### Repo ora: ${{ inputs.visibility }}" >> "$GITHUB_STEP_SUMMARY"
