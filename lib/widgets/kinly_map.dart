@@ -90,6 +90,13 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
   final Set<String> _registeredImages = {};
   bool _styleLoaded = false;
 
+  /// Catena che serializza le sincronizzazioni dei simboli: _syncSymbols fa
+  /// clearSymbols() e poi riaggiunge tutto, quindi due esecuzioni in corsa
+  /// (tipico quando resume, onStyleLoaded e didUpdateWidget arrivano quasi
+  /// insieme) finivano per cancellarsi i pin a vicenda. Incatenandole qui,
+  /// una parte solo quando la precedente ha finito.
+  Future<void> _symbolSync = Future.value();
+
   /// Vero dopo il primo ricentraggio automatico sulla MIA posizione: serve a
   /// correggere la mappa quando all'avvio mostra ancora l'ultima posizione
   /// salvata (magari vecchia) prima che arrivi un fix GPS fresco, senza poi
@@ -127,7 +134,20 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
       // senza nessun avviso a Flutter — da qui i pin che sparivano. Poiché
       // widget.people non è cambiato, didUpdateWidget da solo non se ne
       // accorgerebbe: bisogna forzare un risincronismo ad ogni resume.
+      //
+      // Non basta riaggiungere i simboli: la ricreazione della superficie
+      // cancella anche le immagini registrate con addImage (gli avatar), che
+      // il nostro _registeredImages crede però ancora presenti. Riattaccare i
+      // simboli senza re-caricare le immagini lascia pin che puntano a
+      // un'icona inesistente, cioè invisibili — ed è esattamente perché il
+      // primo tentativo di fix (solo risincronismo simboli) non bastava.
+      // Svuotiamo quindi la cache così gli avatar vengono ricaricati. Solo su
+      // mobile: sul web cambiare scheda non distrugge la superficie e addImage
+      // lì lancerebbe un errore se l'immagine esiste già. Su Android/iOS,
+      // invece, addImage sovrascrive senza errori, quindi è sicuro anche se la
+      // superficie in realtà non era stata ricreata.
       if (_styleLoaded) {
+        if (!kIsWeb) _registeredImages.clear();
         unawaited(_syncSymbols(fitCamera: false));
         unawaited(_syncSafeZoneFills());
       }
@@ -353,6 +373,11 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
       },
       onStyleLoadedCallback: () async {
         _styleLoaded = true;
+        // Lo stile è stato (ri)caricato: qualunque immagine aggiunta prima con
+        // addImage (gli avatar dei pin) non esiste più sul lato nativo. Se non
+        // svuotiamo la cache, _ensureAvatarImage le crederebbe ancora presenti
+        // e i simboli punterebbero a immagini inesistenti — pin invisibili.
+        _registeredImages.clear();
         await _syncSymbols(fitCamera: true);
         await _syncSafeZoneFills();
       },
@@ -366,7 +391,18 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     );
   }
 
-  Future<void> _syncSymbols({required bool fitCamera}) async {
+  /// Esegue le sincronizzazioni una alla volta (vedi _symbolSync): incatena
+  /// ogni chiamata dopo la precedente così non si sovrappongono. Il
+  /// catchError tiene la catena "pulita" anche se una sync fallisce, senza
+  /// bloccare tutte le successive; chi attende il Future restituito vede
+  /// comunque l'eventuale errore.
+  Future<void> _syncSymbols({required bool fitCamera}) {
+    final next = _symbolSync.then((_) => _doSyncSymbols(fitCamera: fitCamera));
+    _symbolSync = next.catchError((_) {});
+    return next;
+  }
+
+  Future<void> _doSyncSymbols({required bool fitCamera}) async {
     final controller = _controller;
     if (controller == null) return;
     final people = _visiblePeople;
