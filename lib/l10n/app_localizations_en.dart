@@ -403,6 +403,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get circlesEventsBadge => 'EVENTS';
+
+  @override
+  String get circlesEventsSubtitle => 'No live location';
+
+  @override
   String circlesYourModeInTitle(String name) {
     return 'Your mode in \"$name\"';
   }
@@ -445,6 +451,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get circlesActionMeetingPoint => 'Meeting point';
+
+  @override
+  String get circlesActionRitrovi => 'Meetups';
 
   @override
   String get circlesActionMessages => 'Messages';
@@ -653,6 +662,191 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get meetingPointCreateError =>
       'We couldn\'t create the meeting point. Please try again.';
+
+  @override
+  String get ritroviTitle => 'Meetups';
+
+  @override
+  String get ritroviAddSpotButton => 'Add a spot';
+
+  @override
+  String get ritroviEmptyTitle => 'No spots yet';
+
+  @override
+  String get ritroviEmptyMessage =>
+      'Add a place to organize the first meetup: a park, a bar, a pitch, anything you like.';
+
+  @override
+  String ritroviHereNowCount(int count) {
+    return '$count here now';
+  }
+
+  @override
+  String ritroviUpcomingCount(int count) {
+    return '$count meetups proposed';
+  }
+
+  @override
+  String get ritroviCategoryPark => 'Park';
+
+  @override
+  String get ritroviCategoryBar => 'Bar';
+
+  @override
+  String get ritroviCategorySport => 'Sport';
+
+  @override
+  String get ritroviCategoryOther => 'Other';
+
+  @override
+  String get ritroviDeleteSpotTooltip => 'Delete spot';
+
+  @override
+  String get ritroviProposeButton => 'Propose a meetup';
+
+  @override
+  String get ritroviPrivacyHint =>
+      'No one sees a live location here: just a heads-up when someone actually arrives.';
+
+  @override
+  String get ritroviWhoIsHereTitle => 'Who\'s here now';
+
+  @override
+  String get ritroviWhoIsHereEmpty => 'No one is here right now.';
+
+  @override
+  String get ritroviImHereButton => 'I\'m here now';
+
+  @override
+  String get ritroviImHereConfirmed => 'You\'re marked as here';
+
+  @override
+  String get ritroviUpcomingTitle => 'Proposed meetups';
+
+  @override
+  String get ritroviUpcomingEmpty => 'No meetups proposed here yet.';
+
+  @override
+  String get ritroviScheduledNow => 'Now';
+
+  @override
+  String ritroviScheduledToday(String time) {
+    return 'Today at $time';
+  }
+
+  @override
+  String ritroviScheduledTomorrow(String time) {
+    return 'Tomorrow at $time';
+  }
+
+  @override
+  String ritroviScheduledOn(String date, String time) {
+    return '$date at $time';
+  }
+
+  @override
+  String ritroviRsvpYesCount(int count) {
+    return '$count confirmed';
+  }
+
+  @override
+  String ritroviProposedBy(String name) {
+    return 'Proposed by $name';
+  }
+
+  @override
+  String get ritroviArrivedLabel => 'Arrived';
+
+  @override
+  String get ritroviMarkArrivedButton => 'Mark your arrival';
+
+  @override
+  String get ritroviRsvpYes => 'We\'re in!';
+
+  @override
+  String get ritroviRsvpNo => 'Not today';
+
+  @override
+  String ritroviSpotNoResultsFor(String query) {
+    return 'No results for \"$query\".';
+  }
+
+  @override
+  String get ritroviSpotSearchFailed => 'Search failed. Please try again.';
+
+  @override
+  String get ritroviSpotLocationUnavailable =>
+      'We couldn\'t detect your location.';
+
+  @override
+  String get ritroviSpotChooseNameAndLocation =>
+      'Choose a name and a location.';
+
+  @override
+  String get ritroviSpotCreateError =>
+      'We couldn\'t create the spot. Please try again.';
+
+  @override
+  String get ritroviNewSpotTitle => 'New spot';
+
+  @override
+  String get ritroviSpotCategoryLabel => 'Category';
+
+  @override
+  String get ritroviSpotSearchHint => 'Search for a place...';
+
+  @override
+  String get ritroviSpotOr => 'or';
+
+  @override
+  String get ritroviSpotUseMyLocation => 'Use my location';
+
+  @override
+  String get ritroviSpotPositionSet => 'Location set';
+
+  @override
+  String get ritroviSpotNameHint => 'Spot name';
+
+  @override
+  String get ritroviSpotNoteHint => 'Note (optional)';
+
+  @override
+  String get ritroviSpotCreateButton => 'Add spot';
+
+  @override
+  String get ritroviProposeTitle => 'Propose a meetup';
+
+  @override
+  String get ritroviProposeWhen => 'When?';
+
+  @override
+  String get ritroviWhenNow => 'Now';
+
+  @override
+  String get ritroviWhenToday => 'Today';
+
+  @override
+  String ritroviWhenTodayAt(String time) {
+    return 'Today $time';
+  }
+
+  @override
+  String get ritroviWhenTomorrow => 'Tomorrow';
+
+  @override
+  String ritroviWhenTomorrowAt(String time) {
+    return 'Tomorrow $time';
+  }
+
+  @override
+  String get ritroviProposeNoteHint => 'Add a note (optional)';
+
+  @override
+  String get ritroviProposeError =>
+      'We couldn\'t propose the meetup. Please try again.';
+
+  @override
+  String get ritroviProposeSubmit => 'Propose';
 
   @override
   String circleMessagesTitle(String circleName) {
@@ -2355,6 +2549,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get createCircleError =>
       'We couldn\'t create the circle. Please try again.';
+
+  @override
+  String get createCircleTypeQuestion => 'What type of circle is this?';
+
+  @override
+  String get createCircleTypeHint =>
+      'Choose based on who\'ll be in it: this can only be set now, not changed later.';
+
+  @override
+  String get createCircleTypeFamilyTitle => 'Family';
+
+  @override
+  String get createCircleTypeFamilySubtitle =>
+      'Real-time shared location, safe zones, SOS and all the usual features.';
+
+  @override
+  String get createCircleTypeEventsTitle => 'Events';
+
+  @override
+  String get createCircleTypeEventsSubtitle =>
+      'For meetups with acquaintances: no live location, just a heads-up when someone arrives.';
 
   @override
   String get createCircleNameQuestion => 'What\'s it called?';

@@ -770,6 +770,18 @@ abstract class AppLocalizations {
   /// **'Sei entrato in \"{name}\"'**
   String circlesJoinedSnackbar(String name);
 
+  /// No description provided for @circlesEventsBadge.
+  ///
+  /// In it, this message translates to:
+  /// **'EVENTI'**
+  String get circlesEventsBadge;
+
+  /// No description provided for @circlesEventsSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna posizione live'**
+  String get circlesEventsSubtitle;
+
   /// No description provided for @circlesYourModeInTitle.
   ///
   /// In it, this message translates to:
@@ -835,6 +847,12 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Punto d\'incontro'**
   String get circlesActionMeetingPoint;
+
+  /// No description provided for @circlesActionRitrovi.
+  ///
+  /// In it, this message translates to:
+  /// **'Ritrovi'**
+  String get circlesActionRitrovi;
 
   /// No description provided for @circlesActionMessages.
   ///
@@ -1189,6 +1207,324 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Non siamo riusciti a creare il punto d\'incontro. Riprova.'**
   String get meetingPointCreateError;
+
+  /// No description provided for @ritroviTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Ritrovi'**
+  String get ritroviTitle;
+
+  /// No description provided for @ritroviAddSpotButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi uno spot'**
+  String get ritroviAddSpotButton;
+
+  /// No description provided for @ritroviEmptyTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuno spot ancora'**
+  String get ritroviEmptyTitle;
+
+  /// No description provided for @ritroviEmptyMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi un posto per organizzare il primo ritrovo: parco, bar, campetto, quello che vuoi.'**
+  String get ritroviEmptyMessage;
+
+  /// No description provided for @ritroviHereNowCount.
+  ///
+  /// In it, this message translates to:
+  /// **'{count} qui ora'**
+  String ritroviHereNowCount(int count);
+
+  /// No description provided for @ritroviUpcomingCount.
+  ///
+  /// In it, this message translates to:
+  /// **'{count} ritrovi proposti'**
+  String ritroviUpcomingCount(int count);
+
+  /// No description provided for @ritroviCategoryPark.
+  ///
+  /// In it, this message translates to:
+  /// **'Parco'**
+  String get ritroviCategoryPark;
+
+  /// No description provided for @ritroviCategoryBar.
+  ///
+  /// In it, this message translates to:
+  /// **'Bar'**
+  String get ritroviCategoryBar;
+
+  /// No description provided for @ritroviCategorySport.
+  ///
+  /// In it, this message translates to:
+  /// **'Sport'**
+  String get ritroviCategorySport;
+
+  /// No description provided for @ritroviCategoryOther.
+  ///
+  /// In it, this message translates to:
+  /// **'Altro'**
+  String get ritroviCategoryOther;
+
+  /// No description provided for @ritroviDeleteSpotTooltip.
+  ///
+  /// In it, this message translates to:
+  /// **'Elimina spot'**
+  String get ritroviDeleteSpotTooltip;
+
+  /// No description provided for @ritroviProposeButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Proponi un ritrovo'**
+  String get ritroviProposeButton;
+
+  /// No description provided for @ritroviPrivacyHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Qui nessuno vede la posizione in tempo reale: solo un avviso quando qualcuno arriva davvero.'**
+  String get ritroviPrivacyHint;
+
+  /// No description provided for @ritroviWhoIsHereTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Chi c\'è ora'**
+  String get ritroviWhoIsHereTitle;
+
+  /// No description provided for @ritroviWhoIsHereEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuno è qui in questo momento.'**
+  String get ritroviWhoIsHereEmpty;
+
+  /// No description provided for @ritroviImHereButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Sono qui ora'**
+  String get ritroviImHereButton;
+
+  /// No description provided for @ritroviImHereConfirmed.
+  ///
+  /// In it, this message translates to:
+  /// **'Sei segnato come presente'**
+  String get ritroviImHereConfirmed;
+
+  /// No description provided for @ritroviUpcomingTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Ritrovi proposti'**
+  String get ritroviUpcomingTitle;
+
+  /// No description provided for @ritroviUpcomingEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun ritrovo proposto qui per ora.'**
+  String get ritroviUpcomingEmpty;
+
+  /// No description provided for @ritroviScheduledNow.
+  ///
+  /// In it, this message translates to:
+  /// **'Ora'**
+  String get ritroviScheduledNow;
+
+  /// No description provided for @ritroviScheduledToday.
+  ///
+  /// In it, this message translates to:
+  /// **'Oggi alle {time}'**
+  String ritroviScheduledToday(String time);
+
+  /// No description provided for @ritroviScheduledTomorrow.
+  ///
+  /// In it, this message translates to:
+  /// **'Domani alle {time}'**
+  String ritroviScheduledTomorrow(String time);
+
+  /// No description provided for @ritroviScheduledOn.
+  ///
+  /// In it, this message translates to:
+  /// **'{date} alle {time}'**
+  String ritroviScheduledOn(String date, String time);
+
+  /// No description provided for @ritroviRsvpYesCount.
+  ///
+  /// In it, this message translates to:
+  /// **'{count} confermati'**
+  String ritroviRsvpYesCount(int count);
+
+  /// No description provided for @ritroviProposedBy.
+  ///
+  /// In it, this message translates to:
+  /// **'Proposto da {name}'**
+  String ritroviProposedBy(String name);
+
+  /// No description provided for @ritroviArrivedLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Arrivato'**
+  String get ritroviArrivedLabel;
+
+  /// No description provided for @ritroviMarkArrivedButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Segna il tuo arrivo'**
+  String get ritroviMarkArrivedButton;
+
+  /// No description provided for @ritroviRsvpYes.
+  ///
+  /// In it, this message translates to:
+  /// **'Ci siamo!'**
+  String get ritroviRsvpYes;
+
+  /// No description provided for @ritroviRsvpNo.
+  ///
+  /// In it, this message translates to:
+  /// **'Non oggi'**
+  String get ritroviRsvpNo;
+
+  /// No description provided for @ritroviSpotNoResultsFor.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun risultato per \"{query}\".'**
+  String ritroviSpotNoResultsFor(String query);
+
+  /// No description provided for @ritroviSpotSearchFailed.
+  ///
+  /// In it, this message translates to:
+  /// **'Ricerca non riuscita. Riprova.'**
+  String get ritroviSpotSearchFailed;
+
+  /// No description provided for @ritroviSpotLocationUnavailable.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a rilevare la tua posizione.'**
+  String get ritroviSpotLocationUnavailable;
+
+  /// No description provided for @ritroviSpotChooseNameAndLocation.
+  ///
+  /// In it, this message translates to:
+  /// **'Scegli un nome e una posizione.'**
+  String get ritroviSpotChooseNameAndLocation;
+
+  /// No description provided for @ritroviSpotCreateError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a creare lo spot. Riprova.'**
+  String get ritroviSpotCreateError;
+
+  /// No description provided for @ritroviNewSpotTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuovo spot'**
+  String get ritroviNewSpotTitle;
+
+  /// No description provided for @ritroviSpotCategoryLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Categoria'**
+  String get ritroviSpotCategoryLabel;
+
+  /// No description provided for @ritroviSpotSearchHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Cerca un posto...'**
+  String get ritroviSpotSearchHint;
+
+  /// No description provided for @ritroviSpotOr.
+  ///
+  /// In it, this message translates to:
+  /// **'oppure'**
+  String get ritroviSpotOr;
+
+  /// No description provided for @ritroviSpotUseMyLocation.
+  ///
+  /// In it, this message translates to:
+  /// **'Usa la mia posizione'**
+  String get ritroviSpotUseMyLocation;
+
+  /// No description provided for @ritroviSpotPositionSet.
+  ///
+  /// In it, this message translates to:
+  /// **'Posizione impostata'**
+  String get ritroviSpotPositionSet;
+
+  /// No description provided for @ritroviSpotNameHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Nome del posto'**
+  String get ritroviSpotNameHint;
+
+  /// No description provided for @ritroviSpotNoteHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Nota (facoltativa)'**
+  String get ritroviSpotNoteHint;
+
+  /// No description provided for @ritroviSpotCreateButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi spot'**
+  String get ritroviSpotCreateButton;
+
+  /// No description provided for @ritroviProposeTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Proponi un ritrovo'**
+  String get ritroviProposeTitle;
+
+  /// No description provided for @ritroviProposeWhen.
+  ///
+  /// In it, this message translates to:
+  /// **'Quando?'**
+  String get ritroviProposeWhen;
+
+  /// No description provided for @ritroviWhenNow.
+  ///
+  /// In it, this message translates to:
+  /// **'Ora'**
+  String get ritroviWhenNow;
+
+  /// No description provided for @ritroviWhenToday.
+  ///
+  /// In it, this message translates to:
+  /// **'Oggi'**
+  String get ritroviWhenToday;
+
+  /// No description provided for @ritroviWhenTodayAt.
+  ///
+  /// In it, this message translates to:
+  /// **'Oggi {time}'**
+  String ritroviWhenTodayAt(String time);
+
+  /// No description provided for @ritroviWhenTomorrow.
+  ///
+  /// In it, this message translates to:
+  /// **'Domani'**
+  String get ritroviWhenTomorrow;
+
+  /// No description provided for @ritroviWhenTomorrowAt.
+  ///
+  /// In it, this message translates to:
+  /// **'Domani {time}'**
+  String ritroviWhenTomorrowAt(String time);
+
+  /// No description provided for @ritroviProposeNoteHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi una nota (facoltativo)'**
+  String get ritroviProposeNoteHint;
+
+  /// No description provided for @ritroviProposeError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a proporre il ritrovo. Riprova.'**
+  String get ritroviProposeError;
+
+  /// No description provided for @ritroviProposeSubmit.
+  ///
+  /// In it, this message translates to:
+  /// **'Proponi'**
+  String get ritroviProposeSubmit;
 
   /// No description provided for @circleMessagesTitle.
   ///
@@ -4087,6 +4423,42 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Non siamo riusciti a creare la cerchia. Riprova.'**
   String get createCircleError;
+
+  /// No description provided for @createCircleTypeQuestion.
+  ///
+  /// In it, this message translates to:
+  /// **'Che tipo di cerchia è?'**
+  String get createCircleTypeQuestion;
+
+  /// No description provided for @createCircleTypeHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Scegli in base a chi ne farà parte: si può decidere solo ora, non si cambia più dopo.'**
+  String get createCircleTypeHint;
+
+  /// No description provided for @createCircleTypeFamilyTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Famiglia'**
+  String get createCircleTypeFamilyTitle;
+
+  /// No description provided for @createCircleTypeFamilySubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Posizione condivisa in tempo reale, aree sicure, SOS e tutte le funzioni di sempre.'**
+  String get createCircleTypeFamilySubtitle;
+
+  /// No description provided for @createCircleTypeEventsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Eventi'**
+  String get createCircleTypeEventsTitle;
+
+  /// No description provided for @createCircleTypeEventsSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Per ritrovi con conoscenti: nessuna posizione live, solo un avviso quando qualcuno arriva.'**
+  String get createCircleTypeEventsSubtitle;
 
   /// No description provided for @createCircleNameQuestion.
   ///

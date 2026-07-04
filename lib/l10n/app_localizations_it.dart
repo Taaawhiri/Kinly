@@ -404,6 +404,12 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get circlesEventsBadge => 'EVENTI';
+
+  @override
+  String get circlesEventsSubtitle => 'Nessuna posizione live';
+
+  @override
   String circlesYourModeInTitle(String name) {
     return 'La tua modalità in \"$name\"';
   }
@@ -446,6 +452,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get circlesActionMeetingPoint => 'Punto d\'incontro';
+
+  @override
+  String get circlesActionRitrovi => 'Ritrovi';
 
   @override
   String get circlesActionMessages => 'Messaggi';
@@ -654,6 +663,191 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get meetingPointCreateError =>
       'Non siamo riusciti a creare il punto d\'incontro. Riprova.';
+
+  @override
+  String get ritroviTitle => 'Ritrovi';
+
+  @override
+  String get ritroviAddSpotButton => 'Aggiungi uno spot';
+
+  @override
+  String get ritroviEmptyTitle => 'Nessuno spot ancora';
+
+  @override
+  String get ritroviEmptyMessage =>
+      'Aggiungi un posto per organizzare il primo ritrovo: parco, bar, campetto, quello che vuoi.';
+
+  @override
+  String ritroviHereNowCount(int count) {
+    return '$count qui ora';
+  }
+
+  @override
+  String ritroviUpcomingCount(int count) {
+    return '$count ritrovi proposti';
+  }
+
+  @override
+  String get ritroviCategoryPark => 'Parco';
+
+  @override
+  String get ritroviCategoryBar => 'Bar';
+
+  @override
+  String get ritroviCategorySport => 'Sport';
+
+  @override
+  String get ritroviCategoryOther => 'Altro';
+
+  @override
+  String get ritroviDeleteSpotTooltip => 'Elimina spot';
+
+  @override
+  String get ritroviProposeButton => 'Proponi un ritrovo';
+
+  @override
+  String get ritroviPrivacyHint =>
+      'Qui nessuno vede la posizione in tempo reale: solo un avviso quando qualcuno arriva davvero.';
+
+  @override
+  String get ritroviWhoIsHereTitle => 'Chi c\'è ora';
+
+  @override
+  String get ritroviWhoIsHereEmpty => 'Nessuno è qui in questo momento.';
+
+  @override
+  String get ritroviImHereButton => 'Sono qui ora';
+
+  @override
+  String get ritroviImHereConfirmed => 'Sei segnato come presente';
+
+  @override
+  String get ritroviUpcomingTitle => 'Ritrovi proposti';
+
+  @override
+  String get ritroviUpcomingEmpty => 'Nessun ritrovo proposto qui per ora.';
+
+  @override
+  String get ritroviScheduledNow => 'Ora';
+
+  @override
+  String ritroviScheduledToday(String time) {
+    return 'Oggi alle $time';
+  }
+
+  @override
+  String ritroviScheduledTomorrow(String time) {
+    return 'Domani alle $time';
+  }
+
+  @override
+  String ritroviScheduledOn(String date, String time) {
+    return '$date alle $time';
+  }
+
+  @override
+  String ritroviRsvpYesCount(int count) {
+    return '$count confermati';
+  }
+
+  @override
+  String ritroviProposedBy(String name) {
+    return 'Proposto da $name';
+  }
+
+  @override
+  String get ritroviArrivedLabel => 'Arrivato';
+
+  @override
+  String get ritroviMarkArrivedButton => 'Segna il tuo arrivo';
+
+  @override
+  String get ritroviRsvpYes => 'Ci siamo!';
+
+  @override
+  String get ritroviRsvpNo => 'Non oggi';
+
+  @override
+  String ritroviSpotNoResultsFor(String query) {
+    return 'Nessun risultato per \"$query\".';
+  }
+
+  @override
+  String get ritroviSpotSearchFailed => 'Ricerca non riuscita. Riprova.';
+
+  @override
+  String get ritroviSpotLocationUnavailable =>
+      'Non siamo riusciti a rilevare la tua posizione.';
+
+  @override
+  String get ritroviSpotChooseNameAndLocation =>
+      'Scegli un nome e una posizione.';
+
+  @override
+  String get ritroviSpotCreateError =>
+      'Non siamo riusciti a creare lo spot. Riprova.';
+
+  @override
+  String get ritroviNewSpotTitle => 'Nuovo spot';
+
+  @override
+  String get ritroviSpotCategoryLabel => 'Categoria';
+
+  @override
+  String get ritroviSpotSearchHint => 'Cerca un posto...';
+
+  @override
+  String get ritroviSpotOr => 'oppure';
+
+  @override
+  String get ritroviSpotUseMyLocation => 'Usa la mia posizione';
+
+  @override
+  String get ritroviSpotPositionSet => 'Posizione impostata';
+
+  @override
+  String get ritroviSpotNameHint => 'Nome del posto';
+
+  @override
+  String get ritroviSpotNoteHint => 'Nota (facoltativa)';
+
+  @override
+  String get ritroviSpotCreateButton => 'Aggiungi spot';
+
+  @override
+  String get ritroviProposeTitle => 'Proponi un ritrovo';
+
+  @override
+  String get ritroviProposeWhen => 'Quando?';
+
+  @override
+  String get ritroviWhenNow => 'Ora';
+
+  @override
+  String get ritroviWhenToday => 'Oggi';
+
+  @override
+  String ritroviWhenTodayAt(String time) {
+    return 'Oggi $time';
+  }
+
+  @override
+  String get ritroviWhenTomorrow => 'Domani';
+
+  @override
+  String ritroviWhenTomorrowAt(String time) {
+    return 'Domani $time';
+  }
+
+  @override
+  String get ritroviProposeNoteHint => 'Aggiungi una nota (facoltativo)';
+
+  @override
+  String get ritroviProposeError =>
+      'Non siamo riusciti a proporre il ritrovo. Riprova.';
+
+  @override
+  String get ritroviProposeSubmit => 'Proponi';
 
   @override
   String circleMessagesTitle(String circleName) {
@@ -2358,6 +2552,27 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get createCircleError =>
       'Non siamo riusciti a creare la cerchia. Riprova.';
+
+  @override
+  String get createCircleTypeQuestion => 'Che tipo di cerchia è?';
+
+  @override
+  String get createCircleTypeHint =>
+      'Scegli in base a chi ne farà parte: si può decidere solo ora, non si cambia più dopo.';
+
+  @override
+  String get createCircleTypeFamilyTitle => 'Famiglia';
+
+  @override
+  String get createCircleTypeFamilySubtitle =>
+      'Posizione condivisa in tempo reale, aree sicure, SOS e tutte le funzioni di sempre.';
+
+  @override
+  String get createCircleTypeEventsTitle => 'Eventi';
+
+  @override
+  String get createCircleTypeEventsSubtitle =>
+      'Per ritrovi con conoscenti: nessuna posizione live, solo un avviso quando qualcuno arriva.';
 
   @override
   String get createCircleNameQuestion => 'Come si chiama?';

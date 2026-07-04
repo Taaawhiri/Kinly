@@ -10,6 +10,7 @@ import '../models/help_request.dart';
 import '../models/location_history_point.dart';
 import '../models/location_request.dart';
 import '../models/meeting_point.dart';
+import '../models/meetup.dart';
 import '../models/person.dart';
 import '../models/ping.dart';
 import '../models/routine_anomaly.dart';
@@ -54,6 +55,10 @@ class AppState extends ChangeNotifier {
   List<SpeedEvent> _speedEvents = [];
   List<MeetingPoint> _meetingPoints = [];
   List<MeetingPointArrival> _meetingPointArrivals = [];
+  List<MeetupSpot> _meetupSpots = [];
+  List<Meetup> _meetups = [];
+  List<MeetupRsvp> _meetupRsvps = [];
+  List<MeetupCheckin> _meetupCheckins = [];
   List<SosAlert> _sosAlerts = [];
   Set<String> _sosTrustedContactIds = {};
   List<CircleMessage> _circleMessages = [];
@@ -104,12 +109,34 @@ class AppState extends ChangeNotifier {
 
   Person get me => _me ?? _placeholderMe();
   List<Person> get others => List.unmodifiable(_others);
+
+  /// Solo le persone con cui condivido almeno una cerchia 'family': usata
+  /// per scegliere i contatti di fiducia SOS, dato che la RLS richiede
+  /// proprio una cerchia family condivisa per poterli aggiungere (l'SOS
+  /// rivela una posizione, incompatibile con la garanzia delle Cerchie
+  /// Eventi).
+  List<Person> get familyCircleMembers {
+    final familyMemberIds = <String>{};
+    for (final circle in familyCircles) {
+      familyMemberIds.addAll(circle.memberIds);
+    }
+    familyMemberIds.remove(me.id);
+    return _others.where((p) => familyMemberIds.contains(p.id)).toList();
+  }
   List<CircleGroup> get circles => List.unmodifiable(_circles);
+
+  /// Solo le cerchie 'family': usata ovunque si scelga in quale cerchia
+  /// creare qualcosa che rivela una posizione (punto d'incontro, richiesta
+  /// di aiuto, Portami a casa...), dato che in una Cerchia Eventi la RLS
+  /// blocca comunque l'inserimento.
+  List<CircleGroup> get familyCircles => _circles.where((c) => !c.isEventsCircle).toList();
   List<LocationRequest> get requests => List.unmodifiable(_requests);
   List<SafeZone> get safeZones => List.unmodifiable(_safeZones);
   List<SafeZoneEvent> get safeZoneEvents => List.unmodifiable(_safeZoneEvents);
   List<SpeedEvent> get speedEvents => List.unmodifiable(_speedEvents);
   List<MeetingPoint> get meetingPoints => List.unmodifiable(_meetingPoints);
+  List<MeetupSpot> get meetupSpots => List.unmodifiable(_meetupSpots);
+  List<Meetup> get meetups => List.unmodifiable(_meetups);
 
   /// SOS attivi (non risolti) visibili nelle mie cerchie, io compreso.
   List<SosAlert> get activeSosAlerts => _sosAlerts.where((a) => a.status == SosStatus.active).toList();
@@ -251,6 +278,18 @@ class AppState extends ChangeNotifier {
 
       final arrivalRows = await _repo.fetchMeetingPointArrivals();
       _meetingPointArrivals = arrivalRows.map(MeetingPointArrival.fromRow).toList();
+
+      final meetupSpotRows = await _repo.fetchMeetupSpots();
+      _meetupSpots = meetupSpotRows.map(MeetupSpot.fromRow).toList();
+
+      final meetupRows = await _repo.fetchMeetups();
+      _meetups = meetupRows.map(Meetup.fromRow).toList();
+
+      final meetupRsvpRows = await _repo.fetchMeetupRsvps();
+      _meetupRsvps = meetupRsvpRows.map(MeetupRsvp.fromRow).toList();
+
+      final meetupCheckinRows = await _repo.fetchMeetupCheckins();
+      _meetupCheckins = meetupCheckinRows.map(MeetupCheckin.fromRow).toList();
 
       final sosRows = await _repo.fetchSosAlerts();
       _sosAlerts = sosRows.map(SosAlert.fromRow).toList();
@@ -515,6 +554,10 @@ class AppState extends ChangeNotifier {
     _speedEvents = [];
     _meetingPoints = [];
     _meetingPointArrivals = [];
+    _meetupSpots = [];
+    _meetups = [];
+    _meetupRsvps = [];
+    _meetupCheckins = [];
     _sosAlerts = [];
     _sosTrustedContactIds = {};
     _circleMessages = [];
@@ -695,8 +738,13 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Future<CircleGroup> createCircle(String name, IconData icon, Color color) async {
-    final circle = await _repo.createCircle(name: name, iconKey: CircleIcons.keyFor(icon), colorHex: color.toHex());
+  Future<CircleGroup> createCircle(String name, IconData icon, Color color, {CircleType circleType = CircleType.family}) async {
+    final circle = await _repo.createCircle(
+      name: name,
+      iconKey: CircleIcons.keyFor(icon),
+      colorHex: color.toHex(),
+      circleType: circleType,
+    );
     await _refreshData();
     notifyListeners();
     return circle;
@@ -988,6 +1036,99 @@ class AppState extends ChangeNotifier {
 
   Future<void> markArrivedAt(String meetingPointId) async {
     await _repo.recordMeetingPointArrival(meetingPointId);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  // ---------------------------------------------------------------------
+  // Ritrovi: alternativa al punto d'incontro che non rivela mai una
+  // posizione live, unica opzione disponibile nelle Cerchie Eventi.
+  // ---------------------------------------------------------------------
+
+  List<MeetupSpot> spotsForCircle(String circleId) => _meetupSpots.where((s) => s.circleId == circleId).toList();
+
+  MeetupSpot? meetupSpotById(String id) {
+    for (final s in _meetupSpots) {
+      if (s.id == id) return s;
+    }
+    return null;
+  }
+
+  /// Ritrovi proposti in uno spot, i più recenti/futuri prima, esclusi
+  /// quelli passati da più di 3 ore.
+  List<Meetup> meetupsForSpot(String spotId) {
+    final active = _meetups.where((m) => m.spotId == spotId && !m.isPast).toList();
+    active.sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+    return active;
+  }
+
+  List<Meetup> meetupsForCircle(String circleId) {
+    final active = _meetups.where((m) => m.circleId == circleId && !m.isPast).toList();
+    active.sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+    return active;
+  }
+
+  List<MeetupRsvp> rsvpsFor(String meetupId) => _meetupRsvps.where((r) => r.meetupId == meetupId).toList();
+
+  MeetupRsvpResponse? myRsvpFor(String meetupId) {
+    for (final r in _meetupRsvps) {
+      if (r.meetupId == meetupId && r.profileId == me.id) return r.response;
+    }
+    return null;
+  }
+
+  /// Chi è presente ora in questo spot (check-in ambientali, non legati a un
+  /// ritrovo specifico, non ancora scaduti).
+  List<MeetupCheckin> whoIsAtSpot(String spotId) =>
+      _meetupCheckins.where((c) => c.spotId == spotId && c.meetupId == null && c.isActive).toList();
+
+  bool hasCheckedInTo(String meetupId) =>
+      _meetupCheckins.any((c) => c.meetupId == meetupId && c.profileId == me.id);
+
+  List<MeetupCheckin> arrivalsForMeetup(String meetupId) => _meetupCheckins.where((c) => c.meetupId == meetupId).toList();
+
+  Future<MeetupSpot> createMeetupSpot({
+    required String circleId,
+    required String name,
+    required MeetupSpotCategory category,
+    required double lat,
+    required double lng,
+    String? note,
+  }) async {
+    await _repo.createMeetupSpot(circleId: circleId, name: name, category: category.value, lat: lat, lng: lng, note: note);
+    await _refreshData();
+    notifyListeners();
+    return _meetupSpots.firstWhere((s) => s.circleId == circleId && s.name == name);
+  }
+
+  Future<void> deleteMeetupSpot(String id) async {
+    await _repo.deleteMeetupSpot(id);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  Future<void> proposeMeetup({
+    required String spotId,
+    required String circleId,
+    required DateTime scheduledAt,
+    String? note,
+  }) async {
+    await _repo.proposeMeetup(spotId: spotId, circleId: circleId, scheduledAt: scheduledAt, note: note);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  Future<void> respondToMeetup({required String meetupId, required bool attending}) async {
+    await _repo.respondToMeetup(meetupId: meetupId, attending: attending);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  /// Registra la propria presenza in uno spot: rilevata dal dispositivo
+  /// confrontando la propria posizione con quella dello spot (vedi
+  /// LocationTracker), mai una posizione continua o un tragitto.
+  Future<void> checkInAtSpot({required String spotId, String? meetupId, required String circleId}) async {
+    await _repo.recordMeetupCheckin(spotId: spotId, meetupId: meetupId, circleId: circleId);
     await _refreshData();
     notifyListeners();
   }

@@ -8,6 +8,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import '../l10n/app_localizations.dart';
+import '../models/meetup.dart';
 import '../models/safe_zone.dart';
 import '../state/app_state.dart';
 import '../state/locale_controller.dart';
@@ -88,6 +89,9 @@ class LocationTracker with WidgetsBindingObserver {
   /// Punti d'incontro per cui ho già registrato l'arrivo in questa sessione,
   /// per non richiamare il server ad ogni aggiornamento di posizione.
   final Set<String> _arrivedMeetingPointIds = {};
+
+  /// Ritrovi per cui ho già confermato l'arrivo in questa sessione.
+  final Set<String> _checkedInMeetupIds = {};
 
   // Il piano gratuito di Supabase ha limiti reali su scritture/banda: senza
   // queste soglie, muoversi (specie in auto) genera un aggiornamento ogni
@@ -329,6 +333,7 @@ class LocationTracker with WidgetsBindingObserver {
     _zoneInsideState.clear();
     _wasOverSpeedLimit = false;
     _arrivedMeetingPointIds.clear();
+    _checkedInMeetupIds.clear();
     _lastProcessedAt = null;
     _lastHistoryAppendAt = null;
     _lastPoiCheckAt = null;
@@ -397,6 +402,7 @@ class LocationTracker with WidgetsBindingObserver {
 
     unawaited(_checkSafeZones(position));
     unawaited(_checkMeetingPoints(position));
+    unawaited(_checkMeetups(position));
     if (speedKmh != null) unawaited(_checkSpeedAlert(speedKmh));
     unawaited(_checkPoi(position, speedKmh));
   }
@@ -440,7 +446,11 @@ class LocationTracker with WidgetsBindingObserver {
 
       if (_shoppingCategories.contains(category)) {
         _lastShoppingStopRecordedAt = now;
-        for (final circle in AppState.instance.circles) {
+        // Solo cerchie 'family': una sosta rivela un negozio specifico, la
+        // RLS blocca comunque l'inserimento in una Cerchia Eventi, ma
+        // filtrare qui evita che il rifiuto interrompa il ciclo prima di
+        // registrare la sosta nelle altre cerchie family dell'utente.
+        for (final circle in AppState.instance.circles.where((c) => !c.isEventsCircle)) {
           await repo.recordShoppingStop(
             circleId: circle.id,
             category: category,
@@ -557,6 +567,37 @@ class LocationTracker with WidgetsBindingObserver {
           await KinlyRepository.instance.recordMeetingPointArrival(point.id);
         } catch (_) {
           _arrivedMeetingPointIds.remove(point.id);
+        }
+      }
+    }
+  }
+
+  /// Conferma automaticamente l'arrivo a un Ritrovo a cui ho risposto "Ci
+  /// siamo!" quando mi avvicino a meno di 100 metri dallo spot: stesso
+  /// meccanismo del punto d'incontro, un solo evento booleano "sono
+  /// arrivato", mai una posizione continua o un tragitto. Non tocca gli
+  /// eventuali check-in "chi c'è ora" (ambientali, senza un ritrovo
+  /// associato): quelli restano una scelta esplicita della persona.
+  static const _meetupArrivalRadiusMeters = 100;
+
+  Future<void> _checkMeetups(Position position) async {
+    final state = AppState.instance;
+    for (final meetup in state.meetups) {
+      if (meetup.isPast || _checkedInMeetupIds.contains(meetup.id)) continue;
+      if (state.myRsvpFor(meetup.id) != MeetupRsvpResponse.yes) continue;
+      if (state.hasCheckedInTo(meetup.id)) {
+        _checkedInMeetupIds.add(meetup.id);
+        continue;
+      }
+      final spot = state.meetupSpotById(meetup.spotId);
+      if (spot == null) continue;
+      final distance = Geolocator.distanceBetween(position.latitude, position.longitude, spot.lat, spot.lng);
+      if (distance <= _meetupArrivalRadiusMeters) {
+        _checkedInMeetupIds.add(meetup.id);
+        try {
+          await KinlyRepository.instance.recordMeetupCheckin(spotId: spot.id, meetupId: meetup.id, circleId: meetup.circleId);
+        } catch (_) {
+          _checkedInMeetupIds.remove(meetup.id);
         }
       }
     }

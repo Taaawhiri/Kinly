@@ -258,6 +258,23 @@ function helpRequestReasonText(reason: string): { emoji: string; label: string }
   }
 }
 
+/// Formatta l'orario di un ritrovo in locale italiano semplice (oggi/domani/
+/// data), senza dipendenze esterne — la Edge Function gira su Deno, dove
+/// Intl è disponibile ma un formato scritto a mano resta più prevedibile.
+function formatMeetupTime(scheduledAt: string): string {
+  const date = new Date(scheduledAt);
+  const now = new Date();
+  const time = date.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  const isSameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  if (Math.abs(date.getTime() - now.getTime()) < 5 * 60 * 1000) return 'ora';
+  if (isSameDay(date, now)) return `oggi alle ${time}`;
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  if (isSameDay(date, tomorrow)) return `domani alle ${time}`;
+  const day = date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+  return `il ${day} alle ${time}`;
+}
+
 async function buildNotification(supabase: SupabaseClient, table: string, record: any): Promise<NotificationPlan | null> {
   switch (table) {
     case 'sos_alerts': {
@@ -373,6 +390,39 @@ async function buildNotification(supabase: SupabaseClient, table: string, record
       ]);
       const amount = Number(record.amount).toFixed(2).replace('.', ',');
       return { recipients, title: '💶 Nuova spesa di gruppo', body: `${name} ha aggiunto "${record.description}" · ${amount} €` };
+    }
+    case 'meetups': {
+      const { data: spot } = await supabase.from('meetup_spots').select('name').eq('id', record.spot_id).single();
+      if (!spot) return null;
+      const [name, recipients] = await Promise.all([
+        fetchName(supabase, record.proposed_by),
+        circleRecipients(supabase, record.circle_id, record.proposed_by),
+      ]);
+      const when = formatMeetupTime(record.scheduled_at);
+      const note = record.note ? ` "${record.note}"` : '';
+      return {
+        recipients,
+        title: `📍 ${name} propone un ritrovo`,
+        body: `${spot.name}, ${when}.${note}`,
+      };
+    }
+    case 'meetup_checkins': {
+      // Solo l'arrivo a un ritrovo proposto genera una notifica: un
+      // check-in ambientale ("chi c'è ora", senza meetup_id) è visibile solo
+      // aprendo lo spot, per non spammare la cerchia ogni volta che qualcuno
+      // segnala di essere in un posto senza un piano condiviso.
+      if (!record.meetup_id) return null;
+      const { data: spot } = await supabase.from('meetup_spots').select('name').eq('id', record.spot_id).single();
+      if (!spot) return null;
+      const [name, recipients] = await Promise.all([
+        fetchName(supabase, record.profile_id),
+        circleRecipients(supabase, record.circle_id, record.profile_id),
+      ]);
+      return {
+        recipients,
+        title: `✅ ${name} è arrivato/a`,
+        body: `${spot.name}. Non hai visto il suo tragitto: solo questo avviso.`,
+      };
     }
     case 'battery_alerts': {
       const [name, recipients] = await Promise.all([

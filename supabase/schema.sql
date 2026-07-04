@@ -141,6 +141,33 @@ create table if not exists public.circles (
   created_at timestamptz not null default now()
 );
 
+-- Tipo di cerchia, scelto una sola volta alla creazione: 'family' è il
+-- comportamento di sempre (posizione live condivisa secondo le impostazioni
+-- di ognuno); 'events' è la Cerchia Eventi, pensata per gruppi di genitori/
+-- conoscenti che non vogliono mai mostrarsi la posizione in tempo reale (vedi
+-- Ritrovi più sotto). Il tipo non è più modificabile dopo la creazione (vedi
+-- prevent_circle_type_change_trigger), per non poter "declassare" a family
+-- una cerchia in cui le persone sono entrate proprio perché garantita senza
+-- condivisione di posizione.
+alter table public.circles add column if not exists circle_type text not null default 'family' check (circle_type in ('family', 'events'));
+
+create or replace function public.prevent_circle_type_change()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.circle_type <> old.circle_type then
+    raise exception 'circle_type_immutable' using errcode = 'P0001';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists prevent_circle_type_change_trigger on public.circles;
+create trigger prevent_circle_type_change_trigger
+  before update on public.circles
+  for each row execute function public.prevent_circle_type_change();
+
 create table if not exists public.circle_members (
   circle_id uuid not null references public.circles (id) on delete cascade,
   profile_id uuid not null references public.profiles (id) on delete cascade,
@@ -412,6 +439,46 @@ as $$
   );
 $$;
 
+-- Variante di shares_circle_with ristretta alle sole cerchie di tipo
+-- 'family': usata ovunque si riveli posizione (mappa, cronologia, avvisi di
+-- velocità, SOS, richieste di posizione, incroci) così una Cerchia Eventi
+-- condivisa non fa mai scattare nessuna di queste funzioni. shares_circle_with
+-- resta invariata per usi non legati alla posizione (es. vedere nome/avatar
+-- in profiles_select), dove serve restare generica anche per le Cerchie
+-- Eventi.
+create or replace function public.shares_family_circle_with(other_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.circle_members mine
+    join public.circle_members theirs on theirs.circle_id = mine.circle_id
+    join public.circles c on c.id = mine.circle_id
+    where mine.profile_id = auth.uid()
+      and theirs.profile_id = other_id
+      and c.circle_type = 'family'
+  );
+$$;
+
+-- Usata dalle policy di insert di tutto ciò che rivela una posizione
+-- puntuale legata a una cerchia (aree sicure, punto d'incontro, richieste di
+-- aiuto, soste spesa): in una Cerchia Eventi queste funzioni restano
+-- interamente disattivate, sostituite dai Ritrovi (vedi più sotto), che non
+-- rivelano mai una posizione continua.
+create or replace function public.is_family_circle(p_circle_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select circle_type = 'family' from public.circles where id = p_circle_id;
+$$;
+
 -- Orario di reperibilità (finestra ricorrente ogni giorno) + Ghost Mode
 -- temporaneo (nascondimento manuale a tempo, Kinly+): se una delle due è
 -- "attiva" in questo momento, fuori da questa finestra nessuno vede la
@@ -510,7 +577,7 @@ as $$
   select
     p_target_id = auth.uid()
     or (
-      public.shares_circle_with(p_target_id)
+      public.shares_family_circle_with(p_target_id)
       and public.is_within_ghost_schedule(p_target_id)
       and (
         public.effective_sharing_mode(auth.uid(), p_target_id) in ('automatic', 'fuzzy')
@@ -847,7 +914,7 @@ drop policy if exists "location_requests_insert" on public.location_requests;
 create policy "location_requests_insert" on public.location_requests
   for insert with check (
     requester_id = auth.uid()
-    and public.shares_circle_with(target_id)
+    and public.shares_family_circle_with(target_id)
     and public.effective_sharing_mode(auth.uid(), target_id) <> 'paused'
   );
 
@@ -897,6 +964,7 @@ create policy "safe_zones_insert_premium" on public.safe_zones
     created_by = auth.uid()
     and circle_id in (select public.my_circle_ids())
     and public.is_effectively_premium(auth.uid())
+    and public.is_family_circle(circle_id)
   );
 
 drop policy if exists "safe_zones_delete_own" on public.safe_zones;
@@ -965,14 +1033,20 @@ create policy "support_messages_update_admin" on public.support_messages
   with check (exists (select 1 from public.profiles where id = auth.uid() and is_admin));
 
 -- meeting_points: chiunque nella cerchia può proporne uno e vederli tutti;
--- solo chi l'ha creato può eliminarlo.
+-- solo chi l'ha creato può eliminarlo. Solo cerchie 'family': nelle Cerchie
+-- Eventi questa funzione è sostituita dai Ritrovi (vedi più sotto), pensati
+-- apposta per non rivelare mai una posizione continua.
 drop policy if exists "meeting_points_select" on public.meeting_points;
 create policy "meeting_points_select" on public.meeting_points
   for select using (circle_id in (select public.my_circle_ids()));
 
 drop policy if exists "meeting_points_insert" on public.meeting_points;
 create policy "meeting_points_insert" on public.meeting_points
-  for insert with check (created_by = auth.uid() and circle_id in (select public.my_circle_ids()));
+  for insert with check (
+    created_by = auth.uid()
+    and circle_id in (select public.my_circle_ids())
+    and public.is_family_circle(circle_id)
+  );
 
 drop policy if exists "meeting_points_delete_own" on public.meeting_points;
 create policy "meeting_points_delete_own" on public.meeting_points
@@ -1001,7 +1075,7 @@ create policy "sos_alerts_select" on public.sos_alerts
   for select using (
     profile_id = auth.uid()
     or (
-      public.shares_circle_with(profile_id)
+      public.shares_family_circle_with(profile_id)
       and (
         not exists (select 1 from public.sos_trusted_contacts where profile_id = sos_alerts.profile_id)
         or exists (
@@ -1028,7 +1102,7 @@ create policy "sos_trusted_contacts_select_own" on public.sos_trusted_contacts
 
 drop policy if exists "sos_trusted_contacts_insert_own" on public.sos_trusted_contacts;
 create policy "sos_trusted_contacts_insert_own" on public.sos_trusted_contacts
-  for insert with check (profile_id = auth.uid() and public.shares_circle_with(contact_id));
+  for insert with check (profile_id = auth.uid() and public.shares_family_circle_with(contact_id));
 
 drop policy if exists "sos_trusted_contacts_delete_own" on public.sos_trusted_contacts;
 create policy "sos_trusted_contacts_delete_own" on public.sos_trusted_contacts
@@ -1049,14 +1123,19 @@ create policy "circle_messages_delete_own" on public.circle_messages
   for delete using (sender_id = auth.uid());
 
 -- help_requests: visibili a chi è nella cerchia; ognuno crea/risolve solo
--- le proprie.
+-- le proprie. Solo cerchie 'family': rivela una posizione puntuale, incompatibile
+-- con la garanzia delle Cerchie Eventi.
 drop policy if exists "help_requests_select" on public.help_requests;
 create policy "help_requests_select" on public.help_requests
   for select using (circle_id in (select public.my_circle_ids()));
 
 drop policy if exists "help_requests_insert_self" on public.help_requests;
 create policy "help_requests_insert_self" on public.help_requests
-  for insert with check (profile_id = auth.uid() and circle_id in (select public.my_circle_ids()));
+  for insert with check (
+    profile_id = auth.uid()
+    and circle_id in (select public.my_circle_ids())
+    and public.is_family_circle(circle_id)
+  );
 
 drop policy if exists "help_requests_update_self" on public.help_requests;
 create policy "help_requests_update_self" on public.help_requests
@@ -1195,7 +1274,7 @@ begin
     from public.locations l
     where l.profile_id <> new.profile_id
       and l.updated_at > now() - interval '5 minutes'
-      and public.shares_circle_with(l.profile_id)
+      and public.shares_family_circle_with(l.profile_id)
       and (
         6371000 * acos(
           least(1, greatest(-1,
@@ -1284,9 +1363,15 @@ drop policy if exists "shopping_stops_select" on public.shopping_stops;
 create policy "shopping_stops_select" on public.shopping_stops
   for select using (circle_id in (select public.my_circle_ids()));
 
+-- Solo cerchie 'family': rivela di essere fermi in un negozio specifico,
+-- incompatibile con la garanzia delle Cerchie Eventi.
 drop policy if exists "shopping_stops_insert_self" on public.shopping_stops;
 create policy "shopping_stops_insert_self" on public.shopping_stops
-  for insert with check (profile_id = auth.uid() and circle_id in (select public.my_circle_ids()));
+  for insert with check (
+    profile_id = auth.uid()
+    and circle_id in (select public.my_circle_ids())
+    and public.is_family_circle(circle_id)
+  );
 
 -- Una richiesta al volo ("Latte!") verso chi è fermo in un negozio.
 create table if not exists public.shopping_requests (
@@ -1312,6 +1397,125 @@ create policy "shopping_requests_insert" on public.shopping_requests
     from_id = auth.uid()
     and exists (select 1 from public.shopping_stops s where s.id = stop_id and s.circle_id in (select public.my_circle_ids()))
   );
+
+-- =========================================================================
+-- Ritrovi: proporre e trovarsi in un posto senza mai condividere la
+-- posizione live. Disponibile in tutte le cerchie, ma è l'unico modo per
+-- "trovarsi" nelle Cerchie Eventi (dove aree sicure, punto d'incontro,
+-- richieste di aiuto e soste spesa sono disattivate). L'unico segnale legato
+-- alla posizione è un check-in puntuale ("sono arrivato qui"), rilevato dal
+-- dispositivo stesso confrontando la propria posizione con quella dello
+-- spot: mai un tragitto, mai una posizione continua.
+-- =========================================================================
+
+-- Un posto salvato da un membro della cerchia (parco, bar, campetto...),
+-- riutilizzabile per ritrovi futuri.
+create table if not exists public.meetup_spots (
+  id uuid primary key default gen_random_uuid(),
+  circle_id uuid not null references public.circles (id) on delete cascade,
+  name text not null,
+  category text not null check (category in ('park', 'bar', 'sport', 'other')),
+  lat double precision not null,
+  lng double precision not null,
+  note text,
+  created_by uuid not null references public.profiles (id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists meetup_spots_circle_idx on public.meetup_spots (circle_id, created_at desc);
+
+alter table public.meetup_spots enable row level security;
+
+drop policy if exists "meetup_spots_select" on public.meetup_spots;
+create policy "meetup_spots_select" on public.meetup_spots
+  for select using (circle_id in (select public.my_circle_ids()));
+
+drop policy if exists "meetup_spots_insert" on public.meetup_spots;
+create policy "meetup_spots_insert" on public.meetup_spots
+  for insert with check (created_by = auth.uid() and circle_id in (select public.my_circle_ids()));
+
+drop policy if exists "meetup_spots_delete_own" on public.meetup_spots;
+create policy "meetup_spots_delete_own" on public.meetup_spots
+  for delete using (created_by = auth.uid());
+
+-- Una proposta di ritrovo in uno spot, con orario e nota facoltativa.
+create table if not exists public.meetups (
+  id uuid primary key default gen_random_uuid(),
+  spot_id uuid not null references public.meetup_spots (id) on delete cascade,
+  circle_id uuid not null references public.circles (id) on delete cascade,
+  proposed_by uuid not null references public.profiles (id) on delete cascade,
+  scheduled_at timestamptz not null default now(),
+  note text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists meetups_spot_idx on public.meetups (spot_id, created_at desc);
+create index if not exists meetups_circle_idx on public.meetups (circle_id, created_at desc);
+
+alter table public.meetups enable row level security;
+
+drop policy if exists "meetups_select" on public.meetups;
+create policy "meetups_select" on public.meetups
+  for select using (circle_id in (select public.my_circle_ids()));
+
+drop policy if exists "meetups_insert" on public.meetups;
+create policy "meetups_insert" on public.meetups
+  for insert with check (proposed_by = auth.uid() and circle_id in (select public.my_circle_ids()));
+
+drop policy if exists "meetups_delete_own" on public.meetups;
+create policy "meetups_delete_own" on public.meetups
+  for delete using (proposed_by = auth.uid());
+
+-- Risposta di ogni membro a un ritrovo proposto (Ci siamo! / Non oggi).
+create table if not exists public.meetup_rsvps (
+  meetup_id uuid not null references public.meetups (id) on delete cascade,
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  response text not null check (response in ('yes', 'no')),
+  responded_at timestamptz not null default now(),
+  primary key (meetup_id, profile_id)
+);
+
+alter table public.meetup_rsvps enable row level security;
+
+drop policy if exists "meetup_rsvps_select" on public.meetup_rsvps;
+create policy "meetup_rsvps_select" on public.meetup_rsvps
+  for select using (
+    meetup_id in (select id from public.meetups where circle_id in (select public.my_circle_ids()))
+  );
+
+drop policy if exists "meetup_rsvps_insert_own" on public.meetup_rsvps;
+create policy "meetup_rsvps_insert_own" on public.meetup_rsvps
+  for insert with check (profile_id = auth.uid());
+
+drop policy if exists "meetup_rsvps_update_own" on public.meetup_rsvps;
+create policy "meetup_rsvps_update_own" on public.meetup_rsvps
+  for update using (profile_id = auth.uid()) with check (profile_id = auth.uid());
+
+-- Check-in puntuale in uno spot: "chi c'è ora" (ambientale, meetup_id nullo)
+-- oppure conferma d'arrivo a un ritrovo proposto (meetup_id valorizzato).
+-- Come shopping_stops, nessuna colonna di scadenza: "è ancora attivo" si
+-- calcola lato client in base a created_at (stesso pattern di
+-- ShoppingStop.isActive), qui con una finestra di poche ore.
+create table if not exists public.meetup_checkins (
+  id uuid primary key default gen_random_uuid(),
+  spot_id uuid not null references public.meetup_spots (id) on delete cascade,
+  meetup_id uuid references public.meetups (id) on delete cascade,
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  circle_id uuid not null references public.circles (id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists meetup_checkins_spot_idx on public.meetup_checkins (spot_id, created_at desc);
+
+alter table public.meetup_checkins enable row level security;
+
+drop policy if exists "meetup_checkins_select" on public.meetup_checkins;
+create policy "meetup_checkins_select" on public.meetup_checkins
+  for select using (circle_id in (select public.my_circle_ids()));
+
+drop policy if exists "meetup_checkins_insert_self" on public.meetup_checkins;
+create policy "meetup_checkins_insert_self" on public.meetup_checkins
+  for insert with check (profile_id = auth.uid() and circle_id in (select public.my_circle_ids()));
 
 -- =========================================================================
 -- Spese di gruppo (stile Splitwise: solo un registro, nessun pagamento
@@ -1618,6 +1822,16 @@ create trigger send_push_trigger
   after insert on public.battery_alerts
   for each row execute function public.notify_send_push();
 
+drop trigger if exists send_push_trigger on public.meetups;
+create trigger send_push_trigger
+  after insert on public.meetups
+  for each row execute function public.notify_send_push();
+
+drop trigger if exists send_push_trigger on public.meetup_checkins;
+create trigger send_push_trigger
+  after insert on public.meetup_checkins
+  for each row execute function public.notify_send_push();
+
 drop trigger if exists send_push_trigger on public.weekly_summary_events;
 create trigger send_push_trigger
   after insert on public.weekly_summary_events
@@ -1631,7 +1845,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events', 'speed_events', 'meeting_points', 'meeting_point_arrivals', 'sos_alerts', 'sos_trusted_contacts', 'circle_messages', 'help_requests', 'pings', 'encounters', 'shopping_stops', 'shopping_requests', 'circle_expenses', 'expense_shares', 'circle_member_settings']
+  foreach t in array array['profiles', 'circle_members', 'locations', 'location_requests', 'safe_zones', 'safe_zone_events', 'speed_events', 'meeting_points', 'meeting_point_arrivals', 'sos_alerts', 'sos_trusted_contacts', 'circle_messages', 'help_requests', 'pings', 'encounters', 'shopping_stops', 'shopping_requests', 'circle_expenses', 'expense_shares', 'circle_member_settings', 'meetup_spots', 'meetups', 'meetup_rsvps', 'meetup_checkins']
   loop
     if not exists (
       select 1 from pg_publication_tables

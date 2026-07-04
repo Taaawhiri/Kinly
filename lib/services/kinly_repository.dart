@@ -183,7 +183,12 @@ class KinlyRepository {
     return supabase.from('circle_members').select('circle_id, profile_id');
   }
 
-  Future<CircleGroup> createCircle({required String name, required String iconKey, required String colorHex}) async {
+  Future<CircleGroup> createCircle({
+    required String name,
+    required String iconKey,
+    required String colorHex,
+    CircleType circleType = CircleType.family,
+  }) async {
     late Map<String, dynamic> row;
     var attempt = 0;
     while (true) {
@@ -197,6 +202,7 @@ class KinlyRepository {
               'color': colorHex,
               'invite_code': code,
               'created_by': _myId,
+              'circle_type': circleType.value,
             })
             .select()
             .single();
@@ -488,6 +494,85 @@ class KinlyRepository {
       onConflict: 'meeting_point_id,profile_id',
       ignoreDuplicates: true,
     );
+  }
+
+  // ---------------------------------------------------------------------
+  // Ritrovi: alternativa al punto d'incontro che non rivela mai una
+  // posizione live, unica opzione disponibile nelle Cerchie Eventi.
+  // ---------------------------------------------------------------------
+
+  Future<List<Map<String, dynamic>>> fetchMeetupSpots() async {
+    return supabase.from('meetup_spots').select();
+  }
+
+  Future<void> createMeetupSpot({
+    required String circleId,
+    required String name,
+    required String category,
+    required double lat,
+    required double lng,
+    String? note,
+  }) async {
+    await supabase.from('meetup_spots').insert({
+      'circle_id': circleId,
+      'name': name,
+      'category': category,
+      'lat': lat,
+      'lng': lng,
+      'note': note,
+      'created_by': _myId,
+    });
+  }
+
+  Future<void> deleteMeetupSpot(String id) async {
+    await supabase.from('meetup_spots').delete().eq('id', id);
+  }
+
+  Future<List<Map<String, dynamic>>> fetchMeetups() async {
+    return supabase.from('meetups').select();
+  }
+
+  Future<void> proposeMeetup({
+    required String spotId,
+    required String circleId,
+    required DateTime scheduledAt,
+    String? note,
+  }) async {
+    await supabase.from('meetups').insert({
+      'spot_id': spotId,
+      'circle_id': circleId,
+      'proposed_by': _myId,
+      'scheduled_at': scheduledAt.toUtc().toIso8601String(),
+      'note': note,
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> fetchMeetupRsvps() async {
+    return supabase.from('meetup_rsvps').select();
+  }
+
+  Future<void> respondToMeetup({required String meetupId, required bool attending}) async {
+    await supabase.from('meetup_rsvps').upsert(
+      {'meetup_id': meetupId, 'profile_id': _myId, 'response': attending ? 'yes' : 'no'},
+      onConflict: 'meetup_id,profile_id',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> fetchMeetupCheckins() async {
+    return supabase.from('meetup_checkins').select();
+  }
+
+  /// Registra la propria presenza in uno spot: rilevata dal dispositivo
+  /// confrontando la propria posizione con quella dello spot, mai una
+  /// posizione continua o un tragitto. [meetupId] è valorizzato solo quando
+  /// il check-in conferma l'arrivo a un ritrovo proposto.
+  Future<void> recordMeetupCheckin({required String spotId, String? meetupId, required String circleId}) async {
+    await supabase.from('meetup_checkins').insert({
+      'spot_id': spotId,
+      'meetup_id': meetupId,
+      'profile_id': _myId,
+      'circle_id': circleId,
+    });
   }
 
   // ---------------------------------------------------------------------
@@ -870,6 +955,10 @@ class KinlyRepository {
       'circle_expenses',
       'expense_shares',
       'circle_member_settings',
+      'meetup_spots',
+      'meetups',
+      'meetup_rsvps',
+      'meetup_checkins',
     ]) {
       channel.onPostgresChanges(
         event: PostgresChangeEvent.all,

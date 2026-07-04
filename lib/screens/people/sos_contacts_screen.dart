@@ -5,9 +5,10 @@ import '../../theme/app_theme.dart';
 import '../../widgets/person_avatar.dart';
 
 /// Scelta di chi avvisare quando attivi l'SOS: se non selezioni nessuno,
-/// avvisa tutte le persone con cui condividi almeno una cerchia (il
-/// comportamento di sempre). Selezionandone almeno una, l'SOS avvisa solo
-/// quelle.
+/// avvisa tutte le persone con cui condividi almeno una cerchia Famiglia
+/// (il comportamento di sempre; le Cerchie Eventi non ricevono mai un SOS,
+/// dato che rivelerebbe una posizione). Selezionandone almeno una, l'SOS
+/// avvisa solo quelle.
 class SosContactsScreen extends StatelessWidget {
   const SosContactsScreen({super.key});
 
@@ -17,7 +18,7 @@ class SosContactsScreen extends StatelessWidget {
       listenable: AppState.instance,
       builder: (context, _) {
         final state = AppState.instance;
-        final people = state.others;
+        final people = state.familyCircleMembers;
         final selected = state.sosTrustedContactIds;
         final l10n = AppLocalizations.of(context)!;
         return Scaffold(

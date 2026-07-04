@@ -38,6 +38,7 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
   final _nameController = TextEditingController();
   IconData _icon = _iconChoices.first;
   Color _color = _colorChoices.first;
+  CircleType _type = CircleType.family;
   CircleGroup? _created;
   bool _creating = false;
   String? _error;
@@ -58,7 +59,12 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
       _limitReached = false;
     });
     try {
-      final circle = await AppState.instance.createCircle(name, _icon, _color);
+      final circle = await AppState.instance.createCircle(
+        name,
+        _icon,
+        _type == CircleType.events ? AppTheme.accentAmber : _color,
+        circleType: _type,
+      );
       if (!mounted) return;
       setState(() => _created = circle);
     } on FreeLimitException {
@@ -99,9 +105,32 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
 
   Widget _buildForm(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Column(
+    return SingleChildScrollView(
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(l10n.createCircleTypeQuestion, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+        const SizedBox(height: 6),
+        Text(l10n.createCircleTypeHint, style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5)),
+        const SizedBox(height: 16),
+        _TypeCard(
+          selected: _type == CircleType.family,
+          icon: Icons.home_rounded,
+          color: AppTheme.primary,
+          title: l10n.createCircleTypeFamilyTitle,
+          subtitle: l10n.createCircleTypeFamilySubtitle,
+          onTap: () => setState(() => _type = CircleType.family),
+        ),
+        const SizedBox(height: 10),
+        _TypeCard(
+          selected: _type == CircleType.events,
+          icon: Icons.event_available_rounded,
+          color: AppTheme.accentAmber,
+          title: l10n.createCircleTypeEventsTitle,
+          subtitle: l10n.createCircleTypeEventsSubtitle,
+          onTap: () => setState(() => _type = CircleType.events),
+        ),
+        const SizedBox(height: 28),
         Text(l10n.createCircleNameQuestion, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
         const SizedBox(height: 6),
         Text(l10n.createCircleNameHint, style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5)),
@@ -133,27 +162,29 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
               ),
           ],
         ),
-        const SizedBox(height: 24),
-        Text(l10n.createCircleColorLabel, style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 12,
-          children: [
-            for (final color in _colorChoices)
-              GestureDetector(
-                onTap: () => setState(() => _color = color),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: color,
-                    border: Border.all(color: color == _color ? AppTheme.textPrimary : Colors.transparent, width: 2.4),
+        if (_type == CircleType.family) ...[
+          const SizedBox(height: 24),
+          Text(l10n.createCircleColorLabel, style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 12,
+            children: [
+              for (final color in _colorChoices)
+                GestureDetector(
+                  onTap: () => setState(() => _color = color),
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: color,
+                      border: Border.all(color: color == _color ? AppTheme.textPrimary : Colors.transparent, width: 2.4),
+                    ),
                   ),
                 ),
-              ),
-          ],
-        ),
+            ],
+          ),
+        ],
         if (_error != null) ...[
           const SizedBox(height: 12),
           Text(_error!, style: const TextStyle(color: AppTheme.accentCoral, fontSize: 13)),
@@ -165,7 +196,7 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
             child: Text(l10n.circleMessagesDiscoverPlus),
           ),
         ],
-        const Spacer(),
+        const SizedBox(height: 28),
         FilledButton(
           onPressed: _creating ? null : _create,
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
@@ -174,6 +205,7 @@ class _CreateCircleScreenState extends State<CreateCircleScreen> {
               : Text(l10n.createCircleSubmit),
         ),
       ],
+      ),
     );
   }
 
@@ -252,6 +284,68 @@ class _PickerDot extends StatelessWidget {
         ),
         alignment: Alignment.center,
         child: child,
+      ),
+    );
+  }
+}
+
+class _TypeCard extends StatelessWidget {
+  const _TypeCard({
+    required this.selected,
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final bool selected;
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: selected ? color.withOpacity(0.1) : AppTheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: selected ? color : AppTheme.divider, width: selected ? 1.6 : 1),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.15)),
+              alignment: Alignment.center,
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5, color: AppTheme.textPrimary)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary, height: 1.3)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              selected ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,
+              color: selected ? color : AppTheme.divider,
+              size: 20,
+            ),
+          ],
+        ),
       ),
     );
   }

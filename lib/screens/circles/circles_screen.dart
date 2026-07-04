@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -223,6 +224,12 @@ class _CircleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final members = circle.memberIds.map(AppState.instance.personById).whereType<Person>().toList();
+    final isEvents = circle.isEventsCircle;
+    // Le Cerchie Eventi hanno un colore fisso (non quello scelto alla
+    // creazione, disattivato apposta in quel form) così si riconoscono a
+    // colpo d'occhio in mezzo alle altre: sono l'unico tipo di cerchia dove
+    // nessuno vede mai la posizione live di nessun altro.
+    final accent = isEvents ? AppTheme.accentAmber : circle.color;
     return InkWell(
       key: cardKey,
       borderRadius: BorderRadius.circular(18),
@@ -233,6 +240,7 @@ class _CircleCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppTheme.surface,
           borderRadius: BorderRadius.circular(18),
+          border: isEvents ? Border.all(color: accent.withOpacity(0.4), width: 1.4) : null,
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, 4))],
         ),
         child: Column(
@@ -241,20 +249,49 @@ class _CircleCard extends StatelessWidget {
             Row(
               key: headerKey,
               children: [
-                Container(
+                SizedBox(
                   width: 42,
                   height: 42,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: circle.color.withOpacity(0.15)),
-                  alignment: Alignment.center,
-                  child: Icon(circle.icon, color: circle.color, size: 20),
+                  child: CustomPaint(
+                    painter: isEvents ? _DashedCirclePainter(color: accent) : null,
+                    child: Container(
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: accent.withOpacity(0.15)),
+                      alignment: Alignment.center,
+                      child: Icon(circle.icon, color: accent, size: 20),
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(circle.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5, color: AppTheme.textPrimary)),
-                      Text(l10n.mapPeopleCount(members.length), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              circle.name,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5, color: AppTheme.textPrimary),
+                            ),
+                          ),
+                          if (isEvents) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(color: accent.withOpacity(0.16), borderRadius: BorderRadius.circular(6)),
+                              child: Text(
+                                l10n.circlesEventsBadge,
+                                style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: accent, letterSpacing: 0.4),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      Text(
+                        isEvents ? l10n.circlesEventsSubtitle : l10n.mapPeopleCount(members.length),
+                        style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
+                      ),
                     ],
                   ),
                 ),
@@ -268,7 +305,10 @@ class _CircleCard extends StatelessWidget {
             Row(
               children: [
                 for (final person in members.take(5))
-                  Padding(padding: const EdgeInsets.only(right: 8), child: PersonAvatar(person: person, size: 36)),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: PersonAvatar(person: person, size: 36, showStatusDot: !isEvents),
+                  ),
                 if (members.length > 5)
                   Container(
                     width: 36,
@@ -284,6 +324,33 @@ class _CircleCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Bordo tratteggiato per l'icona di una Cerchia Eventi: disegnato a mano
+/// perché Flutter non offre un BorderSide tratteggiato pronto all'uso.
+class _DashedCirclePainter extends CustomPainter {
+  const _DashedCirclePainter({required this.color});
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.shortestSide / 2 - 1;
+    const dashCount = 14;
+    const gapFraction = 0.45;
+    for (var i = 0; i < dashCount; i++) {
+      final startAngle = (i / dashCount) * 2 * math.pi;
+      final sweep = (2 * math.pi / dashCount) * (1 - gapFraction);
+      canvas.drawArc(Rect.fromCircle(center: center, radius: radius), startAngle, sweep, false, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedCirclePainter oldDelegate) => oldDelegate.color != color;
 }
 
 /// Guida introduttiva alla prima cerchia della lista: evidenzia a turno

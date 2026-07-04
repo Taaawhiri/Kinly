@@ -274,11 +274,16 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   Future<void> _makeSearchResultMeetingPoint(PlaceResult place) async {
     final state = AppState.instance;
     final l10n = AppLocalizations.of(context)!;
-    if (state.circles.isEmpty) {
+    // Solo cerchie 'family': il punto d'incontro rivela una posizione, la
+    // RLS lo blocca comunque in una Cerchia Eventi (che usa i Ritrovi).
+    final familyCircles = state.familyCircles;
+    if (familyCircles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.mapNeedCircleFirst)));
       return;
     }
-    var circleId = state.activeCircleId ?? (state.circles.length == 1 ? state.circles.first.id : null);
+    var circleId = familyCircles.any((c) => c.id == state.activeCircleId)
+        ? state.activeCircleId
+        : (familyCircles.length == 1 ? familyCircles.first.id : null);
     if (circleId == null) {
       circleId = await showModalBottomSheet<String>(
         context: context,
@@ -295,7 +300,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                   child: Text(l10n.mapWhichCircleTitle, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                 ),
               ),
-              for (final c in state.circles)
+              for (final c in familyCircles)
                 ListTile(
                   leading: Icon(c.icon, color: c.color),
                   title: Text(c.name),
@@ -573,11 +578,14 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     }
 
     final state = AppState.instance;
-    if (state.circles.isEmpty) {
+    // Solo cerchie 'family': Portami a casa può generare una richiesta di
+    // aiuto, che rivela una posizione.
+    final familyCircles = state.familyCircles;
+    if (familyCircles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.mapNeedCircleFirst)));
       return;
     }
-    final circleId = state.activeCircleId ?? state.circles.first.id;
+    final circleId = familyCircles.any((c) => c.id == state.activeCircleId) ? state.activeCircleId! : familyCircles.first.id;
     showBlurredModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.surface,
@@ -742,14 +750,17 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
 
   void _openMeetingPointEntry() {
     final state = AppState.instance;
-    final circle = state.activeCircleId != null
+    // Solo cerchie 'family': in una Cerchia Eventi il punto d'incontro è
+    // sostituito dai Ritrovi.
+    final familyCircles = state.familyCircles;
+    final circle = state.activeCircleId != null && familyCircles.any((c) => c.id == state.activeCircleId)
         ? state.circleById(state.activeCircleId!)
-        : (state.circles.length == 1 ? state.circles.first : null);
+        : (familyCircles.length == 1 ? familyCircles.first : null);
     if (circle != null) {
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => MeetingPointScreen(circle: circle)));
       return;
     }
-    if (state.circles.isEmpty) {
+    if (familyCircles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.mapNeedCircleFirst)));
       return;
     }
@@ -765,7 +776,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
               child: Align(alignment: Alignment.centerLeft, child: Text(AppLocalizations.of(sheetContext)!.mapWhichCircleForMeetingPoint, style: const TextStyle(fontWeight: FontWeight.w800))),
             ),
-            for (final c in state.circles)
+            for (final c in familyCircles)
               ListTile(
                 leading: Icon(c.icon, color: c.color),
                 title: Text(c.name),
@@ -1967,7 +1978,12 @@ class _HelpRequestSheetState extends State<_HelpRequestSheet> {
   void initState() {
     super.initState();
     final state = AppState.instance;
-    _circleId = state.activeCircleId ?? (state.circles.isNotEmpty ? state.circles.first.id : null);
+    // Solo cerchie 'family': una richiesta di aiuto rivela una posizione,
+    // la RLS la blocca comunque in una Cerchia Eventi.
+    final familyCircles = state.familyCircles;
+    _circleId = familyCircles.any((c) => c.id == state.activeCircleId)
+        ? state.activeCircleId
+        : (familyCircles.isNotEmpty ? familyCircles.first.id : null);
   }
 
   @override
@@ -2007,6 +2023,7 @@ class _HelpRequestSheetState extends State<_HelpRequestSheet> {
   Widget build(BuildContext context) {
     final state = AppState.instance;
     final l10n = AppLocalizations.of(context)!;
+    final familyCircles = state.familyCircles;
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
       child: SingleChildScrollView(
@@ -2021,14 +2038,14 @@ class _HelpRequestSheetState extends State<_HelpRequestSheet> {
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
             ),
             const SizedBox(height: 16),
-            if (state.circles.length > 1) ...[
+            if (familyCircles.length > 1) ...[
               Text(l10n.mapCircleLabel, style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  for (final circle in state.circles)
+                  for (final circle in familyCircles)
                     ChoiceChip(
                       label: Text(circle.name),
                       selected: _circleId == circle.id,

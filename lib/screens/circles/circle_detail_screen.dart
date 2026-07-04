@@ -13,6 +13,7 @@ import '../premium/safe_zones_screen.dart';
 import 'circle_expenses_screen.dart';
 import 'circle_messages_screen.dart';
 import 'meeting_point_screen.dart';
+import 'ritrovi_screen.dart';
 import 'shopping_list_screen.dart';
 import 'weekly_summary_screen.dart';
 
@@ -151,6 +152,7 @@ class _CircleDetailBody extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final members = circle.memberIds.map(AppState.instance.personById).whereType<Person>().toList();
     final isCreator = circle.createdBy == AppState.instance.me.id;
+    final isEvents = circle.isEventsCircle;
 
     return Scaffold(
       appBar: AppBar(title: Text(circle.name)),
@@ -171,8 +173,32 @@ class _CircleDetailBody extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(circle.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppTheme.textPrimary)),
-                    Text(l10n.mapPeopleCount(members.length), style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            circle.name,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppTheme.textPrimary),
+                          ),
+                        ),
+                        if (isEvents) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(color: AppTheme.accentAmber.withOpacity(0.16), borderRadius: BorderRadius.circular(6)),
+                            child: Text(
+                              l10n.circlesEventsBadge,
+                              style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: AppTheme.accentAmber, letterSpacing: 0.4),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    Text(
+                      isEvents ? l10n.circlesEventsSubtitle : l10n.mapPeopleCount(members.length),
+                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                    ),
                   ],
                 ),
               ),
@@ -278,16 +304,27 @@ class _CircleDetailBody extends StatelessWidget {
                   ),
                   _DetailActionDivider(),
                 ],
+                // Aree sicure, Punto d'incontro e La tua modalità richiedono
+                // tutte la posizione live: in una Cerchia Eventi non
+                // esistono, sostituite dai Ritrovi qui sotto.
+                if (!isEvents) ...[
+                  _DetailActionTile(
+                    icon: Icons.fence_rounded,
+                    label: l10n.circlesActionSafeZones,
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SafeZonesScreen(circle: circle))),
+                  ),
+                  _DetailActionDivider(),
+                  _DetailActionTile(
+                    icon: Icons.share_location_rounded,
+                    label: l10n.circlesActionMeetingPoint,
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => MeetingPointScreen(circle: circle))),
+                  ),
+                  _DetailActionDivider(),
+                ],
                 _DetailActionTile(
-                  icon: Icons.fence_rounded,
-                  label: l10n.circlesActionSafeZones,
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SafeZonesScreen(circle: circle))),
-                ),
-                _DetailActionDivider(),
-                _DetailActionTile(
-                  icon: Icons.share_location_rounded,
-                  label: l10n.circlesActionMeetingPoint,
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => MeetingPointScreen(circle: circle))),
+                  icon: Icons.diversity_3_rounded,
+                  label: l10n.circlesActionRitrovi,
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => RitroviScreen(circle: circle))),
                 ),
                 _DetailActionDivider(),
                 _DetailActionTile(
@@ -307,18 +344,20 @@ class _CircleDetailBody extends StatelessWidget {
                   label: l10n.circlesActionShoppingList,
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ShoppingListScreen(circle: circle))),
                 ),
-                _DetailActionDivider(),
-                _DetailActionTile(
-                  icon: Icons.insights_rounded,
-                  label: l10n.circlesActionSummary,
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WeeklySummaryScreen(circle: circle))),
-                ),
-                _DetailActionDivider(),
-                _DetailActionTile(
-                  icon: Icons.tune_rounded,
-                  label: l10n.circlesActionYourMode,
-                  onTap: () => _openSharingModeSheet(context, circle),
-                ),
+                if (!isEvents) ...[
+                  _DetailActionDivider(),
+                  _DetailActionTile(
+                    icon: Icons.insights_rounded,
+                    label: l10n.circlesActionSummary,
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WeeklySummaryScreen(circle: circle))),
+                  ),
+                  _DetailActionDivider(),
+                  _DetailActionTile(
+                    icon: Icons.tune_rounded,
+                    label: l10n.circlesActionYourMode,
+                    onTap: () => _openSharingModeSheet(context, circle),
+                  ),
+                ],
               ],
             ),
           ),
