@@ -430,52 +430,60 @@
         </LinearLayout>
 
         <!-- Quando condivide una sola persona, mostra lei sola più grande
-             invece delle 3 righe compatte pensate per riempirsi: altrimenti,
+             invece delle 3 righe compatte pensate per riempirsi (altrimenti,
              specie su un widget ridimensionato bello alto, restava un
-             avatarino piccolo perso in un mare di spazio vuoto sopra e
-             sotto (vedi KinlyWidgetProvider). -->
+             avatarino piccolo perso in un mare di spazio vuoto) — ma con la
+             STESSA struttura a riga orizzontale (avatar a sinistra, testo su
+             due righe a destra) delle righe normali, solo più grande, non
+             un blocco a colonna centrato (vedi KinlyWidgetProvider). -->
         <LinearLayout
             android:id="@+id/widget_solo_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
+            android:layout_gravity="center_vertical"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:visibility="gone">
 
-            <FrameLayout android:layout_width="64dp" android:layout_height="64dp">
+            <FrameLayout android:layout_width="52dp" android:layout_height="52dp" android:layout_marginEnd="14dp">
                 <ImageView
                     android:id="@+id/widget_solo_dot"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:src="@drawable/widget_dot" />
                 <ImageView
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
                     android:layout_gravity="center"
                     android:src="@drawable/widget_person_icon" />
             </FrameLayout>
 
-            <TextView
-                android:id="@+id/widget_solo_name"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:textColor="#222533" />
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/widget_solo_sub"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textSize="13.5sp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:textColor="#8A90A6" />
+                <TextView
+                    android:id="@+id/widget_solo_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="#222533" />
+
+                <TextView
+                    android:id="@+id/widget_solo_sub"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:textSize="13sp"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="#8A90A6" />
+            </LinearLayout>
         </LinearLayout>
     </FrameLayout>
 </LinearLayout>
