@@ -712,6 +712,24 @@ class AppState extends ChangeNotifier {
     return code;
   }
 
+  Future<void> removeCircleMember({required String circleId, required String profileId}) async {
+    await _repo.removeCircleMember(circleId: circleId, profileId: profileId);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  Future<void> leaveCircle(String circleId) async {
+    await _repo.leaveCircle(circleId);
+    await _refreshData();
+    notifyListeners();
+  }
+
+  Future<void> deleteCircle(String circleId) async {
+    await _repo.deleteCircle(circleId);
+    await _refreshData();
+    notifyListeners();
+  }
+
   /// Cerca una cerchia dal codice invito e, se esiste, mi ci fa entrare.
   Future<CircleGroup?> joinCircleByCode(String code) async {
     final circle = await _repo.joinCircleByCode(code);

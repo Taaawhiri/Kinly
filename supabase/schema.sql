@@ -797,6 +797,12 @@ drop policy if exists "circles_update_creator" on public.circles;
 create policy "circles_update_creator" on public.circles
   for update using (created_by = auth.uid()) with check (created_by = auth.uid());
 
+-- Eliminare l'intera cerchia (cascata su membri/aree sicure/messaggi/...)
+-- è permesso solo a chi l'ha creata.
+drop policy if exists "circles_delete_creator" on public.circles;
+create policy "circles_delete_creator" on public.circles
+  for delete using (created_by = auth.uid());
+
 -- circle_members: vedo i membri delle mie cerchie; posso aggiungermi da
 -- solo (il codice invito è già stato verificato lato client tramite
 -- find_circle_by_code, che è security definer).
@@ -811,6 +817,12 @@ create policy "circle_members_insert_self" on public.circle_members
 drop policy if exists "circle_members_delete_self" on public.circle_members;
 create policy "circle_members_delete_self" on public.circle_members
   for delete using (profile_id = auth.uid());
+
+-- Chi ha creato la cerchia può rimuovere anche un altro membro (non solo
+-- se stesso): serve per "Gestisci membri" nel dettaglio cerchia.
+drop policy if exists "circle_members_delete_by_creator" on public.circle_members;
+create policy "circle_members_delete_by_creator" on public.circle_members
+  for delete using (circle_id in (select id from public.circles where created_by = auth.uid()));
 
 -- locations: la mia posizione, o quella di chi la condivide con me secondo
 -- la sua modalità (automatica / su richiesta approvata).

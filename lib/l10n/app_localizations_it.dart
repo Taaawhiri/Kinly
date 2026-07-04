@@ -502,6 +502,72 @@ class AppLocalizationsIt extends AppLocalizations {
   String get circlesDetailActionsTitle => 'Azioni';
 
   @override
+  String get circlesActionManageMembers => 'Gestisci membri';
+
+  @override
+  String circlesYouLabel(String name) {
+    return '$name (tu)';
+  }
+
+  @override
+  String get circlesRemoveMemberButton => 'Rimuovi';
+
+  @override
+  String circlesRemoveMemberConfirmTitle(String name) {
+    return 'Rimuovere $name?';
+  }
+
+  @override
+  String circlesRemoveMemberConfirmBody(String name) {
+    return '$name non farà più parte di questa cerchia e non potrà più vedere né condividere la posizione con gli altri membri.';
+  }
+
+  @override
+  String get circlesRemoveMemberConfirmButton => 'Rimuovi';
+
+  @override
+  String get circlesRemoveMemberError =>
+      'Non siamo riusciti a rimuovere questo membro. Riprova.';
+
+  @override
+  String get circlesLeaveTile => 'Esci dalla cerchia';
+
+  @override
+  String circlesLeaveConfirmTitle(String name) {
+    return 'Uscire da \"$name\"?';
+  }
+
+  @override
+  String get circlesLeaveConfirmBody =>
+      'Non farai più parte di questa cerchia: non potrai più vedere né condividere la posizione con gli altri membri. Per rientrare ti servirà un nuovo codice invito.';
+
+  @override
+  String get circlesLeaveConfirmButton => 'Esci';
+
+  @override
+  String get circlesLeaveError =>
+      'Non siamo riusciti a farti uscire dalla cerchia. Riprova.';
+
+  @override
+  String get circlesDeleteTile => 'Elimina cerchia';
+
+  @override
+  String circlesDeleteConfirmTitle(String name) {
+    return 'Eliminare \"$name\"?';
+  }
+
+  @override
+  String get circlesDeleteConfirmBody =>
+      'Cancella per sempre aree sicure, punti d\'incontro, messaggi, spese e tutto il resto legato a questa cerchia, per tutti i membri. Non si può annullare.';
+
+  @override
+  String get circlesDeleteConfirmButton => 'Elimina';
+
+  @override
+  String get circlesDeleteError =>
+      'Non siamo riusciti a eliminare la cerchia. Riprova.';
+
+  @override
   String get meetingPointTitle => 'Punto d\'incontro';
 
   @override

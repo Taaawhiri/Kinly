@@ -281,6 +281,27 @@ class KinlyRepository {
     }
   }
 
+  /// Solo chi ha creato la cerchia può rimuovere un altro membro (impone la
+  /// RLS "circle_members_delete_by_creator"): se lo tenta chiunque altro,
+  /// la delete non tocca nessuna riga senza sollevare errore.
+  Future<void> removeCircleMember({required String circleId, required String profileId}) async {
+    await supabase.from('circle_members').delete().eq('circle_id', circleId).eq('profile_id', profileId);
+  }
+
+  /// Esco da una cerchia (rimuovo solo la mia riga). Chi l'ha creata non può
+  /// usare questa via: dovrebbe eliminarla (vedi deleteCircle), altrimenti
+  /// resterebbe una cerchia senza nessuno che può più modificarla.
+  Future<void> leaveCircle(String circleId) async {
+    await supabase.from('circle_members').delete().eq('circle_id', circleId).eq('profile_id', _myId);
+  }
+
+  /// Elimina l'intera cerchia (solo chi l'ha creata, RLS "circles_delete_creator"):
+  /// cancella a cascata membri, aree sicure, punti d'incontro, messaggi,
+  /// spese e tutto il resto legato a questa cerchia, per tutti i membri.
+  Future<void> deleteCircle(String circleId) async {
+    await supabase.from('circles').delete().eq('id', circleId);
+  }
+
   // ---------------------------------------------------------------------
   // Posizione
   // ---------------------------------------------------------------------

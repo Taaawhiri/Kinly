@@ -80,6 +80,72 @@ class _CircleDetailBody extends StatelessWidget {
     }
   }
 
+  void _openManageMembers(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetContext) => _ManageMembersSheet(circleId: circle.id),
+    );
+  }
+
+  Future<void> _confirmAndLeaveCircle(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(l10n.circlesLeaveConfirmTitle(circle.name)),
+        content: Text(l10n.circlesLeaveConfirmBody),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonCancel)),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.accentCoral),
+            child: Text(l10n.circlesLeaveConfirmButton),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await AppState.instance.leaveCircle(circle.id);
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.circlesLeaveError)));
+      }
+    }
+  }
+
+  Future<void> _confirmAndDeleteCircle(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(l10n.circlesDeleteConfirmTitle(circle.name)),
+        content: Text(l10n.circlesDeleteConfirmBody),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonCancel)),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.accentCoral),
+            child: Text(l10n.circlesDeleteConfirmButton),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await AppState.instance.deleteCircle(circle.id);
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.circlesDeleteError)));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -204,6 +270,14 @@ class _CircleDetailBody extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
+                if (isCreator) ...[
+                  _DetailActionTile(
+                    icon: Icons.people_alt_outlined,
+                    label: l10n.circlesActionManageMembers,
+                    onTap: () => _openManageMembers(context),
+                  ),
+                  _DetailActionDivider(),
+                ],
                 _DetailActionTile(
                   icon: Icons.fence_rounded,
                   label: l10n.circlesActionSafeZones,
@@ -248,8 +322,108 @@ class _CircleDetailBody extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: 20),
+          Container(
+            decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(18)),
+            clipBehavior: Clip.antiAlias,
+            child: isCreator
+                ? _DangerActionTile(
+                    icon: Icons.delete_forever_rounded,
+                    label: l10n.circlesDeleteTile,
+                    onTap: () => _confirmAndDeleteCircle(context),
+                  )
+                : _DangerActionTile(
+                    icon: Icons.logout_rounded,
+                    label: l10n.circlesLeaveTile,
+                    onTap: () => _confirmAndLeaveCircle(context),
+                  ),
+          ),
         ],
       ),
+    );
+  }
+}
+
+/// Elenco dei membri per chi ha creato la cerchia, con la possibilità di
+/// rimuoverne uno (mai se stesso: dovrebbe eliminare la cerchia, non
+/// lasciarla senza nessuno che può più modificarla — vedi deleteCircle).
+class _ManageMembersSheet extends StatelessWidget {
+  const _ManageMembersSheet({required this.circleId});
+  final String circleId;
+
+  Future<void> _confirmAndRemove(BuildContext context, Person person) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(l10n.circlesRemoveMemberConfirmTitle(person.name)),
+        content: Text(l10n.circlesRemoveMemberConfirmBody(person.name)),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonCancel)),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.accentCoral),
+            child: Text(l10n.circlesRemoveMemberConfirmButton),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await AppState.instance.removeCircleMember(circleId: circleId, profileId: person.id);
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.circlesRemoveMemberError)));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: AppState.instance,
+      builder: (context, _) {
+        final l10n = AppLocalizations.of(context)!;
+        final circle = AppState.instance.circleById(circleId);
+        if (circle == null) return const SizedBox.shrink();
+        final members = circle.memberIds.map(AppState.instance.personById).whereType<Person>().toList();
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.circlesActionManageMembers, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+                const SizedBox(height: 14),
+                for (final person in members)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Row(
+                      children: [
+                        PersonAvatar(person: person, size: 38),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            person.isMe ? l10n.circlesYouLabel(person.name) : person.name,
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary),
+                          ),
+                        ),
+                        if (!person.isMe)
+                          TextButton(
+                            onPressed: () => _confirmAndRemove(context, person),
+                            style: TextButton.styleFrom(foregroundColor: AppTheme.accentCoral),
+                            child: Text(l10n.circlesRemoveMemberButton),
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -281,6 +455,39 @@ class _DetailActionTile extends StatelessWidget {
             const SizedBox(width: 14),
             Expanded(child: Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5, color: AppTheme.textPrimary))),
             Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Stile diverso apposta dalle altre azioni (rosso, sua card separata): sono
+/// le uniche due irreversibili o quasi di questa schermata (uscire da una
+/// cerchia richiede un nuovo invito per rientrare, eliminarla è permanente).
+class _DangerActionTile extends StatelessWidget {
+  const _DangerActionTile({required this.icon, required this.label, required this.onTap});
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: AppTheme.accentCoral.withOpacity(0.12)),
+              alignment: Alignment.center,
+              child: Icon(icon, color: AppTheme.accentCoral, size: 18),
+            ),
+            const SizedBox(width: 14),
+            Expanded(child: Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5, color: AppTheme.accentCoral))),
           ],
         ),
       ),

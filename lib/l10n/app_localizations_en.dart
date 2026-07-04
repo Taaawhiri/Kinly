@@ -501,6 +501,72 @@ class AppLocalizationsEn extends AppLocalizations {
   String get circlesDetailActionsTitle => 'Actions';
 
   @override
+  String get circlesActionManageMembers => 'Manage members';
+
+  @override
+  String circlesYouLabel(String name) {
+    return '$name (you)';
+  }
+
+  @override
+  String get circlesRemoveMemberButton => 'Remove';
+
+  @override
+  String circlesRemoveMemberConfirmTitle(String name) {
+    return 'Remove $name?';
+  }
+
+  @override
+  String circlesRemoveMemberConfirmBody(String name) {
+    return '$name will no longer be part of this circle and won\'t be able to see or share location with the other members.';
+  }
+
+  @override
+  String get circlesRemoveMemberConfirmButton => 'Remove';
+
+  @override
+  String get circlesRemoveMemberError =>
+      'We couldn\'t remove this member. Please try again.';
+
+  @override
+  String get circlesLeaveTile => 'Leave circle';
+
+  @override
+  String circlesLeaveConfirmTitle(String name) {
+    return 'Leave \"$name\"?';
+  }
+
+  @override
+  String get circlesLeaveConfirmBody =>
+      'You\'ll no longer be part of this circle: you won\'t be able to see or share location with the other members. You\'ll need a new invite code to rejoin.';
+
+  @override
+  String get circlesLeaveConfirmButton => 'Leave';
+
+  @override
+  String get circlesLeaveError =>
+      'We couldn\'t remove you from the circle. Please try again.';
+
+  @override
+  String get circlesDeleteTile => 'Delete circle';
+
+  @override
+  String circlesDeleteConfirmTitle(String name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String get circlesDeleteConfirmBody =>
+      'Permanently deletes safe zones, meeting points, messages, expenses and everything else tied to this circle, for every member. This can\'t be undone.';
+
+  @override
+  String get circlesDeleteConfirmButton => 'Delete';
+
+  @override
+  String get circlesDeleteError =>
+      'We couldn\'t delete the circle. Please try again.';
+
+  @override
   String get meetingPointTitle => 'Meeting point';
 
   @override

@@ -932,6 +932,108 @@ abstract class AppLocalizations {
   /// **'Azioni'**
   String get circlesDetailActionsTitle;
 
+  /// No description provided for @circlesActionManageMembers.
+  ///
+  /// In it, this message translates to:
+  /// **'Gestisci membri'**
+  String get circlesActionManageMembers;
+
+  /// No description provided for @circlesYouLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'{name} (tu)'**
+  String circlesYouLabel(String name);
+
+  /// No description provided for @circlesRemoveMemberButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Rimuovi'**
+  String get circlesRemoveMemberButton;
+
+  /// No description provided for @circlesRemoveMemberConfirmTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Rimuovere {name}?'**
+  String circlesRemoveMemberConfirmTitle(String name);
+
+  /// No description provided for @circlesRemoveMemberConfirmBody.
+  ///
+  /// In it, this message translates to:
+  /// **'{name} non farà più parte di questa cerchia e non potrà più vedere né condividere la posizione con gli altri membri.'**
+  String circlesRemoveMemberConfirmBody(String name);
+
+  /// No description provided for @circlesRemoveMemberConfirmButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Rimuovi'**
+  String get circlesRemoveMemberConfirmButton;
+
+  /// No description provided for @circlesRemoveMemberError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a rimuovere questo membro. Riprova.'**
+  String get circlesRemoveMemberError;
+
+  /// No description provided for @circlesLeaveTile.
+  ///
+  /// In it, this message translates to:
+  /// **'Esci dalla cerchia'**
+  String get circlesLeaveTile;
+
+  /// No description provided for @circlesLeaveConfirmTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Uscire da \"{name}\"?'**
+  String circlesLeaveConfirmTitle(String name);
+
+  /// No description provided for @circlesLeaveConfirmBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Non farai più parte di questa cerchia: non potrai più vedere né condividere la posizione con gli altri membri. Per rientrare ti servirà un nuovo codice invito.'**
+  String get circlesLeaveConfirmBody;
+
+  /// No description provided for @circlesLeaveConfirmButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Esci'**
+  String get circlesLeaveConfirmButton;
+
+  /// No description provided for @circlesLeaveError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a farti uscire dalla cerchia. Riprova.'**
+  String get circlesLeaveError;
+
+  /// No description provided for @circlesDeleteTile.
+  ///
+  /// In it, this message translates to:
+  /// **'Elimina cerchia'**
+  String get circlesDeleteTile;
+
+  /// No description provided for @circlesDeleteConfirmTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Eliminare \"{name}\"?'**
+  String circlesDeleteConfirmTitle(String name);
+
+  /// No description provided for @circlesDeleteConfirmBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Cancella per sempre aree sicure, punti d\'incontro, messaggi, spese e tutto il resto legato a questa cerchia, per tutti i membri. Non si può annullare.'**
+  String get circlesDeleteConfirmBody;
+
+  /// No description provided for @circlesDeleteConfirmButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Elimina'**
+  String get circlesDeleteConfirmButton;
+
+  /// No description provided for @circlesDeleteError.
+  ///
+  /// In it, this message translates to:
+  /// **'Non siamo riusciti a eliminare la cerchia. Riprova.'**
+  String get circlesDeleteError;
+
   /// No description provided for @meetingPointTitle.
   ///
   /// In it, this message translates to:
