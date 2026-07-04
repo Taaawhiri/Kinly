@@ -2726,6 +2726,12 @@ abstract class AppLocalizations {
   /// **'Batteria {percent}%'**
   String personBatteryPercent(int percent);
 
+  /// No description provided for @personGetDirections.
+  ///
+  /// In it, this message translates to:
+  /// **'Portami da {name}'**
+  String personGetDirections(String name);
+
   /// No description provided for @personRadarLink.
   ///
   /// In it, this message translates to:

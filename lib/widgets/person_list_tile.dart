@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
+import '../utils/battery_icon.dart';
 import 'person_avatar.dart';
 import 'sharing_mode_badge.dart';
 
@@ -50,7 +51,26 @@ class PersonListTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(person.name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.textPrimary)),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          person.name,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.textPrimary),
+                        ),
+                      ),
+                      if (canSeeLocation && person.batteryPercent > 0) ...[
+                        const SizedBox(width: 6),
+                        Icon(batteryIconFor(person.batteryPercent), size: 13, color: AppTheme.textSecondary),
+                        const SizedBox(width: 2),
+                        Text(
+                          '${person.batteryPercent}%',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                        ),
+                      ],
+                    ],
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     canSeeLocation ? '${person.address} · ${person.lastUpdateLabel(l10n)}' : person.address,

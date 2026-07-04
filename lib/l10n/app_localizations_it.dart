@@ -1538,6 +1538,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String personGetDirections(String name) {
+    return 'Portami da $name';
+  }
+
+  @override
   String get personRadarLink => 'Radar di prossimità';
 
   @override

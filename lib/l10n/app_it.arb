@@ -514,6 +514,8 @@
   "@personUpdatedAt": {"placeholders": {"label": {"type": "String"}}},
   "personBatteryPercent": "Batteria {percent}%",
   "@personBatteryPercent": {"placeholders": {"percent": {"type": "int"}}},
+  "personGetDirections": "Portami da {name}",
+  "@personGetDirections": {"placeholders": {"name": {"type": "String"}}},
   "personRadarLink": "Radar di prossimità",
   "personLocationHistoryLink": "Cronologia posizioni",
   "personStatisticsLink": "Statistiche e itinerari",

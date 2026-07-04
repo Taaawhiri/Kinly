@@ -154,6 +154,9 @@ class KinlyWidgetProvider : AppWidgetProvider() {
                         views.setViewVisibility(R.id.widget_solo_group, View.VISIBLE)
                         views.setTextViewText(R.id.widget_solo_name, name1)
                         views.setTextViewText(R.id.widget_solo_sub, prefs.getString("${prefix}sub1", "") ?: "")
+                        val soloBattery = prefs.getString("${prefix}battery1", "") ?: ""
+                        views.setTextViewText(R.id.widget_solo_battery, soloBattery)
+                        views.setViewVisibility(R.id.widget_solo_battery, if (soloBattery.isEmpty()) View.GONE else View.VISIBLE)
                         views.setInt(R.id.widget_solo_dot, "setColorFilter", parseDotColor(prefs.getString("${prefix}color1", null)))
                         val personId = prefs.getString("${prefix}id1", null)
                         if (!personId.isNullOrEmpty()) {
@@ -169,24 +172,24 @@ class KinlyWidgetProvider : AppWidgetProvider() {
                             views, context,
                             rowId = R.id.widget_row1, dividerId = null, dotId = R.id.widget_dot1,
                             textGroupId = R.id.widget_text_group1, barsGroupId = R.id.widget_bars_group1,
-                            nameId = R.id.widget_name1, subId = R.id.widget_sub1,
-                            name = name1, sub = prefs.getString("${prefix}sub1", "") ?: "",
+                            nameId = R.id.widget_name1, subId = R.id.widget_sub1, batteryId = R.id.widget_battery1,
+                            name = name1, sub = prefs.getString("${prefix}sub1", "") ?: "", battery = prefs.getString("${prefix}battery1", "") ?: "",
                             personId = prefs.getString("${prefix}id1", null), colorHex = prefs.getString("${prefix}color1", null),
                         )
                         setDataRow(
                             views, context,
                             rowId = R.id.widget_row2, dividerId = R.id.widget_divider2, dotId = R.id.widget_dot2,
                             textGroupId = R.id.widget_text_group2, barsGroupId = R.id.widget_bars_group2,
-                            nameId = R.id.widget_name2, subId = R.id.widget_sub2,
-                            name = name2, sub = prefs.getString("${prefix}sub2", "") ?: "",
+                            nameId = R.id.widget_name2, subId = R.id.widget_sub2, batteryId = R.id.widget_battery2,
+                            name = name2, sub = prefs.getString("${prefix}sub2", "") ?: "", battery = prefs.getString("${prefix}battery2", "") ?: "",
                             personId = prefs.getString("${prefix}id2", null), colorHex = prefs.getString("${prefix}color2", null),
                         )
                         setDataRow(
                             views, context,
                             rowId = R.id.widget_row3, dividerId = R.id.widget_divider3, dotId = R.id.widget_dot3,
                             textGroupId = R.id.widget_text_group3, barsGroupId = R.id.widget_bars_group3,
-                            nameId = R.id.widget_name3, subId = R.id.widget_sub3,
-                            name = name3, sub = prefs.getString("${prefix}sub3", "") ?: "",
+                            nameId = R.id.widget_name3, subId = R.id.widget_sub3, batteryId = R.id.widget_battery3,
+                            name = name3, sub = prefs.getString("${prefix}sub3", "") ?: "", battery = prefs.getString("${prefix}battery3", "") ?: "",
                             personId = prefs.getString("${prefix}id3", null), colorHex = prefs.getString("${prefix}color3", null),
                         )
                     }
@@ -264,8 +267,10 @@ class KinlyWidgetProvider : AppWidgetProvider() {
         barsGroupId: Int,
         nameId: Int,
         subId: Int,
+        batteryId: Int,
         name: String,
         sub: String,
+        battery: String,
         personId: String?,
         colorHex: String?,
     ) {
@@ -280,6 +285,8 @@ class KinlyWidgetProvider : AppWidgetProvider() {
         views.setViewVisibility(textGroupId, View.VISIBLE)
         views.setTextViewText(nameId, name)
         views.setTextViewText(subId, sub)
+        views.setTextViewText(batteryId, battery)
+        views.setViewVisibility(batteryId, if (battery.isEmpty()) View.GONE else View.VISIBLE)
         views.setInt(dotId, "setColorFilter", parseDotColor(colorHex))
         if (!personId.isNullOrEmpty()) {
             views.setOnClickPendingIntent(

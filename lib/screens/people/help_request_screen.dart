@@ -6,6 +6,7 @@ import '../../models/help_request.dart';
 import '../../models/person.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/directions_launcher.dart';
 import '../../widgets/kinly_map.dart';
 
 /// Dettaglio di una richiesta di aiuto: motivo, nota opzionale e posizione.
@@ -130,6 +131,15 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
                         icon: const Icon(Icons.call_rounded, size: 18),
                         label: Text(l10n.sosCallPerson(widget.person.name)),
                         style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52), backgroundColor: AppTheme.accentAmber),
+                      ),
+                    ],
+                    if (!isMine) ...[
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: () => openDirectionsTo(widget.request.lat, widget.request.lng),
+                        icon: const Icon(Icons.directions_rounded, size: 18),
+                        label: Text(l10n.personGetDirections(widget.person.name)),
+                        style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
                       ),
                     ],
                     if (isMine) ...[

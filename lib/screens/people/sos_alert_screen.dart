@@ -6,6 +6,7 @@ import '../../models/person.dart';
 import '../../models/sos_alert.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/directions_launcher.dart';
 import '../../widgets/kinly_map.dart';
 
 /// Dettaglio di un SOS: solo posizione (arrotondata mai, è un'emergenza),
@@ -136,6 +137,15 @@ class _SosAlertScreenState extends State<SosAlertScreen> {
                         icon: const Icon(Icons.call_rounded, size: 18),
                         label: Text(l10n.sosCallPerson(widget.person.name)),
                         style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52), backgroundColor: AppTheme.accentCoral),
+                      ),
+                    ],
+                    if (!isMine) ...[
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: () => openDirectionsTo(widget.alert.lat, widget.alert.lng),
+                        icon: const Icon(Icons.directions_rounded, size: 18),
+                        label: Text(l10n.personGetDirections(widget.person.name)),
+                        style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
                       ),
                     ],
                     if (isMine) ...[

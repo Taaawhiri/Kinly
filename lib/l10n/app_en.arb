@@ -463,6 +463,7 @@
   "personBirthdayToday": "🎂 Today is their birthday!",
   "personUpdatedAt": "Updated {label}",
   "personBatteryPercent": "Battery {percent}%",
+  "personGetDirections": "Get directions to {name}",
   "personRadarLink": "Proximity radar",
   "personLocationHistoryLink": "Location history",
   "personStatisticsLink": "Statistics and trips",

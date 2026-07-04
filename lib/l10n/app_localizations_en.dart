@@ -1534,6 +1534,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String personGetDirections(String name) {
+    return 'Get directions to $name';
+  }
+
+  @override
   String get personRadarLink => 'Proximity radar';
 
   @override

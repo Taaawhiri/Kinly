@@ -6,6 +6,8 @@ import '../../models/sharing_mode.dart';
 import '../../services/kinly_repository.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/battery_icon.dart';
+import '../../utils/directions_launcher.dart';
 import '../../widgets/kinly_map.dart';
 import '../../widgets/sharing_mode_badge.dart';
 import '../../widgets/weather_card.dart';
@@ -83,7 +85,16 @@ class PersonDetailScreen extends StatelessWidget {
                         const SizedBox(height: 14),
                         if (canSee) _InfoRow(icon: Icons.access_time, label: l10n.personUpdatedAt(person.lastUpdateLabel(l10n))),
                         if (canSee) const SizedBox(height: 10),
-                        if (canSee) _InfoRow(icon: _batteryIcon(person.batteryPercent), label: l10n.personBatteryPercent(person.batteryPercent)),
+                        if (canSee) _InfoRow(icon: batteryIconFor(person.batteryPercent), label: l10n.personBatteryPercent(person.batteryPercent)),
+                        if (!person.isMe && canSee && person.lat != null && person.lng != null) ...[
+                          const SizedBox(height: 14),
+                          OutlinedButton.icon(
+                            onPressed: () => openDirectionsTo(person.lat!, person.lng!),
+                            icon: const Icon(Icons.directions_rounded, size: 18),
+                            label: Text(l10n.personGetDirections(person.name)),
+                            style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                          ),
+                        ],
                         if (canSee && person.lat != null && person.lng != null) ...[
                           const SizedBox(height: 14),
                           WeatherCard(lat: person.lat!, lng: person.lng!),
@@ -174,13 +185,6 @@ class PersonDetailScreen extends StatelessWidget {
       label: Text(alreadyRequested ? l10n.personRequestSent : l10n.personRequestLocation),
       style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
     );
-  }
-
-  IconData _batteryIcon(int percent) {
-    if (percent >= 80) return Icons.battery_full;
-    if (percent >= 40) return Icons.battery_5_bar;
-    if (percent >= 15) return Icons.battery_2_bar;
-    return Icons.battery_alert;
   }
 }
 

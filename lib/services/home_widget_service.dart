@@ -76,6 +76,10 @@ class HomeWidgetService {
               '${prefix}sub$n',
               '${p.address.isEmpty ? '—' : p.address} · ${p.lastUpdateLabel(l10n)}',
             );
+            // batteryPercent == 0 significa "mai riportata", non "scarica al
+            // 100%": in quel caso non scriviamo nulla e il lato Android
+            // nasconde del tutto l'etichetta invece di mostrare "🔋 0%".
+            await HomeWidget.saveWidgetData<String>('${prefix}battery$n', p.batteryPercent > 0 ? '🔋 ${p.batteryPercent}%' : '');
             await HomeWidget.saveWidgetData<String>('${prefix}id$n', p.id);
             await HomeWidget.saveWidgetData<String>('${prefix}color$n', p.color.toHex());
           } else {

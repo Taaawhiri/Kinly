@@ -221,15 +221,33 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
 
-                        <TextView
-                            android:id="@+id/widget_name1"
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textSize="13.5sp"
-                            android:textStyle="bold"
-                            android:maxLines="1"
-                            android:ellipsize="end"
-                            android:textColor="#222533" />
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:id="@+id/widget_name1"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:textSize="13.5sp"
+                                android:textStyle="bold"
+                                android:maxLines="1"
+                                android:ellipsize="end"
+                                android:textColor="#222533" />
+
+                            <TextView
+                                android:id="@+id/widget_battery1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:textSize="10.5sp"
+                                android:textStyle="bold"
+                                android:includeFontPadding="false"
+                                android:textColor="#8A90A6" />
+                        </LinearLayout>
 
                         <TextView
                             android:id="@+id/widget_sub1"
@@ -303,15 +321,33 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
 
-                        <TextView
-                            android:id="@+id/widget_name2"
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textSize="13.5sp"
-                            android:textStyle="bold"
-                            android:maxLines="1"
-                            android:ellipsize="end"
-                            android:textColor="#222533" />
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:id="@+id/widget_name2"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:textSize="13.5sp"
+                                android:textStyle="bold"
+                                android:maxLines="1"
+                                android:ellipsize="end"
+                                android:textColor="#222533" />
+
+                            <TextView
+                                android:id="@+id/widget_battery2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:textSize="10.5sp"
+                                android:textStyle="bold"
+                                android:includeFontPadding="false"
+                                android:textColor="#8A90A6" />
+                        </LinearLayout>
 
                         <TextView
                             android:id="@+id/widget_sub2"
@@ -385,15 +421,33 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
 
-                        <TextView
-                            android:id="@+id/widget_name3"
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textSize="13.5sp"
-                            android:textStyle="bold"
-                            android:maxLines="1"
-                            android:ellipsize="end"
-                            android:textColor="#222533" />
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:id="@+id/widget_name3"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:textSize="13.5sp"
+                                android:textStyle="bold"
+                                android:maxLines="1"
+                                android:ellipsize="end"
+                                android:textColor="#222533" />
+
+                            <TextView
+                                android:id="@+id/widget_battery3"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:textSize="10.5sp"
+                                android:textStyle="bold"
+                                android:includeFontPadding="false"
+                                android:textColor="#8A90A6" />
+                        </LinearLayout>
 
                         <TextView
                             android:id="@+id/widget_sub3"
@@ -464,15 +518,33 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/widget_solo_name"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:textColor="#222533" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/widget_solo_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textColor="#222533" />
+
+                    <TextView
+                        android:id="@+id/widget_solo_battery"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold"
+                        android:includeFontPadding="false"
+                        android:textColor="#8A90A6" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/widget_solo_sub"
