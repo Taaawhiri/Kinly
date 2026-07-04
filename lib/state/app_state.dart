@@ -822,8 +822,11 @@ class AppState extends ChangeNotifier {
     required double lng,
     required int radiusMeters,
     required SafeZoneKind kind,
+    required SafeZoneType zoneType,
   }) async {
-    await _repo.createSafeZone(circleId: circleId, name: name, lat: lat, lng: lng, radiusMeters: radiusMeters, kind: kind);
+    await _repo.createSafeZone(
+      circleId: circleId, name: name, lat: lat, lng: lng, radiusMeters: radiusMeters, kind: kind, zoneType: zoneType,
+    );
     await _refreshData();
     notifyListeners();
   }
@@ -835,8 +838,11 @@ class AppState extends ChangeNotifier {
     required double lng,
     required int radiusMeters,
     required SafeZoneKind kind,
+    required SafeZoneType zoneType,
   }) async {
-    await _repo.updateSafeZone(zoneId: zoneId, name: name, lat: lat, lng: lng, radiusMeters: radiusMeters, kind: kind);
+    await _repo.updateSafeZone(
+      zoneId: zoneId, name: name, lat: lat, lng: lng, radiusMeters: radiusMeters, kind: kind, zoneType: zoneType,
+    );
     await _refreshData();
     notifyListeners();
   }

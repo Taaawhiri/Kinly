@@ -2022,6 +2022,46 @@ class AppLocalizationsIt extends AppLocalizations {
   String get safeZonesCreateButton => 'Crea area';
 
   @override
+  String get safeZoneTypeSafe => 'Sicura';
+
+  @override
+  String get safeZoneTypeDanger => 'Pericolosa';
+
+  @override
+  String get safeZonesAreaTypeLabel => 'Tipo di area';
+
+  @override
+  String get safeZonesNewTitleDanger => 'Nuova zona pericolosa';
+
+  @override
+  String get safeZonesEditTitleDanger => 'Modifica zona pericolosa';
+
+  @override
+  String get safeZonesCreateButtonDanger => 'Crea zona pericolosa';
+
+  @override
+  String get safeZonesMapDrawHint =>
+      'Sposta la mappa per posizionare il centro, poi regola il raggio qui sotto.';
+
+  @override
+  String safeZonesFilterAll(int count) {
+    return 'Tutte · $count';
+  }
+
+  @override
+  String safeZonesFilterSafe(int count) {
+    return 'Sicure · $count';
+  }
+
+  @override
+  String safeZonesFilterDanger(int count) {
+    return 'Pericolose · $count';
+  }
+
+  @override
+  String get safeZonesFilterEmptyMessage => 'Nessuna area in questa categoria.';
+
+  @override
   String get historyDeleteConfirmTitle => 'Cancellare la cronologia?';
 
   @override
@@ -2396,6 +2436,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get safeZoneKindOther => 'Altro';
+
+  @override
+  String get safeZoneKindRoad => 'Strada trafficata';
+
+  @override
+  String get safeZoneKindIsolated => 'Zona isolata';
+
+  @override
+  String get safeZoneKindWater => 'Corso d\'acqua';
 
   @override
   String get personLastUpdateNow => 'Proprio ora';

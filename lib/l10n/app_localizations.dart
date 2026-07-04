@@ -3536,6 +3536,72 @@ abstract class AppLocalizations {
   /// **'Crea area'**
   String get safeZonesCreateButton;
 
+  /// No description provided for @safeZoneTypeSafe.
+  ///
+  /// In it, this message translates to:
+  /// **'Sicura'**
+  String get safeZoneTypeSafe;
+
+  /// No description provided for @safeZoneTypeDanger.
+  ///
+  /// In it, this message translates to:
+  /// **'Pericolosa'**
+  String get safeZoneTypeDanger;
+
+  /// No description provided for @safeZonesAreaTypeLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Tipo di area'**
+  String get safeZonesAreaTypeLabel;
+
+  /// No description provided for @safeZonesNewTitleDanger.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuova zona pericolosa'**
+  String get safeZonesNewTitleDanger;
+
+  /// No description provided for @safeZonesEditTitleDanger.
+  ///
+  /// In it, this message translates to:
+  /// **'Modifica zona pericolosa'**
+  String get safeZonesEditTitleDanger;
+
+  /// No description provided for @safeZonesCreateButtonDanger.
+  ///
+  /// In it, this message translates to:
+  /// **'Crea zona pericolosa'**
+  String get safeZonesCreateButtonDanger;
+
+  /// No description provided for @safeZonesMapDrawHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Sposta la mappa per posizionare il centro, poi regola il raggio qui sotto.'**
+  String get safeZonesMapDrawHint;
+
+  /// No description provided for @safeZonesFilterAll.
+  ///
+  /// In it, this message translates to:
+  /// **'Tutte · {count}'**
+  String safeZonesFilterAll(int count);
+
+  /// No description provided for @safeZonesFilterSafe.
+  ///
+  /// In it, this message translates to:
+  /// **'Sicure · {count}'**
+  String safeZonesFilterSafe(int count);
+
+  /// No description provided for @safeZonesFilterDanger.
+  ///
+  /// In it, this message translates to:
+  /// **'Pericolose · {count}'**
+  String safeZonesFilterDanger(int count);
+
+  /// No description provided for @safeZonesFilterEmptyMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna area in questa categoria.'**
+  String get safeZonesFilterEmptyMessage;
+
   /// No description provided for @historyDeleteConfirmTitle.
   ///
   /// In it, this message translates to:
@@ -4177,6 +4243,24 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Altro'**
   String get safeZoneKindOther;
+
+  /// No description provided for @safeZoneKindRoad.
+  ///
+  /// In it, this message translates to:
+  /// **'Strada trafficata'**
+  String get safeZoneKindRoad;
+
+  /// No description provided for @safeZoneKindIsolated.
+  ///
+  /// In it, this message translates to:
+  /// **'Zona isolata'**
+  String get safeZoneKindIsolated;
+
+  /// No description provided for @safeZoneKindWater.
+  ///
+  /// In it, this message translates to:
+  /// **'Corso d\'acqua'**
+  String get safeZoneKindWater;
 
   /// No description provided for @personLastUpdateNow.
   ///

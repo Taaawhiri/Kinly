@@ -195,6 +195,30 @@ function zoneNotificationText(
   }
 }
 
+/// Testo per una zona PERICOLOSA: semantica invertita rispetto a un'area
+/// sicura. L'evento importante è l'ingresso (allarmante, con un'emoji di
+/// attenzione), l'uscita è solo una conferma rassicurante — a differenza di
+/// "casa/lavoro/scuola" qui non personalizziamo per "kind" (strada/zona
+/// isolata/corso d'acqua...), il nome della zona scelto dall'utente basta.
+function dangerZoneNotificationText(
+  zoneName: string,
+  personName: string,
+  entering: boolean,
+): { emoji: string; title: string; body: string } {
+  if (entering) {
+    return {
+      emoji: '⚠️',
+      title: 'Zona a rischio',
+      body: `${personName} è entrato/a in "${zoneName}", una zona che avevi segnato come pericolosa.`,
+    };
+  }
+  return {
+    emoji: '✅',
+    title: 'Zona a rischio',
+    body: `${personName} ha lasciato "${zoneName}".`,
+  };
+}
+
 /// Testo per un ping contestuale (tocco rapido su una persona, senza
 /// scrivere): un'emoji con un significato preciso.
 function pingText(kind: string, fromName: string): { title: string; body: string } {
@@ -242,14 +266,16 @@ async function buildNotification(supabase: SupabaseClient, table: string, record
       return { recipients, title: '🆘 SOS attivato', body: `${name} ha attivato l'SOS: apri Kinly per vedere dove si trova.` };
     }
     case 'safe_zone_events': {
-      const { data: zone } = await supabase.from('safe_zones').select('name, circle_id, kind').eq('id', record.zone_id).single();
+      const { data: zone } = await supabase.from('safe_zones').select('name, circle_id, kind, zone_type').eq('id', record.zone_id).single();
       if (!zone) return null;
       const [name, recipients] = await Promise.all([
         fetchName(supabase, record.profile_id),
         circleRecipients(supabase, zone.circle_id, record.profile_id),
       ]);
       const entering = record.event_type === 'enter';
-      const { emoji, title, body } = zoneNotificationText(zone.kind, zone.name, name, entering);
+      const { emoji, title, body } = zone.zone_type === 'danger'
+        ? dangerZoneNotificationText(zone.name, name, entering)
+        : zoneNotificationText(zone.kind, zone.name, name, entering);
       return { recipients, title: `${emoji} ${title}`, body };
     }
     case 'location_requests': {

@@ -422,7 +422,7 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     if (controller == null) return;
     await controller.clearFills();
     for (final zone in widget.safeZones) {
-      final color = zone.kind.mapColor;
+      final color = zone.zoneType.color;
       final ring = circlePolygonPoints(zone.lat, zone.lng, zone.radiusMeters.toDouble());
       await controller.addFill(
         FillOptions(geometry: [ring], fillColor: color.toHex(), fillOpacity: 0.18, fillOutlineColor: color.toHex()),

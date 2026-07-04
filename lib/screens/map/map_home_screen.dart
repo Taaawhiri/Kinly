@@ -822,9 +822,9 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                   Container(
                     width: 44,
                     height: 44,
-                    decoration: BoxDecoration(shape: BoxShape.circle, color: zone.kind.mapColor.withOpacity(0.15)),
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: zone.zoneType.color.withOpacity(0.15)),
                     alignment: Alignment.center,
-                    child: Icon(zone.kind.icon, color: zone.kind.mapColor, size: 20),
+                    child: Icon(zone.kind.icon, color: zone.zoneType.color, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(

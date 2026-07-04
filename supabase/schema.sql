@@ -197,8 +197,19 @@ create table if not exists public.safe_zones (
 
 -- Tipo di luogo: usato solo per personalizzare l'icona e il testo delle
 -- notifiche push di ingresso/uscita (vedi supabase/functions/send-push).
-alter table public.safe_zones add column if not exists kind text not null default 'other'
-  check (kind in ('home', 'work', 'school', 'other'));
+-- 'road'/'isolated'/'water' sono tipi da zona pericolosa (vedi zone_type
+-- sotto), gli altri da area sicura.
+alter table public.safe_zones add column if not exists kind text not null default 'other';
+alter table public.safe_zones drop constraint if exists safe_zones_kind_check;
+alter table public.safe_zones add constraint safe_zones_kind_check
+  check (kind in ('home', 'work', 'school', 'other', 'road', 'isolated', 'water'));
+
+-- 'danger' inverte la semantica di 'safe': la notifica scatta quando si
+-- ENTRA (un luogo da evitare), non quando si esce (vedi notify_send_push
+-- e KinlyWidgetProvider/LocationTracker per la logica di rilevamento,
+-- identica per entrambi i tipi).
+alter table public.safe_zones add column if not exists zone_type text not null default 'safe'
+  check (zone_type in ('safe', 'danger'));
 
 create table if not exists public.safe_zone_events (
   id uuid primary key default gen_random_uuid(),

@@ -1,10 +1,31 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
+import '../theme/app_theme.dart';
 
-/// Tipo di luogo di un'area sicura: usato solo per scegliere un'icona e per
-/// personalizzare il testo delle notifiche push di ingresso/uscita (vedi
-/// supabase/functions/send-push).
-enum SafeZoneKind { home, work, school, other }
+/// Sicura (luogo di fiducia: casa, scuola, lavoro) o pericolosa (luogo da
+/// evitare: strada trafficata, zona isolata...). Cambia il colore sulla
+/// mappa e la semantica della notifica: una sicura avvisa quando SI ESCE
+/// o si entra come conferma, una pericolosa avvisa quando SI ENTRA (vedi
+/// supabase/functions/send-push, case 'safe_zone_events').
+enum SafeZoneType { safe, danger }
+
+extension SafeZoneTypeData on SafeZoneType {
+  String get dbValue => this == SafeZoneType.danger ? 'danger' : 'safe';
+
+  static SafeZoneType fromDb(String? value) => value == 'danger' ? SafeZoneType.danger : SafeZoneType.safe;
+
+  String label(AppLocalizations l10n) => this == SafeZoneType.danger ? l10n.safeZoneTypeDanger : l10n.safeZoneTypeSafe;
+
+  /// Colore usato per disegnare l'area sulla mappa e per i badge in lista.
+  Color get color => this == SafeZoneType.danger ? AppTheme.accentCoral : AppTheme.accentGreen;
+}
+
+/// Tipo di luogo di un'area: usato solo per scegliere un'icona e per
+/// personalizzare il testo delle notifiche push (vedi
+/// supabase/functions/send-push). home/work/school/other sono pensati per
+/// le aree sicure, road/isolated/water per le zone pericolose (ma "other"
+/// resta condiviso tra le due).
+enum SafeZoneKind { home, work, school, other, road, isolated, water }
 
 extension SafeZoneKindData on SafeZoneKind {
   String get dbValue => switch (this) {
@@ -12,6 +33,9 @@ extension SafeZoneKindData on SafeZoneKind {
         SafeZoneKind.work => 'work',
         SafeZoneKind.school => 'school',
         SafeZoneKind.other => 'other',
+        SafeZoneKind.road => 'road',
+        SafeZoneKind.isolated => 'isolated',
+        SafeZoneKind.water => 'water',
       };
 
   static SafeZoneKind fromDb(String value) {
@@ -22,16 +46,31 @@ extension SafeZoneKindData on SafeZoneKind {
         return SafeZoneKind.work;
       case 'school':
         return SafeZoneKind.school;
+      case 'road':
+        return SafeZoneKind.road;
+      case 'isolated':
+        return SafeZoneKind.isolated;
+      case 'water':
+        return SafeZoneKind.water;
       default:
         return SafeZoneKind.other;
     }
   }
+
+  /// Le scelte proposte in fase di creazione per un'area sicura.
+  static const safeKinds = [SafeZoneKind.home, SafeZoneKind.school, SafeZoneKind.work, SafeZoneKind.other];
+
+  /// Le scelte proposte in fase di creazione per una zona pericolosa.
+  static const dangerKinds = [SafeZoneKind.road, SafeZoneKind.isolated, SafeZoneKind.water, SafeZoneKind.other];
 
   String label(AppLocalizations l10n) => switch (this) {
         SafeZoneKind.home => l10n.safeZoneKindHome,
         SafeZoneKind.work => l10n.safeZoneKindWork,
         SafeZoneKind.school => l10n.safeZoneKindSchool,
         SafeZoneKind.other => l10n.safeZoneKindOther,
+        SafeZoneKind.road => l10n.safeZoneKindRoad,
+        SafeZoneKind.isolated => l10n.safeZoneKindIsolated,
+        SafeZoneKind.water => l10n.safeZoneKindWater,
       };
 
   IconData get icon => switch (this) {
@@ -39,15 +78,9 @@ extension SafeZoneKindData on SafeZoneKind {
         SafeZoneKind.work => Icons.work_rounded,
         SafeZoneKind.school => Icons.school_rounded,
         SafeZoneKind.other => Icons.fence_rounded,
-      };
-
-  /// Colore usato per disegnare l'area sulla mappa (mini mappa aree sicure e
-  /// mappa live), coerente con l'icona.
-  Color get mapColor => switch (this) {
-        SafeZoneKind.home => const Color(0xFF4A63E7),
-        SafeZoneKind.work => const Color(0xFFE7A54A),
-        SafeZoneKind.school => const Color(0xFF17924E),
-        SafeZoneKind.other => const Color(0xFF8A6DE7),
+        SafeZoneKind.road => Icons.directions_car_rounded,
+        SafeZoneKind.isolated => Icons.nightlight_round,
+        SafeZoneKind.water => Icons.water_rounded,
       };
 }
 
@@ -63,6 +96,7 @@ class SafeZone {
     required this.radiusMeters,
     required this.createdBy,
     required this.kind,
+    required this.zoneType,
   });
 
   factory SafeZone.fromRow(Map<String, dynamic> row) {
@@ -75,6 +109,7 @@ class SafeZone {
       radiusMeters: (row['radius_meters'] as num).toInt(),
       createdBy: row['created_by'] as String,
       kind: SafeZoneKindData.fromDb(row['kind'] as String? ?? 'other'),
+      zoneType: SafeZoneTypeData.fromDb(row['zone_type'] as String?),
     );
   }
 
@@ -86,6 +121,7 @@ class SafeZone {
   final int radiusMeters;
   final String createdBy;
   final SafeZoneKind kind;
+  final SafeZoneType zoneType;
 }
 
 enum SafeZoneEventType { enter, exit }

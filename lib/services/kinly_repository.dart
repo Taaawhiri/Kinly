@@ -345,6 +345,7 @@ class KinlyRepository {
     required double lng,
     required int radiusMeters,
     required SafeZoneKind kind,
+    required SafeZoneType zoneType,
   }) async {
     try {
       await supabase.from('safe_zones').insert({
@@ -355,6 +356,7 @@ class KinlyRepository {
         'radius_meters': radiusMeters,
         'created_by': _myId,
         'kind': kind.dbValue,
+        'zone_type': zoneType.dbValue,
       });
     } on PostgrestException catch (e) {
       if (e.code == '42501') throw const FreeLimitException(FreeLimitKind.circleFull);
@@ -369,6 +371,7 @@ class KinlyRepository {
     required double lng,
     required int radiusMeters,
     required SafeZoneKind kind,
+    required SafeZoneType zoneType,
   }) async {
     await supabase.from('safe_zones').update({
       'name': name,
@@ -376,6 +379,7 @@ class KinlyRepository {
       'lng': lng,
       'radius_meters': radiusMeters,
       'kind': kind.dbValue,
+      'zone_type': zoneType.dbValue,
     }).eq('id', zoneId);
   }
 

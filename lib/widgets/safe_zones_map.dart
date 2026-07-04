@@ -52,7 +52,7 @@ class _SafeZonesMapState extends State<SafeZonesMap> {
     if (controller == null) return;
     await controller.clearFills();
     for (final zone in widget.zones) {
-      final color = zone.kind.mapColor;
+      final color = zone.zoneType.color;
       final ring = circlePolygonPoints(zone.lat, zone.lng, zone.radiusMeters.toDouble());
       await controller.addFill(
         FillOptions(

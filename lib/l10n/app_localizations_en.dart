@@ -2019,6 +2019,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get safeZonesCreateButton => 'Create zone';
 
   @override
+  String get safeZoneTypeSafe => 'Safe';
+
+  @override
+  String get safeZoneTypeDanger => 'Danger';
+
+  @override
+  String get safeZonesAreaTypeLabel => 'Zone type';
+
+  @override
+  String get safeZonesNewTitleDanger => 'New danger zone';
+
+  @override
+  String get safeZonesEditTitleDanger => 'Edit danger zone';
+
+  @override
+  String get safeZonesCreateButtonDanger => 'Create danger zone';
+
+  @override
+  String get safeZonesMapDrawHint =>
+      'Move the map to position the center, then adjust the radius below.';
+
+  @override
+  String safeZonesFilterAll(int count) {
+    return 'All · $count';
+  }
+
+  @override
+  String safeZonesFilterSafe(int count) {
+    return 'Safe · $count';
+  }
+
+  @override
+  String safeZonesFilterDanger(int count) {
+    return 'Danger · $count';
+  }
+
+  @override
+  String get safeZonesFilterEmptyMessage => 'No zones in this category.';
+
+  @override
   String get historyDeleteConfirmTitle => 'Delete history?';
 
   @override
@@ -2393,6 +2433,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get safeZoneKindOther => 'Other';
+
+  @override
+  String get safeZoneKindRoad => 'Busy road';
+
+  @override
+  String get safeZoneKindIsolated => 'Isolated area';
+
+  @override
+  String get safeZoneKindWater => 'Body of water';
 
   @override
   String get personLastUpdateNow => 'Just now';

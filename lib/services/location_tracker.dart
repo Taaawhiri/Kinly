@@ -522,8 +522,11 @@ class LocationTracker with WidgetsBindingObserver {
         }
         // "Ping d'arrivo": oltre all'evento automatico sopra (silenzioso),
         // una notifica con un pulsante per avvisare subito la cerchia con
-        // un messaggio, senza dover aprire l'app. Solo Android per ora.
-        if (isInside) {
+        // un messaggio, senza dover aprire l'app. Solo Android per ora, e
+        // solo per le aree sicure: per una zona pericolosa l'obiettivo è
+        // avvisare gli altri, non offrire a chi vi è appena entrato un
+        // pulsante "sono arrivato" che non avrebbe senso lì.
+        if (isInside && zone.zoneType == SafeZoneType.safe) {
           final l10n = lookupAppLocalizations(LocaleController.instance.locale);
           unawaited(PushNotificationService.instance.showArrivalPrompt(
             zoneId: zone.id,
