@@ -855,6 +855,27 @@ class AppLocalizationsIt extends AppLocalizations {
       'Quando qualcuno vorrà vedere la tua posizione, o tu quella di qualcun altro, la richiesta apparirà qui.';
 
   @override
+  String get requestsTabAll => 'Tutte';
+
+  @override
+  String get requestsTabHelp => 'Aiuto';
+
+  @override
+  String get requestsTabLocation => 'Posizione';
+
+  @override
+  String get requestsTabShopping => 'Spesa';
+
+  @override
+  String get requestsHelpGoTo => 'Vai alla richiesta';
+
+  @override
+  String get requestsCategoryEmpty => 'Nessuna richiesta qui per ora.';
+
+  @override
+  String get requestsShoppingSent => 'Richiesta inviata';
+
+  @override
   String get requestsCancelSentTooltip => 'Annulla richiesta';
 
   @override

@@ -853,6 +853,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'When someone wants to see your location, or you want to see theirs, the request will appear here.';
 
   @override
+  String get requestsTabAll => 'All';
+
+  @override
+  String get requestsTabHelp => 'Help';
+
+  @override
+  String get requestsTabLocation => 'Location';
+
+  @override
+  String get requestsTabShopping => 'Shopping';
+
+  @override
+  String get requestsHelpGoTo => 'Go to request';
+
+  @override
+  String get requestsCategoryEmpty => 'No requests here for now.';
+
+  @override
+  String get requestsShoppingSent => 'Request sent';
+
+  @override
   String get requestsCancelSentTooltip => 'Cancel request';
 
   @override

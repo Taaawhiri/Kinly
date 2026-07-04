@@ -54,7 +54,7 @@ class _RootShellState extends State<RootShell> {
             : ListenableBuilder(
                 listenable: AppState.instance,
                 builder: (context, _) {
-                  final pending = AppState.instance.pendingIncoming.length;
+                  final pending = AppState.instance.pendingRequestsBadgeCount;
                   final l10n = AppLocalizations.of(context)!;
                   return NavigationBar(
                     selectedIndex: _index,
@@ -80,7 +80,7 @@ class _RootShellState extends State<RootShell> {
     return ListenableBuilder(
       listenable: AppState.instance,
       builder: (context, _) {
-        final pending = AppState.instance.pendingIncoming.length;
+        final pending = AppState.instance.pendingRequestsBadgeCount;
         final l10n = AppLocalizations.of(context)!;
         return Row(
           children: [

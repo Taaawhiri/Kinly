@@ -1532,6 +1532,48 @@ abstract class AppLocalizations {
   /// **'Quando qualcuno vorrà vedere la tua posizione, o tu quella di qualcun altro, la richiesta apparirà qui.'**
   String get requestsEmptyMessage;
 
+  /// No description provided for @requestsTabAll.
+  ///
+  /// In it, this message translates to:
+  /// **'Tutte'**
+  String get requestsTabAll;
+
+  /// No description provided for @requestsTabHelp.
+  ///
+  /// In it, this message translates to:
+  /// **'Aiuto'**
+  String get requestsTabHelp;
+
+  /// No description provided for @requestsTabLocation.
+  ///
+  /// In it, this message translates to:
+  /// **'Posizione'**
+  String get requestsTabLocation;
+
+  /// No description provided for @requestsTabShopping.
+  ///
+  /// In it, this message translates to:
+  /// **'Spesa'**
+  String get requestsTabShopping;
+
+  /// No description provided for @requestsHelpGoTo.
+  ///
+  /// In it, this message translates to:
+  /// **'Vai alla richiesta'**
+  String get requestsHelpGoTo;
+
+  /// No description provided for @requestsCategoryEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna richiesta qui per ora.'**
+  String get requestsCategoryEmpty;
+
+  /// No description provided for @requestsShoppingSent.
+  ///
+  /// In it, this message translates to:
+  /// **'Richiesta inviata'**
+  String get requestsShoppingSent;
+
   /// No description provided for @requestsCancelSentTooltip.
   ///
   /// In it, this message translates to:

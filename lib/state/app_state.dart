@@ -617,6 +617,19 @@ class AppState extends ChangeNotifier {
   bool hasPendingOutgoingTo(String personId) => _requests
       .any((r) => r.personId == personId && r.direction == RequestDirection.outgoing && r.status == RequestStatus.pending);
 
+  /// Quante richieste (di qualunque tipo: posizione, aiuto, portami
+  /// qualcosa) aspettano davvero una mia risposta ora: usato per il
+  /// pallino sulla scheda Richieste, che così sparisce da solo non appena
+  /// ognuna viene gestita (approvata/rifiutata, risolta da chi l'ha
+  /// mandata, o la sosta al negozio scade).
+  int get pendingRequestsBadgeCount {
+    final myStop = myActiveShoppingStop;
+    return pendingIncoming.length +
+        activeHelpRequests.where((h) => h.profileId != me.id).length +
+        othersActiveShoppingStops.length +
+        (myStop != null ? requestsForStop(myStop.id).length : 0);
+  }
+
   Future<bool> sendLocationRequest(String personId) async {
     final sent = await _repo.sendLocationRequest(personId);
     if (sent) {
