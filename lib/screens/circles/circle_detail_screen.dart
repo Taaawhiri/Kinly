@@ -168,8 +168,9 @@ class _CircleDetailBody extends StatelessWidget {
                           // personalizzati sono cliccabili.
                           Share.share(l10n.circlesInviteShareMessage(circle.name, circle.inviteCode));
                         },
-                        icon: const Icon(Icons.ios_share_rounded, size: 17),
-                        label: Text(l10n.circlesActionInvite),
+                        icon: const Icon(Icons.ios_share_rounded, size: 16),
+                        label: Text(l10n.circlesActionInvite, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12)),
                       ),
                     ),
                     if (isCreator) ...[
@@ -177,8 +178,14 @@ class _CircleDetailBody extends StatelessWidget {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () => _confirmAndRegenerateCode(context),
-                          icon: const Icon(Icons.refresh_rounded, size: 17),
-                          label: Text(l10n.circlesActionRegenerateCode),
+                          icon: const Icon(Icons.refresh_rounded, size: 16),
+                          label: Text(
+                            l10n.circlesActionRegenerateCode,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 12.5),
+                          ),
+                          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12)),
                         ),
                       ),
                     ],
