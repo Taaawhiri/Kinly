@@ -162,15 +162,24 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
   void didUpdateWidget(covariant KinlyMap oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_styleLoaded) return;
-    if (!_samePeople(oldWidget.people, widget.people) || !_sameMeetingPoints(oldWidget.meetingPoints, widget.meetingPoints)) {
+    final peopleOrMeetingPointsChanged =
+        !_samePeople(oldWidget.people, widget.people) || !_sameMeetingPoints(oldWidget.meetingPoints, widget.meetingPoints);
+    final safeZonesChanged = !_sameSafeZones(oldWidget.safeZones, widget.safeZones);
+    final previewChanged = !_sameLatLng(oldWidget.searchPreviewPoint, widget.searchPreviewPoint);
+
+    // Una sola chiamata anche se più cose cambiano nello stesso momento
+    // (tipico al primo avvio, quando persone e aree sicure arrivano dallo
+    // stesso notifyListeners): _syncSymbols fa clearSymbols() e poi
+    // riaggiunge tutto, quindi due chiamate in corsa senza coordinarsi
+    // finivano per farsi cancellare i pin a vicenda — bug reale, non
+    // teorico, che lasciava la mappa senza nessun pin persona.
+    if (peopleOrMeetingPointsChanged || safeZonesChanged || previewChanged) {
       unawaited(_syncSymbols(fitCamera: false));
     }
-    if (!_sameSafeZones(oldWidget.safeZones, widget.safeZones)) {
+    if (safeZonesChanged) {
       unawaited(_syncSafeZoneFills());
-      unawaited(_syncSymbols(fitCamera: false));
     }
-    if (!_sameLatLng(oldWidget.searchPreviewPoint, widget.searchPreviewPoint)) {
-      unawaited(_syncSymbols(fitCamera: false));
+    if (previewChanged) {
       final point = widget.searchPreviewPoint;
       final controller = _controller;
       if (point != null && controller != null) {
@@ -215,7 +224,9 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
           a[i].lat != b[i].lat ||
           a[i].lng != b[i].lng ||
           a[i].radiusMeters != b[i].radiusMeters ||
-          a[i].kind != b[i].kind) {
+          a[i].kind != b[i].kind ||
+          a[i].zoneType != b[i].zoneType ||
+          a[i].name != b[i].name) {
         return false;
       }
     }
