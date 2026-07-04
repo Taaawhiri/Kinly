@@ -634,34 +634,42 @@ class _SimpleModeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final active = SimpleModeController.instance.enabled;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: active ? AppTheme.primary.withOpacity(0.10) : AppTheme.surfaceAlt,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: active ? AppTheme.primary.withOpacity(0.4) : Colors.transparent, width: 1.6),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.accessibility_new_rounded, color: active ? AppTheme.primary : AppTheme.textSecondary, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.simpleModeCardTitle, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
-                Text(l10n.simpleModeCardDescription, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.3)),
-              ],
-            ),
+    // Ascolta SimpleModeController in locale, così l'evidenziazione e
+    // l'interruttore si aggiornano all'istante al tocco, senza dipendere da
+    // una ricostruzione più grande.
+    return ListenableBuilder(
+      listenable: SimpleModeController.instance,
+      builder: (context, _) {
+        final active = SimpleModeController.instance.enabled;
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: active ? AppTheme.primary.withOpacity(0.10) : AppTheme.surfaceAlt,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: active ? AppTheme.primary.withOpacity(0.4) : Colors.transparent, width: 1.6),
           ),
-          const SizedBox(width: 8),
-          Switch(
-            value: active,
-            onChanged: (v) => SimpleModeController.instance.setEnabled(v),
+          child: Row(
+            children: [
+              Icon(Icons.accessibility_new_rounded, color: active ? AppTheme.primary : AppTheme.textSecondary, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.simpleModeCardTitle, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                    Text(l10n.simpleModeCardDescription, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.3)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Switch(
+                value: active,
+                onChanged: (v) => SimpleModeController.instance.setEnabled(v),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

@@ -2,9 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../l10n/app_localizations.dart';
-import '../../models/meeting_point.dart';
 import '../../models/person.dart';
-import '../../models/safe_zone.dart';
 import '../../services/sos_flow.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
@@ -162,10 +160,8 @@ class _SimpleHomeScreenState extends State<SimpleHomeScreen> {
               ],
             ),
             const SizedBox(height: 14),
-            _MiniMap(
-              people: [state.me, ...people.where((p) => p.isSharingWithMe)],
-              safeZones: state.visibleSafeZones(),
-              meetingPoints: state.visibleMeetingPoints(),
+            _MapPreviewCard(
+              label: l10n.simpleModeOpenMap,
               hint: l10n.simpleModeOpenMapHint,
               onTap: () => setState(() => _showFullMap = true),
             ),
@@ -230,42 +226,43 @@ class _SimpleHomeScreenState extends State<SimpleHomeScreen> {
   }
 }
 
-/// Anteprima piccola della mappa: mappa vera ma non interattiva, con un
-/// suggerimento "tocca per aprire" che porta alla mappa a schermo intero.
-class _MiniMap extends StatelessWidget {
-  const _MiniMap({
-    required this.people,
-    required this.safeZones,
-    required this.meetingPoints,
-    required this.hint,
-    required this.onTap,
-  });
+/// Anteprima statica della mappa (nessuna mappa MapLibre viva qui): apre la
+/// mappa vera a schermo intero al tocco. Volutamente NON una mini-mappa
+/// interattiva — tenere un solo pannello mappa vivo per volta in tutta l'app
+/// evita che, creando e distruggendo più superfici native passando da una
+/// modalità all'altra, il pin con l'avatar sparisca (MapLibre perde i simboli
+/// aggiunti a mano quando la superficie viene ricreata).
+class _MapPreviewCard extends StatelessWidget {
+  const _MapPreviewCard({required this.label, required this.hint, required this.onTap});
 
-  final List<Person> people;
-  final List<SafeZone> safeZones;
-  final List<MeetingPoint> meetingPoints;
+  final String label;
   final String hint;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
+    return Material(
+      color: AppTheme.surfaceAlt,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
         borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
         child: SizedBox(
-          height: 150,
+          height: 120,
           child: Stack(
-            fit: StackFit.expand,
             children: [
-              // La mappa è non interattiva: il tocco lo intercetta il
-              // GestureDetector sopra, che apre la versione a schermo intero.
-              IgnorePointer(
-                child: KinlyMap(
-                  people: people,
-                  safeZones: safeZones,
-                  meetingPoints: meetingPoints,
-                  interactive: false,
+              // Griglia leggera, a evocare una mappa senza istanziarne una.
+              Positioned.fill(
+                child: CustomPaint(painter: _MapGridPainter(color: AppTheme.divider)),
+              ),
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.map_rounded, size: 30, color: AppTheme.primary),
+                    const SizedBox(height: 8),
+                    Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+                  ],
                 ),
               ),
               Positioned(
@@ -294,6 +291,30 @@ class _MiniMap extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Sottile griglia a quadretti per la card d'anteprima mappa: puramente
+/// decorativa, disegnata a mano così non serve nessuna immagine né mappa.
+class _MapGridPainter extends CustomPainter {
+  _MapGridPainter({required this.color});
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1;
+    const step = 22.0;
+    for (var x = 0.0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (var y = 0.0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _MapGridPainter oldDelegate) => oldDelegate.color != color;
 }
 
 /// Uno dei due grandi pulsanti d'azione in alto (SOS / chiamata / mappa).

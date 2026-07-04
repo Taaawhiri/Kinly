@@ -95,7 +95,13 @@ class KinlyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([ThemeController.instance, LocaleController.instance, SimpleModeController.instance]),
+      // SimpleModeController NON è qui di proposito: cambia solo quale home
+      // mostra RootShell, non tutta l'app. Se fosse in questo merge, ogni
+      // tocco sull'interruttore ricostruirebbe l'intera MaterialApp (tema,
+      // AuthGate, tutte le schede, mappa inclusa) prima ancora di poter
+      // ridisegnare l'interruttore stesso — da qui il ritardo. Lo ascoltano
+      // invece, in locale, solo RootShell e la card in Profilo.
+      listenable: Listenable.merge([ThemeController.instance, LocaleController.instance]),
       builder: (context, _) {
         return MaterialApp(
           title: 'Kinly',

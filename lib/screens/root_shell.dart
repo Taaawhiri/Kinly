@@ -56,7 +56,14 @@ class _RootShellState extends State<RootShell> {
         if (!didPop && _index != 0) setState(() => _index = 0);
       },
       child: Scaffold(
-        body: isWide ? _buildWideLayout(context) : IndexedStack(index: _index, children: _screens),
+        // Solo l'area delle schede reagisce al cambio di Modalità Rapida (per
+        // scambiare la prima scheda), non l'intera app: così l'interruttore in
+        // Profilo diventa evidenziato all'istante invece di aspettare la
+        // ricostruzione di mezza app.
+        body: ListenableBuilder(
+          listenable: SimpleModeController.instance,
+          builder: (context, _) => isWide ? _buildWideLayout(context) : IndexedStack(index: _index, children: _screens),
+        ),
         bottomNavigationBar: isWide
             ? null
             : ListenableBuilder(
