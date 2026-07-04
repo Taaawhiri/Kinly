@@ -1618,6 +1618,17 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get personDirectionsStaleTitle => 'Posizione non recente';
+
+  @override
+  String personDirectionsStaleBody(String label) {
+    return 'Ultimo aggiornamento $label: potrebbe non trovarsi più lì.';
+  }
+
+  @override
+  String get personDirectionsStaleConfirm => 'Apri comunque';
+
+  @override
   String get personRadarLink => 'Radar di prossimità';
 
   @override

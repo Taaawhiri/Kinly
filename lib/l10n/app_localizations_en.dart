@@ -1614,6 +1614,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get personDirectionsStaleTitle => 'Location not recent';
+
+  @override
+  String personDirectionsStaleBody(String label) {
+    return 'Last updated $label: they may not be there anymore.';
+  }
+
+  @override
+  String get personDirectionsStaleConfirm => 'Open anyway';
+
+  @override
   String get personRadarLink => 'Proximity radar';
 
   @override

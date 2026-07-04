@@ -2852,6 +2852,24 @@ abstract class AppLocalizations {
   /// **'Portami da {name}'**
   String personGetDirections(String name);
 
+  /// No description provided for @personDirectionsStaleTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Posizione non recente'**
+  String get personDirectionsStaleTitle;
+
+  /// No description provided for @personDirectionsStaleBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Ultimo aggiornamento {label}: potrebbe non trovarsi più lì.'**
+  String personDirectionsStaleBody(String label);
+
+  /// No description provided for @personDirectionsStaleConfirm.
+  ///
+  /// In it, this message translates to:
+  /// **'Apri comunque'**
+  String get personDirectionsStaleConfirm;
+
   /// No description provided for @personRadarLink.
   ///
   /// In it, this message translates to:

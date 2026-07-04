@@ -17,6 +17,37 @@ import '../premium/speed_alerts_screen.dart';
 import '../premium/statistics_screen.dart';
 import 'radar_screen.dart';
 
+/// Sotto questa soglia il bottone "Portami da..." parte diretto, sopra
+/// chiede prima conferma: soglia diversa (e più larga) di Person.isStale
+/// (10 min, usata solo per il pallino "online" sull'avatar) perché qui
+/// l'obiettivo è diverso — evitare un itinerario palesemente vecchio, non
+/// segnalare un dato appena scaduto.
+const _staleDirectionsThreshold = Duration(minutes: 30);
+
+Future<void> _confirmAndOpenDirections(BuildContext context, Person person) async {
+  final l10n = AppLocalizations.of(context)!;
+  final isStale = DateTime.now().difference(person.lastUpdate) > _staleDirectionsThreshold;
+  if (isStale) {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(l10n.personDirectionsStaleTitle),
+        content: Text(l10n.personDirectionsStaleBody(person.lastUpdateLabel(l10n))),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonCancel)),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.personDirectionsStaleConfirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+  }
+  await openDirectionsTo(person.lat!, person.lng!);
+}
+
 class PersonDetailScreen extends StatelessWidget {
   const PersonDetailScreen({super.key, required this.personId});
   final String personId;
@@ -89,7 +120,7 @@ class PersonDetailScreen extends StatelessWidget {
                         if (!person.isMe && canSee && person.lat != null && person.lng != null) ...[
                           const SizedBox(height: 14),
                           OutlinedButton.icon(
-                            onPressed: () => openDirectionsTo(person.lat!, person.lng!),
+                            onPressed: () => _confirmAndOpenDirections(context, person),
                             icon: const Icon(Icons.directions_rounded, size: 18),
                             label: Text(l10n.personGetDirections(person.name)),
                             style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
