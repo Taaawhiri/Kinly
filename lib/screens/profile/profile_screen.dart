@@ -7,7 +7,6 @@ import '../../state/theme_controller.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/person_avatar.dart';
 import '../circles/circles_screen.dart';
-import '../onboarding/onboarding_intro_screen.dart';
 import '../premium/paywall_screen.dart';
 import 'admin_support_inbox_screen.dart';
 import 'avatar_picker_screen.dart';
@@ -227,14 +226,6 @@ class ProfileScreen extends StatelessWidget {
                   icon: Icons.admin_panel_settings_outlined,
                   label: l10n.profileAdminSupport,
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AdminSupportInboxScreen())),
-                ),
-                const SizedBox(height: 10),
-                _NavCard(
-                  icon: Icons.play_circle_outline_rounded,
-                  label: l10n.profileReviewOnboarding,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => OnboardingIntroScreen(onDone: () => Navigator.of(context).pop())),
-                  ),
                 ),
               ],
               const SizedBox(height: 10),

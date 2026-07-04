@@ -1056,10 +1056,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get profileHelpSupport => 'Aiuto e assistenza';
 
   @override
-  String get profileAdminSupport => 'Assistenza · admin';
-
-  @override
-  String get profileReviewOnboarding => 'Rivedi onboarding · admin (test)';
+  String get profileAdminSupport => 'Assistenza - Admin';
 
   @override
   String get profileLogout => 'Esci';

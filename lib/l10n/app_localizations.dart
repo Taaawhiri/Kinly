@@ -1871,14 +1871,8 @@ abstract class AppLocalizations {
   /// No description provided for @profileAdminSupport.
   ///
   /// In it, this message translates to:
-  /// **'Assistenza · admin'**
+  /// **'Assistenza - Admin'**
   String get profileAdminSupport;
-
-  /// No description provided for @profileReviewOnboarding.
-  ///
-  /// In it, this message translates to:
-  /// **'Rivedi onboarding · admin (test)'**
-  String get profileReviewOnboarding;
 
   /// No description provided for @profileLogout.
   ///
