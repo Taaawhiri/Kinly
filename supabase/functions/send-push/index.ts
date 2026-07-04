@@ -227,7 +227,10 @@ function helpRequestReasonText(reason: string): { emoji: string; label: string }
     case 'low_battery':
       return { emoji: '🔋', label: 'Batteria scarica' };
     default:
-      return { emoji: '🆘', label: 'Ha bisogno di aiuto' };
+      // Non 🆘: quella resta riservata al vero SOS (sos_alerts), un livello
+      // sopra questo — altrimenti le due notifiche sembrerebbero la stessa
+      // cosa a colpo d'occhio nella tendina.
+      return { emoji: '🙋', label: 'Ha bisogno di aiuto' };
   }
 }
 
@@ -250,7 +253,8 @@ async function buildNotification(supabase: SupabaseClient, table: string, record
       return { recipients, title: `${emoji} ${title}`, body };
     }
     case 'location_requests': {
-      return { recipients: [record.target_id], title: 'Richiesta di posizione', body: 'Qualcuno ha chiesto di vedere la tua posizione.' };
+      const name = await fetchName(supabase, record.requester_id);
+      return { recipients: [record.target_id], title: 'Richiesta di posizione', body: `${name} vuole vedere dove sei.` };
     }
     case 'circle_messages': {
       const [name, recipients] = await Promise.all([
