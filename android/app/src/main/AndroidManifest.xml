@@ -94,5 +94,14 @@
             <action android:name="android.intent.action.DIAL"/>
             <data android:scheme="tel"/>
         </intent>
+        <!-- "Portami da..." (dettaglio persona, richiesta di aiuto, SOS):
+             apre Google Maps (o il browser se non installata) con schema
+             https. Senza questa dichiarazione, da Android 11 in poi
+             canLaunchUrl non vede nessuna app in grado di aprirlo e il
+             pulsante non fa nulla, senza nessun errore visibile. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
     </queries>
 </manifest>
