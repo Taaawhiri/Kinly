@@ -4760,6 +4760,66 @@ abstract class AppLocalizations {
   /// **'Non disturbare — finché non la disattiva'**
   String get personDetailDndActiveManual;
 
+  /// No description provided for @simpleModeSectionAccessibility.
+  ///
+  /// In it, this message translates to:
+  /// **'Accessibilità'**
+  String get simpleModeSectionAccessibility;
+
+  /// No description provided for @simpleModeCardTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Modalità Rapida'**
+  String get simpleModeCardTitle;
+
+  /// No description provided for @simpleModeCardDescription.
+  ///
+  /// In it, this message translates to:
+  /// **'Schermata iniziale più semplice: mappa ridotta, testo grande, meno icone.'**
+  String get simpleModeCardDescription;
+
+  /// No description provided for @simpleModeGreeting.
+  ///
+  /// In it, this message translates to:
+  /// **'Ciao, {name}'**
+  String simpleModeGreeting(String name);
+
+  /// No description provided for @simpleModeSosButton.
+  ///
+  /// In it, this message translates to:
+  /// **'SOS'**
+  String get simpleModeSosButton;
+
+  /// No description provided for @simpleModeCall.
+  ///
+  /// In it, this message translates to:
+  /// **'Chiama {name}'**
+  String simpleModeCall(String name);
+
+  /// No description provided for @simpleModeOpenMap.
+  ///
+  /// In it, this message translates to:
+  /// **'Apri la mappa'**
+  String get simpleModeOpenMap;
+
+  /// No description provided for @simpleModeCloseMap.
+  ///
+  /// In it, this message translates to:
+  /// **'Chiudi mappa'**
+  String get simpleModeCloseMap;
+
+  /// No description provided for @simpleModeOpenMapHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Tocca per aprire'**
+  String get simpleModeOpenMapHint;
+
+  /// No description provided for @simpleModeLocationHidden.
+  ///
+  /// In it, this message translates to:
+  /// **'Posizione non condivisa'**
+  String get simpleModeLocationHidden;
+
   /// No description provided for @helpReqReasonFlatTire.
   ///
   /// In it, this message translates to:

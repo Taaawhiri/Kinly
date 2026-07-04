@@ -19,6 +19,7 @@ import 'services/onboarding_settings.dart';
 import 'services/supabase_client.dart';
 import 'state/app_state.dart';
 import 'state/locale_controller.dart';
+import 'state/simple_mode_controller.dart';
 import 'state/theme_controller.dart';
 import 'theme/app_theme.dart';
 
@@ -75,6 +76,7 @@ Future<void> main() async {
     }
     await ThemeController.instance.load();
     await LocaleController.instance.load();
+    await SimpleModeController.instance.load();
     runApp(const KinlyApp());
   }, (error, stack) {
     if (!kDebugMode) {
@@ -93,7 +95,7 @@ class KinlyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([ThemeController.instance, LocaleController.instance]),
+      listenable: Listenable.merge([ThemeController.instance, LocaleController.instance, SimpleModeController.instance]),
       builder: (context, _) {
         return MaterialApp(
           title: 'Kinly',

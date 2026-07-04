@@ -2753,6 +2753,41 @@ class AppLocalizationsIt extends AppLocalizations {
       'Non disturbare — finché non la disattiva';
 
   @override
+  String get simpleModeSectionAccessibility => 'Accessibilità';
+
+  @override
+  String get simpleModeCardTitle => 'Modalità Rapida';
+
+  @override
+  String get simpleModeCardDescription =>
+      'Schermata iniziale più semplice: mappa ridotta, testo grande, meno icone.';
+
+  @override
+  String simpleModeGreeting(String name) {
+    return 'Ciao, $name';
+  }
+
+  @override
+  String get simpleModeSosButton => 'SOS';
+
+  @override
+  String simpleModeCall(String name) {
+    return 'Chiama $name';
+  }
+
+  @override
+  String get simpleModeOpenMap => 'Apri la mappa';
+
+  @override
+  String get simpleModeCloseMap => 'Chiudi mappa';
+
+  @override
+  String get simpleModeOpenMapHint => 'Tocca per aprire';
+
+  @override
+  String get simpleModeLocationHidden => 'Posizione non condivisa';
+
+  @override
   String get helpReqReasonFlatTire => 'Gomma bucata';
 
   @override

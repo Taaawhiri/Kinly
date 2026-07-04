@@ -9,7 +9,6 @@ import 'package:home_widget/home_widget.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/help_request.dart';
 import '../../models/person.dart';
@@ -18,10 +17,10 @@ import '../../models/safe_zone.dart';
 import '../../models/shopping_stop.dart';
 import '../../services/battery_optimization_service.dart';
 import '../../services/crash_detection_service.dart';
-import '../../services/emergency_sms_settings.dart';
 import '../../services/kinly_repository.dart';
 import '../../services/location_tracker.dart';
 import '../../services/place_search_service.dart';
+import '../../services/sos_flow.dart';
 import '../../services/walk_me_home_service.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
@@ -477,77 +476,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     await _mapController?.animateCamera(CameraUpdate.newLatLngZoom(LatLng(lat, lng), 15));
   }
 
-  Future<void> _confirmAndTriggerSos() async {
-    final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: Text(l10n.mapSosConfirmTitle),
-        content: Text(l10n.mapSosConfirmBody),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonCancel)),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: AppTheme.accentCoral),
-            child: Text(l10n.mapActivateSos),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-    Position? position;
-    try {
-      position = await Geolocator.getCurrentPosition();
-      await AppState.instance.triggerSos(lat: position.latitude, lng: position.longitude);
-    } catch (_) {
-      if (!mounted) return;
-      if (position == null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.mapLocationUnavailableForSos)));
-      } else {
-        // Posizione trovata ma invio fallito: probabilmente non c'è
-        // internet. Proponi il piano B via SMS, se un numero è configurato.
-        await _offerSmsFallback(position);
-      }
-    }
-  }
-
-  /// SOS via SMS quando internet non c'è: apre l'app SMS con destinatario e
-  /// testo (coordinate + link mappa) già compilati — l'invio lo confermi tu.
-  Future<void> _offerSmsFallback(Position position) async {
-    final l10n = AppLocalizations.of(context)!;
-    final number = await EmergencySmsSettings.instance.getNumber();
-    if (!mounted) return;
-    if (number == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(l10n.mapSosNotSentOffline),
-      ));
-      return;
-    }
-    final send = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: Text(l10n.mapNoInternetSosSmsTitle),
-        content: Text(l10n.mapNoInternetSosSmsBody(number)),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonNo)),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: AppTheme.accentCoral),
-            child: Text(l10n.mapPrepareSms),
-          ),
-        ],
-      ),
-    );
-    if (send != true) return;
-    final body = Uri.encodeComponent(
-      'SOS da Kinly! Ho bisogno di aiuto. La mia posizione: '
-      'https://maps.google.com/?q=${position.latitude},${position.longitude}',
-    );
-    final uri = Uri.parse('sms:$number?body=$body');
-    await launchUrl(uri);
-  }
+  Future<void> _confirmAndTriggerSos() => SosFlow.confirmAndTrigger(context);
 
   // -----------------------------------------------------------------------
   // "Accompagnami": sessione a tempo con avviso automatico se non confermi.

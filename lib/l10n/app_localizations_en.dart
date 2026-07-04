@@ -2750,6 +2750,41 @@ class AppLocalizationsEn extends AppLocalizations {
       'Do not disturb — until they turn it off';
 
   @override
+  String get simpleModeSectionAccessibility => 'Accessibility';
+
+  @override
+  String get simpleModeCardTitle => 'Quick Mode';
+
+  @override
+  String get simpleModeCardDescription =>
+      'A simpler home screen: smaller map, bigger text, fewer icons.';
+
+  @override
+  String simpleModeGreeting(String name) {
+    return 'Hi, $name';
+  }
+
+  @override
+  String get simpleModeSosButton => 'SOS';
+
+  @override
+  String simpleModeCall(String name) {
+    return 'Call $name';
+  }
+
+  @override
+  String get simpleModeOpenMap => 'Open the map';
+
+  @override
+  String get simpleModeCloseMap => 'Close map';
+
+  @override
+  String get simpleModeOpenMapHint => 'Tap to open';
+
+  @override
+  String get simpleModeLocationHidden => 'Location not shared';
+
+  @override
   String get helpReqReasonFlatTire => 'Flat tire';
 
   @override

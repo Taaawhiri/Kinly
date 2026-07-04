@@ -3,6 +3,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/sharing_mode.dart';
 import '../../state/app_state.dart';
 import '../../state/locale_controller.dart';
+import '../../state/simple_mode_controller.dart';
 import '../../state/theme_controller.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/dnd_label.dart';
@@ -161,6 +162,10 @@ class ProfileScreen extends StatelessWidget {
               _Header(l10n.languageSectionTitle),
               const SizedBox(height: 10),
               _LanguagePicker(locale: LocaleController.instance.locale),
+              const SizedBox(height: 24),
+              _Header(l10n.simpleModeSectionAccessibility),
+              const SizedBox(height: 10),
+              const _SimpleModeCard(),
               const SizedBox(height: 24),
               _Header(l10n.profileSharingModeHeader),
               const SizedBox(height: 10),
@@ -612,6 +617,48 @@ class _DndModeCard extends StatelessWidget {
           TextButton(
             onPressed: () => active ? state.deactivateDnd() : showDndOptionsSheet(context),
             child: Text(active ? l10n.dndDeactivateButton : l10n.dndActivateButton),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Interruttore della Modalità Rapida: cambia solo la home (mappa ridotta,
+/// testo grande, meno icone), non cosa condividi. Preferenza locale, quindi
+/// legge/scrive direttamente su SimpleModeController; l'intera app si
+/// ricostruisce alla commutazione (è nel ListenableBuilder in cima).
+class _SimpleModeCard extends StatelessWidget {
+  const _SimpleModeCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final active = SimpleModeController.instance.enabled;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: active ? AppTheme.primary.withOpacity(0.10) : AppTheme.surfaceAlt,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: active ? AppTheme.primary.withOpacity(0.4) : Colors.transparent, width: 1.6),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.accessibility_new_rounded, color: active ? AppTheme.primary : AppTheme.textSecondary, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.simpleModeCardTitle, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
+                Text(l10n.simpleModeCardDescription, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.3)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Switch(
+            value: active,
+            onChanged: (v) => SimpleModeController.instance.setEnabled(v),
           ),
         ],
       ),

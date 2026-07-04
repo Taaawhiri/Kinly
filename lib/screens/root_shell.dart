@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../state/app_state.dart';
+import '../state/simple_mode_controller.dart';
 import 'map/map_home_screen.dart';
+import 'map/simple_home_screen.dart';
 import 'circles/circles_screen.dart';
 import 'requests/requests_screen.dart';
 import 'profile/profile_screen.dart';
@@ -21,12 +23,18 @@ const _wideLayoutBreakpoint = 900.0;
 class _RootShellState extends State<RootShell> {
   int _index = 0;
 
-  static const _screens = [
-    MapHomeScreen(),
-    CirclesScreen(),
-    RequestsScreen(),
-    ProfileScreen(),
-  ];
+  static const _tabCount = 4;
+
+  /// La prima scheda è la home a mappa, oppure la Modalità Rapida se
+  /// attivata da Profilo → Accessibilità. Il resto è invariato. RootShell
+  /// viene ricostruita quando la preferenza cambia (SimpleModeController è
+  /// nel ListenableBuilder in cima all'app), quindi qui basta leggerla.
+  List<Widget> get _screens => [
+        SimpleModeController.instance.enabled ? const SimpleHomeScreen() : const MapHomeScreen(),
+        const CirclesScreen(),
+        const RequestsScreen(),
+        const ProfileScreen(),
+      ];
 
   /// Un Navigator indipendente per ciascuna scheda, usato solo nel layout
   /// largo (desktop/tablet): senza, aprire un dettaglio dentro una scheda
@@ -34,7 +42,7 @@ class _RootShellState extends State<RootShell> {
   /// pagina con Navigator.push, facendo sparire anche la barra laterale.
   /// Con un Navigator a parte per scheda, quel push resta confinato dentro
   /// il proprio riquadro e la barra laterale resta sempre visibile.
-  late final _tabNavigatorKeys = List.generate(_screens.length, (_) => GlobalKey<NavigatorState>());
+  late final _tabNavigatorKeys = List.generate(_tabCount, (_) => GlobalKey<NavigatorState>());
 
   @override
   Widget build(BuildContext context) {
