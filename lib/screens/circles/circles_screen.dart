@@ -1,26 +1,17 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/circle_group.dart';
 import '../../models/person.dart';
 import '../../models/routine_anomaly.dart';
-import '../../models/sharing_mode.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/person_avatar.dart';
 import '../onboarding/create_circle_screen.dart';
 import '../onboarding/join_circle_screen.dart';
-import '../people/person_detail_screen.dart';
-import '../premium/safe_zones_screen.dart';
-import 'circle_expenses_screen.dart';
-import 'shopping_list_screen.dart';
-import 'circle_messages_screen.dart';
-import 'meeting_point_screen.dart';
-import 'weekly_summary_screen.dart';
+import 'circle_detail_screen.dart';
 
 class CirclesScreen extends StatefulWidget {
   const CirclesScreen({super.key, this.forceCoachMark = false});
@@ -36,12 +27,12 @@ class CirclesScreen extends StatefulWidget {
 
 class _CirclesScreenState extends State<CirclesScreen> {
   static const _coachMarkPrefKey = 'circles_coachmark_seen';
+  static const _coachMarkTotalSteps = 2;
 
   final _headerKey = GlobalKey();
-  final _actionsKey = GlobalKey();
-  final _inviteKey = GlobalKey();
+  final _cardKey = GlobalKey();
 
-  /// 0 = nascosta, 1..3 = passo corrente della guida.
+  /// 0 = nascosta, 1..N = passo corrente della guida (N = _coachMarkTotalSteps).
   int _coachMarkStep = 0;
   bool _coachMarkChecked = false;
 
@@ -65,7 +56,7 @@ class _CirclesScreenState extends State<CirclesScreen> {
   }
 
   void _advanceCoachMark() {
-    setState(() => _coachMarkStep = _coachMarkStep >= 3 ? 0 : _coachMarkStep + 1);
+    setState(() => _coachMarkStep = _coachMarkStep >= _coachMarkTotalSteps ? 0 : _coachMarkStep + 1);
   }
 
   void _dismissCoachMark() => setState(() => _coachMarkStep = 0);
@@ -79,8 +70,7 @@ class _CirclesScreenState extends State<CirclesScreen> {
         _maybeStartCoachMark(state.circles.isNotEmpty);
         GlobalKey? targetFor(int step) => switch (step) {
               1 => _headerKey,
-              2 => _actionsKey,
-              3 => _inviteKey,
+              2 => _cardKey,
               _ => null,
             };
         return Scaffold(
@@ -103,8 +93,7 @@ class _CirclesScreenState extends State<CirclesScreen> {
                     _CircleCard(
                       circle: state.circles[i],
                       headerKey: i == 0 ? _headerKey : null,
-                      actionsKey: i == 0 ? _actionsKey : null,
-                      inviteKey: i == 0 ? _inviteKey : null,
+                      cardKey: i == 0 ? _cardKey : null,
                     ),
                 ],
               ),
@@ -112,6 +101,7 @@ class _CirclesScreenState extends State<CirclesScreen> {
                 _CoachMarkOverlay(
                   key: ValueKey(_coachMarkStep),
                   step: _coachMarkStep,
+                  totalSteps: _coachMarkTotalSteps,
                   targetKey: targetFor(_coachMarkStep),
                   onNext: _advanceCoachMark,
                   onSkip: _dismissCoachMark,
@@ -171,134 +161,6 @@ class _CirclesScreenState extends State<CirclesScreen> {
   }
 }
 
-void _openSharingModeSheet(BuildContext context, CircleGroup circle) {
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: AppTheme.surface,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-    builder: (sheetContext) => _CircleSharingModeSheet(circle: circle),
-  );
-}
-
-/// Permette di scegliere una modalità di condivisione valida SOLO in questa
-/// cerchia (es. automatica con la famiglia, approssimativa con i colleghi),
-/// invece che la modalità generale valida ovunque. Se condividi la stessa
-/// cerchia in un'altra modalità più permissiva, conta quella: qui scegli solo
-/// il "minimo" che vuoi garantire in questa cerchia specifica.
-class _CircleSharingModeSheet extends StatelessWidget {
-  const _CircleSharingModeSheet({required this.circle});
-  final CircleGroup circle;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: AppState.instance,
-      builder: (context, _) {
-        final state = AppState.instance;
-        final override = state.modeOverrideForCircle(circle.id);
-        final l10n = AppLocalizations.of(context)!;
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.circlesYourModeInTitle(circle.name), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
-                const SizedBox(height: 6),
-                Text(
-                  l10n.circlesModeOverrideHint,
-                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
-                ),
-                const SizedBox(height: 14),
-                _SharingOptionTile(
-                  label: l10n.circlesUseGeneralMode,
-                  description: l10n.circlesGeneralModeDescription(state.myMode.label(l10n)),
-                  icon: Icons.settings_backup_restore_rounded,
-                  color: AppTheme.textSecondary,
-                  selected: override == null,
-                  onTap: () {
-                    state.setCircleSharingMode(circle.id, null);
-                    Navigator.of(context).pop();
-                  },
-                ),
-                for (final mode in SharingMode.values)
-                  _SharingOptionTile(
-                    label: mode.label(l10n),
-                    description: mode.description(l10n),
-                    icon: mode.icon,
-                    color: mode.color,
-                    selected: override == mode,
-                    onTap: () {
-                      state.setCircleSharingMode(circle.id, mode);
-                      Navigator.of(context).pop();
-                    },
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _SharingOptionTile extends StatelessWidget {
-  const _SharingOptionTile({
-    required this.label,
-    required this.description,
-    required this.icon,
-    required this.color,
-    required this.selected,
-    required this.onTap,
-  });
-  final String label;
-  final String description;
-  final IconData icon;
-  final Color color;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceAlt,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: selected ? color : Colors.transparent, width: 1.6),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.14)),
-              alignment: Alignment.center,
-              child: Icon(icon, color: color, size: 17),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
-                  Text(description, style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, height: 1.3)),
-                ],
-              ),
-            ),
-            if (selected) Icon(Icons.check_circle_rounded, color: color, size: 18),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _RoutineAnomalyBanner extends StatelessWidget {
   const _RoutineAnomalyBanner({required this.anomaly});
   final RoutineAnomaly anomaly;
@@ -344,230 +206,95 @@ class _RoutineAnomalyBanner extends StatelessWidget {
   }
 }
 
+/// Riepilogo di una cerchia: icona, nome, membri. Tutte le azioni (aree
+/// sicure, messaggi, codice invito...) vivono ora in [CircleDetailScreen],
+/// raggiunta toccando l'intera card — prima erano 8-9 pillole ammassate su
+/// una fila scorrevole, facile da non scoprire tutta col dito.
 class _CircleCard extends StatelessWidget {
-  const _CircleCard({required this.circle, this.headerKey, this.actionsKey, this.inviteKey});
+  const _CircleCard({required this.circle, this.headerKey, this.cardKey});
   final CircleGroup circle;
 
   /// Punti di ancoraggio per la guida introduttiva (vedi _CoachMarkOverlay):
   /// valorizzati solo sulla prima cerchia della lista, le altre restano null.
   final GlobalKey? headerKey;
-  final GlobalKey? actionsKey;
-  final GlobalKey? inviteKey;
-
-  Future<void> _confirmAndRegenerateCode(BuildContext context) async {
-    final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: Text(l10n.circlesRegenerateConfirmTitle),
-        content: Text(l10n.circlesRegenerateConfirmBody),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonCancel)),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: AppTheme.accentCoral),
-            child: Text(l10n.circlesRegenerateConfirmButton),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    final code = await AppState.instance.regenerateInviteCode(circle);
-    await Clipboard.setData(ClipboardData(text: code));
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.circlesRegenerateSuccessSnackbar(code))));
-    }
-  }
+  final GlobalKey? cardKey;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final members = circle.memberIds.map(AppState.instance.personById).whereType<Person>().toList();
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, 4))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            key: headerKey,
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: circle.color.withOpacity(0.15)),
-                alignment: Alignment.center,
-                child: Icon(circle.icon, color: circle.color, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(circle.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5, color: AppTheme.textPrimary)),
-                    Text(l10n.mapPeopleCount(members.length), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            height: 44,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: members.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, i) {
-                final person = members[i];
-                return GestureDetector(
-                  onTap: person.isMe
-                      ? null
-                      : () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: person.id))),
-                  child: PersonAvatar(person: person, size: 40),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 14),
-          InkWell(
-            key: inviteKey,
-            borderRadius: BorderRadius.circular(10),
-            onTap: () {
-              Clipboard.setData(ClipboardData(text: circle.inviteCode));
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.circlesInviteCodeCopied)));
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(10)),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    circle.inviteCode,
-                    style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1, fontSize: 13, color: AppTheme.textPrimary),
-                  ),
-                  const SizedBox(width: 6),
-                  Icon(Icons.copy_rounded, size: 13, color: AppTheme.textSecondary),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            key: actionsKey,
-            height: 34,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
+    return InkWell(
+      key: cardKey,
+      borderRadius: BorderRadius.circular(18),
+      onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleDetailScreen(circleId: circle.id))),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, 4))],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              key: headerKey,
               children: [
-                _ActionChip(
-                  icon: Icons.ios_share_rounded,
-                  label: l10n.circlesActionInvite,
-                  onTap: () {
-                    // Condivisione via WhatsApp e simili: include sia il
-                    // codice (funziona sempre) sia il link kinly:// che apre
-                    // l'app già compilata dove i link personalizzati sono
-                    // cliccabili.
-                    Share.share(l10n.circlesInviteShareMessage(circle.name, circle.inviteCode));
-                  },
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: circle.color.withOpacity(0.15)),
+                  alignment: Alignment.center,
+                  child: Icon(circle.icon, color: circle.color, size: 20),
                 ),
-                _ActionChip(
-                  icon: Icons.fence_rounded,
-                  label: l10n.circlesActionSafeZones,
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SafeZonesScreen(circle: circle))),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(circle.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5, color: AppTheme.textPrimary)),
+                      Text(l10n.mapPeopleCount(members.length), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                    ],
+                  ),
                 ),
-                _ActionChip(
-                  icon: Icons.share_location_rounded,
-                  label: l10n.circlesActionMeetingPoint,
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => MeetingPointScreen(circle: circle))),
-                ),
-                _ActionChip(
-                  icon: Icons.forum_outlined,
-                  label: l10n.circlesActionMessages,
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleMessagesScreen(circle: circle))),
-                ),
-                _ActionChip(
-                  icon: Icons.receipt_long_outlined,
-                  label: l10n.circlesActionExpenses,
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleExpensesScreen(circle: circle))),
-                ),
-                _ActionChip(
-                  icon: Icons.local_grocery_store_outlined,
-                  label: l10n.circlesActionShoppingList,
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ShoppingListScreen(circle: circle))),
-                ),
-                _ActionChip(
-                  icon: Icons.insights_rounded,
-                  label: l10n.circlesActionSummary,
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WeeklySummaryScreen(circle: circle))),
-                ),
-                _ActionChip(
-                  icon: Icons.tune_rounded,
-                  label: l10n.circlesActionYourMode,
-                  onTap: () => _openSharingModeSheet(context, circle),
-                ),
-                if (circle.createdBy == AppState.instance.me.id)
-                  _ActionChip(
-                    icon: Icons.refresh_rounded,
-                    label: l10n.circlesActionRegenerateCode,
-                    onTap: () => _confirmAndRegenerateCode(context),
+                Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary),
+              ],
+            ),
+            const SizedBox(height: 14),
+            // Solo un'anteprima di chi c'è: niente scroll qui (in
+            // conflitto col tocco sull'intera card), il dettaglio con tutti
+            // i membri toccabili è nella schermata di dettaglio.
+            Row(
+              children: [
+                for (final person in members.take(5))
+                  Padding(padding: const EdgeInsets.only(right: 8), child: PersonAvatar(person: person, size: 36)),
+                if (members.length > 5)
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: AppTheme.surfaceAlt),
+                    alignment: Alignment.center,
+                    child: Text('+${members.length - 5}', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: AppTheme.textSecondary)),
                   ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Pillola icona + etichetta per la riga di azioni di una cerchia: a
-/// differenza delle sole icone di prima, il testo rende chiaro cosa fa
-/// ciascuna voce senza dover prima toccarla per scoprirlo.
-class _ActionChip extends StatelessWidget {
-  const _ActionChip({required this.icon, required this.label, required this.onTap});
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(color: AppTheme.surfaceAlt, borderRadius: BorderRadius.circular(10)),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 16, color: AppTheme.textSecondary),
-              const SizedBox(width: 6),
-              Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-            ],
-          ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// Guida introduttiva a 3 passi sulla prima cerchia della lista: evidenzia a
-/// turno l'intestazione, la riga di azioni e il codice invito con un
-/// riquadro e una nuvoletta esplicativa. Non "buca" lo scrim scuro attorno
-/// al riquadro evidenziato (richiederebbe un CustomPainter dedicato): il
-/// bordo bianco intorno al riquadro basta a farlo risaltare comunque.
+/// Guida introduttiva alla prima cerchia della lista: evidenzia a turno
+/// l'intestazione e la card intera con un riquadro e una nuvoletta
+/// esplicativa. Non "buca" lo scrim scuro attorno al riquadro evidenziato
+/// (richiederebbe un CustomPainter dedicato): il bordo bianco intorno al
+/// riquadro basta a farlo risaltare comunque.
 class _CoachMarkOverlay extends StatefulWidget {
-  const _CoachMarkOverlay({super.key, required this.step, required this.targetKey, required this.onNext, required this.onSkip});
+  const _CoachMarkOverlay({super.key, required this.step, required this.totalSteps, required this.targetKey, required this.onNext, required this.onSkip});
   final int step;
+  final int totalSteps;
   final GlobalKey? targetKey;
   final VoidCallback onNext;
   final VoidCallback onSkip;
@@ -583,8 +310,7 @@ class _CoachMarkOverlayState extends State<_CoachMarkOverlay> {
     final l10n = AppLocalizations.of(context)!;
     return switch (step) {
       1 => (l10n.circlesCoachStep1Title, l10n.circlesCoachStep1Body),
-      2 => (l10n.circlesCoachStep2Title, l10n.circlesCoachStep2Body),
-      _ => (l10n.circlesCoachStep3Title, l10n.circlesCoachStep3Body),
+      _ => (l10n.circlesCoachStep2Title, l10n.circlesCoachStep2Body),
     };
   }
 
@@ -686,7 +412,7 @@ class _CoachMarkOverlayState extends State<_CoachMarkOverlay> {
                   const SizedBox(height: 14),
                   Row(
                     children: [
-                      for (var i = 1; i <= 3; i++)
+                      for (var i = 1; i <= widget.totalSteps; i++)
                         Container(
                           margin: const EdgeInsets.only(right: 5),
                           width: 6,
@@ -700,7 +426,9 @@ class _CoachMarkOverlayState extends State<_CoachMarkOverlay> {
                       TextButton(onPressed: widget.onSkip, child: Text(AppLocalizations.of(context)!.circlesCoachSkip)),
                       FilledButton(
                         onPressed: widget.onNext,
-                        child: Text(widget.step >= 3 ? AppLocalizations.of(context)!.circlesCoachFinish : AppLocalizations.of(context)!.circlesCoachNext),
+                        child: Text(
+                          widget.step >= widget.totalSteps ? AppLocalizations.of(context)!.circlesCoachFinish : AppLocalizations.of(context)!.circlesCoachNext,
+                        ),
                       ),
                     ],
                   ),

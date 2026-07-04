@@ -479,18 +479,11 @@ class AppLocalizationsIt extends AppLocalizations {
       'Ogni cerchia ha i suoi membri, la sua icona e le sue impostazioni: puoi averne più di una.';
 
   @override
-  String get circlesCoachStep2Title => 'Le azioni della cerchia';
+  String get circlesCoachStep2Title => 'Apri la cerchia';
 
   @override
   String get circlesCoachStep2Body =>
-      'Da qui gestisci aree sicure, punto d\'incontro, messaggi, spese di gruppo e il riepilogo settimanale.';
-
-  @override
-  String get circlesCoachStep3Title => 'Codice di invito';
-
-  @override
-  String get circlesCoachStep3Body =>
-      'Tocca per copiarlo: solo chi lo riceve da te può entrare in questa cerchia.';
+      'Tocca la cerchia per vedere membri, codice invito e tutte le azioni: aree sicure, punto d\'incontro, messaggi, spese e altro.';
 
   @override
   String get circlesCoachSkip => 'Salta';
@@ -500,6 +493,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get circlesCoachFinish => 'Fine';
+
+  @override
+  String get circlesInviteCodeHint =>
+      'Tocca per copiarlo: solo chi lo riceve da te può entrare in questa cerchia.';
+
+  @override
+  String get circlesDetailActionsTitle => 'Azioni';
 
   @override
   String get meetingPointTitle => 'Punto d\'incontro';

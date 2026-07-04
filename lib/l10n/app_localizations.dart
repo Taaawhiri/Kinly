@@ -893,26 +893,14 @@ abstract class AppLocalizations {
   /// No description provided for @circlesCoachStep2Title.
   ///
   /// In it, this message translates to:
-  /// **'Le azioni della cerchia'**
+  /// **'Apri la cerchia'**
   String get circlesCoachStep2Title;
 
   /// No description provided for @circlesCoachStep2Body.
   ///
   /// In it, this message translates to:
-  /// **'Da qui gestisci aree sicure, punto d\'incontro, messaggi, spese di gruppo e il riepilogo settimanale.'**
+  /// **'Tocca la cerchia per vedere membri, codice invito e tutte le azioni: aree sicure, punto d\'incontro, messaggi, spese e altro.'**
   String get circlesCoachStep2Body;
-
-  /// No description provided for @circlesCoachStep3Title.
-  ///
-  /// In it, this message translates to:
-  /// **'Codice di invito'**
-  String get circlesCoachStep3Title;
-
-  /// No description provided for @circlesCoachStep3Body.
-  ///
-  /// In it, this message translates to:
-  /// **'Tocca per copiarlo: solo chi lo riceve da te può entrare in questa cerchia.'**
-  String get circlesCoachStep3Body;
 
   /// No description provided for @circlesCoachSkip.
   ///
@@ -931,6 +919,18 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Fine'**
   String get circlesCoachFinish;
+
+  /// No description provided for @circlesInviteCodeHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Tocca per copiarlo: solo chi lo riceve da te può entrare in questa cerchia.'**
+  String get circlesInviteCodeHint;
+
+  /// No description provided for @circlesDetailActionsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Azioni'**
+  String get circlesDetailActionsTitle;
 
   /// No description provided for @meetingPointTitle.
   ///

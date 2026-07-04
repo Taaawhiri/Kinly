@@ -478,18 +478,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Each circle has its own members, icon and settings: you can have more than one.';
 
   @override
-  String get circlesCoachStep2Title => 'Circle actions';
+  String get circlesCoachStep2Title => 'Open the circle';
 
   @override
   String get circlesCoachStep2Body =>
-      'From here you manage safe zones, meeting point, messages, group expenses and the weekly summary.';
-
-  @override
-  String get circlesCoachStep3Title => 'Invite code';
-
-  @override
-  String get circlesCoachStep3Body =>
-      'Tap to copy it: only whoever gets it from you can join this circle.';
+      'Tap the circle to see its members, invite code, and all its actions: safe zones, meeting point, messages, expenses and more.';
 
   @override
   String get circlesCoachSkip => 'Skip';
@@ -499,6 +492,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get circlesCoachFinish => 'Done';
+
+  @override
+  String get circlesInviteCodeHint =>
+      'Tap to copy it: only whoever gets it from you can join this circle.';
+
+  @override
+  String get circlesDetailActionsTitle => 'Actions';
 
   @override
   String get meetingPointTitle => 'Meeting point';
