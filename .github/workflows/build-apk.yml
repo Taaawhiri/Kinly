@@ -82,3 +82,20 @@ jobs:
 
             ${{ github.event.head_commit.message }}
           files: build/app/outputs/flutter-apk/app-release.apk
+
+      # Con una release per ogni push, la pagina si riempiva senza fine:
+      # dopo aver pubblicato quella nuova, tiene solo le KEEP più recenti
+      # (tag inclusi) e cancella le altre. L'app dei beta tester non ne
+      # risente: usa solo releases/latest (vedi app_update_service.dart).
+      - name: Prune old beta releases
+        if: github.ref == env.BETA_RELEASE_BRANCH
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          keep=5
+          gh release list --repo "${{ github.repository }}" --json tagName,publishedAt --limit 200 \
+            | jq -r --argjson keep "$keep" 'sort_by(.publishedAt) | reverse | .[$keep:][].tagName' \
+            | while read -r tag; do
+                echo "Cancello release vecchia: $tag"
+                gh release delete "$tag" --repo "${{ github.repository }}" --yes --cleanup-tag
+              done
