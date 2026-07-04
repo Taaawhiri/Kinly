@@ -9,6 +9,27 @@ import '../../widgets/person_avatar.dart';
 class RequestsScreen extends StatelessWidget {
   const RequestsScreen({super.key});
 
+  Future<void> _confirmAndClearHistory(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(l10n.requestsClearHistoryConfirmTitle),
+        content: Text(l10n.requestsClearHistoryConfirmBody),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonCancel)),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.accentCoral),
+            child: Text(l10n.requestsClearHistoryButton),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) await AppState.instance.clearRequestHistory();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
@@ -21,7 +42,17 @@ class RequestsScreen extends StatelessWidget {
         final isEmpty = incoming.isEmpty && outgoing.isEmpty && history.isEmpty;
 
         return Scaffold(
-          appBar: AppBar(title: Text(AppLocalizations.of(context)!.navRequests)),
+          appBar: AppBar(
+            title: Text(AppLocalizations.of(context)!.navRequests),
+            actions: [
+              if (history.isNotEmpty)
+                IconButton(
+                  tooltip: AppLocalizations.of(context)!.requestsClearHistoryTooltip,
+                  icon: const Icon(Icons.delete_sweep_outlined),
+                  onPressed: () => _confirmAndClearHistory(context),
+                ),
+            ],
+          ),
           body: isEmpty
               ? const _EmptyState()
               : ListView(
@@ -138,6 +169,13 @@ class _OutgoingCard extends StatelessWidget {
                 ),
               ),
               const Icon(Icons.hourglass_top_rounded, color: AppTheme.accentAmber, size: 18),
+              IconButton(
+                tooltip: l10n.requestsCancelSentTooltip,
+                icon: const Icon(Icons.close_rounded, size: 18),
+                color: AppTheme.textSecondary,
+                visualDensity: VisualDensity.compact,
+                onPressed: () => AppState.instance.deleteLocationRequest(request.id),
+              ),
             ],
           ),
         ],
@@ -170,6 +208,13 @@ class _HistoryTile extends StatelessWidget {
             accepted ? Icons.check_circle_outline : Icons.cancel_outlined,
             size: 17,
             color: accepted ? AppTheme.accentGreen : AppTheme.textSecondary,
+          ),
+          IconButton(
+            tooltip: l10n.requestsDeleteTooltip,
+            icon: const Icon(Icons.close_rounded, size: 17),
+            color: AppTheme.textSecondary,
+            visualDensity: VisualDensity.compact,
+            onPressed: () => AppState.instance.deleteLocationRequest(request.id),
           ),
         ],
       ),

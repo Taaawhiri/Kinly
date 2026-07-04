@@ -779,6 +779,13 @@ drop policy if exists "circles_insert_self" on public.circles;
 create policy "circles_insert_self" on public.circles
   for insert with check (created_by = auth.uid());
 
+-- Solo chi ha creato la cerchia può modificarla: per ora serve solo a
+-- rigenerare il codice invito (vedi regenerateInviteCode), se si sospetta
+-- che sia finito nelle mani sbagliate.
+drop policy if exists "circles_update_creator" on public.circles;
+create policy "circles_update_creator" on public.circles
+  for update using (created_by = auth.uid()) with check (created_by = auth.uid());
+
 -- circle_members: vedo i membri delle mie cerchie; posso aggiungermi da
 -- solo (il codice invito è già stato verificato lato client tramite
 -- find_circle_by_code, che è security definer).
@@ -824,6 +831,14 @@ create policy "location_requests_insert" on public.location_requests
 drop policy if exists "location_requests_respond" on public.location_requests;
 create policy "location_requests_respond" on public.location_requests
   for update using (target_id = auth.uid()) with check (target_id = auth.uid());
+
+-- Chi ha mandato o ricevuto una richiesta può rimuoverla dalla propria
+-- lista (singolarmente o svuotando lo storico): è solo una voce di log
+-- condivisa tra i due, non serve il consenso dell'altra parte per farla
+-- sparire dalla vista.
+drop policy if exists "location_requests_delete" on public.location_requests;
+create policy "location_requests_delete" on public.location_requests
+  for delete using (requester_id = auth.uid() or target_id = auth.uid());
 
 -- location_history (Kinly+): vedo lo storico di chi condivide con me solo
 -- se IO sono premium (è una funzione di chi guarda, non di chi è guardato).

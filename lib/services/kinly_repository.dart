@@ -248,12 +248,37 @@ class KinlyRepository {
     return e;
   }
 
+  /// 6 caratteri da un alfabeto di 31 simboli (niente 0/1/O/I/L, facili da
+  /// confondere a voce o a schermo) danno oltre 887 milioni di combinazioni
+  /// per prefisso: con i 4 di prima (~924mila) indovinare un codice a caso
+  /// senza conoscerlo, magari partendo da un prefisso comune come "FAM",
+  /// era realisticamente alla portata di uno script, specie senza un
+  /// limite ai tentativi lato server. Genera con Random.secure() invece del
+  /// generatore di default, non pensato per essere imprevedibile.
   String _generateInviteCode(String name) {
-    final rng = Random();
+    final rng = Random.secure();
     final trimmed = name.trim();
     final prefix = trimmed.isEmpty ? 'KIN' : trimmed.substring(0, min(3, trimmed.length)).toUpperCase();
-    final suffix = List.generate(4, (_) => '23456789ABCDEFGHJKMNPQRSTUVWXYZ'[rng.nextInt(31)]).join();
+    final suffix = List.generate(6, (_) => '23456789ABCDEFGHJKMNPQRSTUVWXYZ'[rng.nextInt(31)]).join();
     return '$prefix-$suffix';
+  }
+
+  /// Genera un nuovo codice invito per una cerchia già esistente, al posto
+  /// di quello attuale: utile se è stato condiviso per sbaglio o si sospetta
+  /// che qualcuno che non dovrebbe averlo lo conosca. Solo chi ha creato la
+  /// cerchia può farlo (impone la RLS in update sulla tabella `circles`).
+  Future<String> regenerateInviteCode({required String circleId, required String circleName}) async {
+    var attempt = 0;
+    while (true) {
+      final code = _generateInviteCode(circleName);
+      try {
+        await supabase.from('circles').update({'invite_code': code}).eq('id', circleId);
+        return code;
+      } on PostgrestException catch (e) {
+        attempt++;
+        if (e.code != '23505' || attempt >= 5) rethrow;
+      }
+    }
   }
 
   // ---------------------------------------------------------------------
@@ -594,6 +619,24 @@ class KinlyRepository {
       'status': accept ? 'accepted' : 'declined',
       'responded_at': DateTime.now().toUtc().toIso8601String(),
     }).eq('id', requestId);
+  }
+
+  /// Rimuove una singola richiesta (in attesa, inviata, o già risolta) dalla
+  /// lista: la RLS permette di farlo a chi l'ha mandata o ricevuta.
+  Future<void> deleteLocationRequest(String requestId) async {
+    await supabase.from('location_requests').delete().eq('id', requestId);
+  }
+
+  /// Svuota solo le MIE richieste già risolte (accettate/rifiutate): quelle
+  /// ancora in attesa non vengono toccate, si tolgono una alla volta con
+  /// [deleteLocationRequest]. Il filtro su requester/target è già imposto
+  /// dalla RLS, ma lo ripetiamo qui per non affidarsi solo a quello.
+  Future<void> clearLocationRequestHistory() async {
+    await supabase
+        .from('location_requests')
+        .delete()
+        .neq('status', 'pending')
+        .or('requester_id.eq.$_myId,target_id.eq.$_myId');
   }
 
   // ---------------------------------------------------------------------

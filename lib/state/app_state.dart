@@ -652,11 +652,51 @@ class AppState extends ChangeNotifier {
     unawaited(_refreshData().then((_) => notifyListeners()));
   }
 
+  /// Toglie una richiesta (in attesa, inviata, o già risolta) dalla lista.
+  Future<void> deleteLocationRequest(String requestId) async {
+    final removed = _requests.where((r) => r.id == requestId).toList();
+    _requests.removeWhere((r) => r.id == requestId);
+    notifyListeners();
+    try {
+      await _repo.deleteLocationRequest(requestId);
+    } catch (_) {
+      // Fallito: rimetto la richiesta com'era invece di lasciarla sparita
+      // solo sullo schermo.
+      _requests.addAll(removed);
+      notifyListeners();
+    }
+  }
+
+  /// Svuota lo storico (richieste già accettate o rifiutate): quelle ancora
+  /// in attesa restano, si tolgono singolarmente con [deleteLocationRequest].
+  Future<void> clearRequestHistory() async {
+    final removed = history;
+    final removedIds = removed.map((r) => r.id).toSet();
+    _requests.removeWhere((r) => removedIds.contains(r.id));
+    notifyListeners();
+    try {
+      await _repo.clearLocationRequestHistory();
+    } catch (_) {
+      _requests.addAll(removed);
+      notifyListeners();
+    }
+  }
+
   Future<CircleGroup> createCircle(String name, IconData icon, Color color) async {
     final circle = await _repo.createCircle(name: name, iconKey: CircleIcons.keyFor(icon), colorHex: color.toHex());
     await _refreshData();
     notifyListeners();
     return circle;
+  }
+
+  /// Sostituisce il codice invito di una cerchia con uno nuovo: il vecchio
+  /// smette subito di funzionare. Solo chi l'ha creata può farlo (la RLS lo
+  /// impone comunque anche se questo metodo venisse chiamato per errore).
+  Future<String> regenerateInviteCode(CircleGroup circle) async {
+    final code = await _repo.regenerateInviteCode(circleId: circle.id, circleName: circle.name);
+    await _refreshData();
+    notifyListeners();
+    return code;
   }
 
   /// Cerca una cerchia dal codice invito e, se esiste, mi ci fa entrare.

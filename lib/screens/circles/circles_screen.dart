@@ -354,6 +354,32 @@ class _CircleCard extends StatelessWidget {
   final GlobalKey? actionsKey;
   final GlobalKey? inviteKey;
 
+  Future<void> _confirmAndRegenerateCode(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(l10n.circlesRegenerateConfirmTitle),
+        content: Text(l10n.circlesRegenerateConfirmBody),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonCancel)),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.accentCoral),
+            child: Text(l10n.circlesRegenerateConfirmButton),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final code = await AppState.instance.regenerateInviteCode(circle);
+    await Clipboard.setData(ClipboardData(text: code));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.circlesRegenerateSuccessSnackbar(code))));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -486,6 +512,12 @@ class _CircleCard extends StatelessWidget {
                   label: l10n.circlesActionYourMode,
                   onTap: () => _openSharingModeSheet(context, circle),
                 ),
+                if (circle.createdBy == AppState.instance.me.id)
+                  _ActionChip(
+                    icon: Icons.refresh_rounded,
+                    label: l10n.circlesActionRegenerateCode,
+                    onTap: () => _confirmAndRegenerateCode(context),
+                  ),
               ],
             ),
           ),

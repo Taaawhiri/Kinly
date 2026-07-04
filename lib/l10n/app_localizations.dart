@@ -848,6 +848,36 @@ abstract class AppLocalizations {
   /// **'La tua modalità'**
   String get circlesActionYourMode;
 
+  /// No description provided for @circlesActionRegenerateCode.
+  ///
+  /// In it, this message translates to:
+  /// **'Rigenera codice'**
+  String get circlesActionRegenerateCode;
+
+  /// No description provided for @circlesRegenerateConfirmTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Rigenerare il codice invito?'**
+  String get circlesRegenerateConfirmTitle;
+
+  /// No description provided for @circlesRegenerateConfirmBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Il codice attuale smette di funzionare subito: chi non è ancora entrato dovrà usare quello nuovo.'**
+  String get circlesRegenerateConfirmBody;
+
+  /// No description provided for @circlesRegenerateConfirmButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Rigenera'**
+  String get circlesRegenerateConfirmButton;
+
+  /// No description provided for @circlesRegenerateSuccessSnackbar.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuovo codice copiato: {code}'**
+  String circlesRegenerateSuccessSnackbar(String code);
+
   /// No description provided for @circlesCoachStep1Title.
   ///
   /// In it, this message translates to:
@@ -1501,6 +1531,42 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Quando qualcuno vorrà vedere la tua posizione, o tu quella di qualcun altro, la richiesta apparirà qui.'**
   String get requestsEmptyMessage;
+
+  /// No description provided for @requestsCancelSentTooltip.
+  ///
+  /// In it, this message translates to:
+  /// **'Annulla richiesta'**
+  String get requestsCancelSentTooltip;
+
+  /// No description provided for @requestsDeleteTooltip.
+  ///
+  /// In it, this message translates to:
+  /// **'Elimina'**
+  String get requestsDeleteTooltip;
+
+  /// No description provided for @requestsClearHistoryTooltip.
+  ///
+  /// In it, this message translates to:
+  /// **'Cancella tutto'**
+  String get requestsClearHistoryTooltip;
+
+  /// No description provided for @requestsClearHistoryConfirmTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Cancellare lo storico?'**
+  String get requestsClearHistoryConfirmTitle;
+
+  /// No description provided for @requestsClearHistoryConfirmBody.
+  ///
+  /// In it, this message translates to:
+  /// **'Le richieste già risolte (accettate o rifiutate) verranno rimosse. Quelle in attesa restano.'**
+  String get requestsClearHistoryConfirmBody;
+
+  /// No description provided for @requestsClearHistoryButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Cancella'**
+  String get requestsClearHistoryButton;
 
   /// No description provided for @profileStatusFriends.
   ///

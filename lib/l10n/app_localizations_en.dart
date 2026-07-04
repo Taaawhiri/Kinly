@@ -453,6 +453,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get circlesActionYourMode => 'Your mode';
 
   @override
+  String get circlesActionRegenerateCode => 'Regenerate code';
+
+  @override
+  String get circlesRegenerateConfirmTitle => 'Regenerate the invite code?';
+
+  @override
+  String get circlesRegenerateConfirmBody =>
+      'The current code stops working right away: anyone who hasn\'t joined yet will need the new one.';
+
+  @override
+  String get circlesRegenerateConfirmButton => 'Regenerate';
+
+  @override
+  String circlesRegenerateSuccessSnackbar(String code) {
+    return 'New code copied: $code';
+  }
+
+  @override
   String get circlesCoachStep1Title => 'Your circle';
 
   @override
@@ -833,6 +851,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get requestsEmptyMessage =>
       'When someone wants to see your location, or you want to see theirs, the request will appear here.';
+
+  @override
+  String get requestsCancelSentTooltip => 'Cancel request';
+
+  @override
+  String get requestsDeleteTooltip => 'Delete';
+
+  @override
+  String get requestsClearHistoryTooltip => 'Clear all';
+
+  @override
+  String get requestsClearHistoryConfirmTitle => 'Clear history?';
+
+  @override
+  String get requestsClearHistoryConfirmBody =>
+      'Requests already resolved (accepted or declined) will be removed. Pending ones are kept.';
+
+  @override
+  String get requestsClearHistoryButton => 'Clear';
 
   @override
   String get profileStatusFriends => 'With friends';
