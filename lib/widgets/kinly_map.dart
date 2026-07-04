@@ -167,6 +167,7 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     }
     if (!_sameSafeZones(oldWidget.safeZones, widget.safeZones)) {
       unawaited(_syncSafeZoneFills());
+      unawaited(_syncSymbols(fitCamera: false));
     }
     if (!_sameLatLng(oldWidget.searchPreviewPoint, widget.searchPreviewPoint)) {
       unawaited(_syncSymbols(fitCamera: false));
@@ -410,6 +411,27 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
           {'meetingPointId': point.id},
         );
       }
+    }
+
+    // Nome dell'area scritto al centro del cerchio colorato (vedi
+    // _syncSafeZoneFills): prima si capiva solo toccandolo, ora si legge
+    // a colpo d'occhio, verde per una sicura o rosso per una pericolosa.
+    // Vive qui (non in _syncSafeZoneFills) perché condivide lo stesso
+    // clearSymbols/addSymbol dei pin persona: tenerlo in un posto diverso
+    // lo farebbe sparire ad ogni aggiornamento posizione.
+    for (final zone in widget.safeZones) {
+      await controller.addSymbol(
+        SymbolOptions(
+          geometry: LatLng(zone.lat, zone.lng),
+          textField: zone.name,
+          textSize: 12,
+          textColor: zone.zoneType.color.toHex(),
+          textHaloColor: '#FFFFFF',
+          textHaloWidth: 1.2,
+          textAnchor: 'center',
+        ),
+        {'zoneId': zone.id},
+      );
     }
 
     if (fitCamera) await _fitCamera(controller, people);

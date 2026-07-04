@@ -307,6 +307,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get mapWalkMeHomeSemantic => 'Accompagnami';
 
   @override
+  String get mapQuickActionSosLabel => 'SOS';
+
+  @override
+  String get mapQuickActionHelpLabel => 'Aiuto';
+
+  @override
+  String get mapQuickActionWalkLabel => 'Accompagnami';
+
+  @override
   String mapSosBannerText(String personName) {
     return '$personName ha attivato l\'SOS · tocca per vedere dove si trova';
   }

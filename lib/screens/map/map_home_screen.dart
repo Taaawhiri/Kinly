@@ -1035,17 +1035,35 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               Text(l10n.mapYourCircle, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
               const Spacer(),
               Text(l10n.mapPeopleCount(people.length), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
-              IconButton(
-                icon: const Icon(Icons.add_location_alt_outlined, size: 20),
-                tooltip: l10n.mapNewMeetingPointTooltip,
-                visualDensity: VisualDensity.compact,
-                onPressed: _openMeetingPointEntry,
-              ),
-              IconButton(
-                icon: const Icon(Icons.link_rounded, size: 20),
-                tooltip: l10n.mapShareLocationLinkTooltip,
-                visualDensity: VisualDensity.compact,
-                onPressed: _openLiveShareSheet,
+              // Un solo "+" con le due azioni scritte per esteso nel menu,
+              // invece di due icone senza testo affiancate: stesso numero di
+              // tocchi, ma non c'è più niente da imparare a memoria.
+              PopupMenuButton<VoidCallback>(
+                icon: Icon(Icons.add_circle_outline_rounded, size: 22, color: AppTheme.primary),
+                tooltip: '',
+                onSelected: (action) => action(),
+                itemBuilder: (context) => [
+                  PopupMenuItem<VoidCallback>(
+                    value: _openMeetingPointEntry,
+                    child: Row(
+                      children: [
+                        Icon(Icons.add_location_alt_outlined, size: 18, color: AppTheme.textSecondary),
+                        const SizedBox(width: 12),
+                        Text(l10n.mapNewMeetingPointTooltip),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem<VoidCallback>(
+                    value: _openLiveShareSheet,
+                    child: Row(
+                      children: [
+                        Icon(Icons.link_rounded, size: 18, color: AppTheme.textSecondary),
+                        const SizedBox(width: 12),
+                        Text(l10n.mapShareLocationLinkTooltip),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1446,25 +1464,28 @@ class _EmergencyActionsGroup extends StatelessWidget {
             icon: Icons.emergency_rounded,
             color: AppTheme.accentCoral,
             active: sosActive,
+            label: l10n.mapQuickActionSosLabel,
             activeLabel: l10n.mapSosActiveLabel,
             semanticLabel: l10n.mapActivateSosSemantic,
             onTap: onSosTap,
             topRadius: 18,
           ),
-          Container(height: 1, width: 40, color: AppTheme.divider),
+          Container(height: 1, width: 46, color: AppTheme.divider),
           _EmergencyActionButton(
             icon: Icons.pan_tool_alt_rounded,
             color: AppTheme.accentAmber,
             active: helpActive,
+            label: l10n.mapQuickActionHelpLabel,
             activeLabel: l10n.mapHelpRequestedLabel,
             semanticLabel: l10n.mapAskForHelp,
             onTap: onHelpTap,
           ),
-          Container(height: 1, width: 40, color: AppTheme.divider),
+          Container(height: 1, width: 46, color: AppTheme.divider),
           _EmergencyActionButton(
             icon: Icons.directions_walk_rounded,
             color: AppTheme.primary,
             active: walkActive,
+            label: l10n.mapQuickActionWalkLabel,
             activeLabel: l10n.mapWalkMeHomeActiveLabel,
             semanticLabel: l10n.mapWalkMeHomeSemantic,
             onTap: onWalkTap,
@@ -1481,6 +1502,7 @@ class _EmergencyActionButton extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.active,
+    required this.label,
     required this.activeLabel,
     required this.semanticLabel,
     required this.onTap,
@@ -1491,6 +1513,12 @@ class _EmergencyActionButton extends StatelessWidget {
   final IconData icon;
   final Color color;
   final bool active;
+
+  /// Didascalia sempre visibile sotto l'icona: prima erano solo icone
+  /// colorate distinguibili solo per tinta, con un tooltip che si scopre
+  /// solo con un tocco lungo (quasi nessuno lo trova) — in un momento di
+  /// emergenza non è il momento di indovinare quale pulsante è quale.
+  final String label;
   final String activeLabel;
   final String semanticLabel;
   final VoidCallback onTap;
@@ -1507,21 +1535,33 @@ class _EmergencyActionButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: radius,
         child: Container(
-          width: 56,
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          width: 64,
+          padding: const EdgeInsets.symmetric(vertical: 10),
           alignment: Alignment.center,
           child: Semantics(
             label: active ? activeLabel : semanticLabel,
-            child: Stack(
-              clipBehavior: Clip.none,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, color: color, size: 24),
-                if (active)
-                  Positioned(
-                    right: -2,
-                    top: -2,
-                    child: Container(width: 9, height: 9, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
-                  ),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(icon, color: color, size: 22),
+                    if (active)
+                      Positioned(
+                        right: -2,
+                        top: -2,
+                        child: Container(width: 9, height: 9, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: color, letterSpacing: -0.1),
+                ),
               ],
             ),
           ),

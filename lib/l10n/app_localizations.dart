@@ -614,6 +614,24 @@ abstract class AppLocalizations {
   /// **'Accompagnami'**
   String get mapWalkMeHomeSemantic;
 
+  /// No description provided for @mapQuickActionSosLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'SOS'**
+  String get mapQuickActionSosLabel;
+
+  /// No description provided for @mapQuickActionHelpLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Aiuto'**
+  String get mapQuickActionHelpLabel;
+
+  /// No description provided for @mapQuickActionWalkLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Accompagnami'**
+  String get mapQuickActionWalkLabel;
+
   /// No description provided for @mapSosBannerText.
   ///
   /// In it, this message translates to:
