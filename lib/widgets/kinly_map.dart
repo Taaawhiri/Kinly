@@ -117,7 +117,21 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     // Se l'utente è andato nelle impostazioni di sistema per concedere il
     // permesso (o accendere il GPS) e torna nell'app, questo lo scopre da
     // solo al rientro, senza bisogno di un pulsante "riprova" manuale.
-    if (state == AppLifecycleState.resumed) unawaited(_refreshPermissionStatus());
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_refreshPermissionStatus());
+      // Al rientro da un'altra app, il sistema operativo può aver distrutto
+      // e ricreato la superficie grafica nativa della mappa (per liberare
+      // memoria mentre Kinly era in background): MapLibre la ridisegna da
+      // sola, ma i simboli (pin persona, punti d'incontro, aree sicure) che
+      // avevamo aggiunto a mano non fanno parte dello stile e vanno persi
+      // senza nessun avviso a Flutter — da qui i pin che sparivano. Poiché
+      // widget.people non è cambiato, didUpdateWidget da solo non se ne
+      // accorgerebbe: bisogna forzare un risincronismo ad ogni resume.
+      if (_styleLoaded) {
+        unawaited(_syncSymbols(fitCamera: false));
+        unawaited(_syncSafeZoneFills());
+      }
+    }
   }
 
   /// Non deve mai lanciare un'eccezione non gestita: è chiamato anche solo
