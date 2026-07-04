@@ -353,6 +353,38 @@
   .perm-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--divider); flex: none; }
   .perm-dot.selected { border-color: var(--primary); background: var(--primary); }
 
+  /* Cerchia Eventi: stessa card di una cerchia normale, ma bordo
+     tratteggiato color ambra e un badge, mai il pallino "online" sugli
+     avatar (qui non ce ne sono proprio, la posizione non si vede mai). */
+  .event-card { border: 1.6px dashed var(--amber); box-shadow: none; }
+  .event-icon { border: 1.6px dashed var(--amber); background: rgba(255, 176, 32, 0.15); }
+  .event-chip {
+    margin-left: auto;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    color: var(--amber);
+    background: rgba(255, 176, 32, 0.16);
+    padding: 3px 6px;
+    border-radius: 6px;
+    flex: none;
+  }
+
+  /* Ritrovi: uno spot salvato con presenza live, un ritrovo proposto con
+     RSVP, e l'avviso d'arrivo (solo un puntino, mai un tragitto). */
+  .ritrovi-mock { position: absolute; inset: 0; padding: 12% 8% 0; display: flex; flex-direction: column; gap: 10px; }
+  .spot-card, .meetup-card { background: var(--surface); border-radius: 14px; padding: 10px 12px; box-shadow: 0 3px 10px rgba(28,34,51,0.08); }
+  .spot-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .spot-icon { width: 20px; height: 20px; border-radius: 6px; background: rgba(255, 176, 32, 0.18); flex: none; }
+  .spot-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 9px; font-weight: 700; color: var(--text-secondary); background: var(--surface-alt); padding: 3px 8px; border-radius: 8px; }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: shimmer 2.4s ease-in-out infinite; }
+  .rsvp-row { display: flex; gap: 6px; margin-top: 10px; }
+  .rsvp-btn { flex: 1; text-align: center; font-size: 9px; font-weight: 800; padding: 7px 0; border-radius: 8px; }
+  .rsvp-btn.yes { background: rgba(35, 193, 107, 0.15); color: var(--green); }
+  .rsvp-btn.no { background: var(--surface-alt); color: var(--text-secondary); }
+  .arrival-note { display: flex; align-items: center; gap: 8px; padding: 4px 4px; }
+  .arrival-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--green); flex: none; }
+
   /* SOS e richieste di aiuto (skeleton): banner acceso + mappa + bottone. */
   .sos-mock { position: absolute; inset: 0; padding: 14% 10%; }
   .sos-banner {
@@ -812,6 +844,27 @@
         <b>Portami qualcosa</b>
         <span>Se sei vicino a un negozio, la cerchia puo' chiederti al volo di prendere qualcosa (Kinly+).</span>
       </div>
+      <div class="feature" data-cat="cerchia">
+        <div class="icon-badge" style="background: rgba(255,176,32,0.16); color: var(--amber);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4.5" width="18" height="16" rx="4" stroke-dasharray="3.2 2.6"/>
+            <line x1="8" y1="3" x2="8" y2="7"/>
+            <line x1="16" y1="3" x2="16" y2="7"/>
+          </svg>
+        </div>
+        <b>Cerchia Eventi</b>
+        <span>Un tipo di cerchia dove nessuno vede mai la posizione live di nessuno: pensata per conoscenti e gruppi occasionali.</span>
+      </div>
+      <div class="feature" data-cat="cerchia">
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 21C12 21 19 14.5 19 9.5A7 7 0 0 0 5 9.5C5 14.5 12 21 12 21Z"/>
+            <path d="M9.2 9.8l1.8 1.8 3.8-4"/>
+          </svg>
+        </div>
+        <b>Ritrovi</b>
+        <span>Proponi di vedervi in un posto salvato e sapete solo quando qualcuno arriva davvero: mai un tragitto, mai una posizione continua.</span>
+      </div>
     </div>
   </section>
 
@@ -1202,6 +1255,70 @@
         <div class="story-text">
           <h3>Aree sicure su misura <span class="plus-badge">Kinly+</span></h3>
           <p>Disegna casa, lavoro, scuola o qualunque zona conti per te: ricevi una notifica dedicata a ogni ingresso o uscita.</p>
+        </div>
+      </div>
+
+      <div class="story" data-cat="cerchia">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="groups-mock">
+              <div class="group-card">
+                <div class="group-card-head">
+                  <div class="group-icon" style="background: var(--primary);"></div>
+                  <div class="bar" style="width: 42%;"></div>
+                </div>
+                <div class="mini-avatars">
+                  <div class="mini-avatar" style="background: var(--primary);"></div>
+                  <div class="mini-avatar" style="background: var(--coral);"></div>
+                  <div class="mini-avatar" style="background: var(--amber);"></div>
+                </div>
+              </div>
+              <div class="group-card event-card">
+                <div class="group-card-head">
+                  <div class="group-icon event-icon"></div>
+                  <div class="bar" style="width: 34%;"></div>
+                  <div class="event-chip">EVENTI</div>
+                </div>
+                <div class="bar light" style="width: 58%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="story-text">
+          <h3>Cerchia Eventi: nessuno vede la posizione live</h3>
+          <p>Per genitori, conoscenti, gruppi occasionali: scegli questo tipo alla creazione e la posizione in tempo reale resta sempre spenta per tutti, senza eccezioni. Si riconosce subito dal contorno tratteggiato e dal badge "Eventi".</p>
+        </div>
+      </div>
+
+      <div class="story reverse" data-cat="cerchia">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="ritrovi-mock">
+              <div class="spot-card">
+                <div class="spot-head">
+                  <div class="spot-icon"></div>
+                  <div class="bar" style="width: 48%;"></div>
+                </div>
+                <div class="spot-chip"><span class="live-dot"></span> 3 qui ora</div>
+              </div>
+              <div class="meetup-card">
+                <div class="bar" style="width: 55%;"></div>
+                <div class="bar light" style="width: 38%; margin-top: 6px;"></div>
+                <div class="rsvp-row">
+                  <div class="rsvp-btn yes">Ci siamo!</div>
+                  <div class="rsvp-btn no">Non oggi</div>
+                </div>
+              </div>
+              <div class="arrival-note">
+                <div class="arrival-dot"></div>
+                <div class="bar light" style="width: 66%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="story-text">
+          <h3>Ritrovi: vi trovate senza mai condividere il tragitto</h3>
+          <p>Salva un posto (parco, bar, campetto), proponi un orario e chi vuole risponde "Ci siamo!". Quando qualcuno arriva davvero, un avviso puntuale lo conferma: nessuno ha visto come ci e' arrivato.</p>
         </div>
       </div>
     </div>
