@@ -12,19 +12,24 @@ class AppTheme {
   static const Color accentGreen = Color(0xFF23C16B);
   static const Color accentAmber = Color(0xFFFFB020);
 
-  static const Color _lightBackground = Color(0xFFF4F6FB);
-  static const Color _lightSurface = Color(0xFFFFFFFF);
-  static const Color _lightSurfaceAlt = Color(0xFFEDF0F9);
-  static const Color _lightTextPrimary = Color(0xFF1F2430);
-  static const Color _lightTextSecondary = Color(0xFF6B7280);
-  static const Color _lightDivider = Color(0xFFE3E7F1);
+  // Stessi toni caldi (stone/ink) della landing, invece del blu-grigio
+  // freddo di prima: gli accenti di brand sopra restano identici, cambiano
+  // solo i neutri. Il tema scuro non è lo stesso spostato di luminosità —
+  // ha una sua palette calda a sé, per non finire "sporco"/marroncino come
+  // capita quando si scurisce un caldo chiaro senza ripensarlo.
+  static const Color _lightBackground = Color(0xFFEDE8DD);
+  static const Color _lightSurface = Color(0xFFFFFDF9);
+  static const Color _lightSurfaceAlt = Color(0xFFF1ECE1);
+  static const Color _lightTextPrimary = Color(0xFF2B2A22);
+  static const Color _lightTextSecondary = Color(0xFF6B675F);
+  static const Color _lightDivider = Color(0xFFE3DDCF);
 
-  static const Color _darkBackground = Color(0xFF12141C);
-  static const Color _darkSurface = Color(0xFF1C202C);
-  static const Color _darkSurfaceAlt = Color(0xFF272C3B);
-  static const Color _darkTextPrimary = Color(0xFFF1F2F6);
-  static const Color _darkTextSecondary = Color(0xFFA2A8BC);
-  static const Color _darkDivider = Color(0xFF343A4C);
+  static const Color _darkBackground = Color(0xFF1C1917);
+  static const Color _darkSurface = Color(0xFF26221E);
+  static const Color _darkSurfaceAlt = Color(0xFF322D27);
+  static const Color _darkTextPrimary = Color(0xFFF2EDE6);
+  static const Color _darkTextSecondary = Color(0xFFB3A99C);
+  static const Color _darkDivider = Color(0xFF3D362F);
 
   /// Aggiornato da KinlyApp ad ogni build in base al tema effettivamente
   /// risolto (chiaro/scuro/sistema): i widget che usano questi colori
