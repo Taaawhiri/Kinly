@@ -94,8 +94,30 @@
     box-shadow: 0 6px 14px rgba(43,42,34,0.14);
     font-size: 11px; font-weight: 800;
   }
-  .hero-map-badge .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex: none; }
+  .hero-map-badge .live-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex: none;
+    animation: heroLiveDot 1.8s ease-in-out infinite;
+  }
+  @keyframes heroLiveDot {
+    0%, 100% { opacity: 0.55; transform: scale(0.85); }
+    50% { opacity: 1; transform: scale(1.25); }
+  }
   .hero-avatar-pin { position: absolute; width: 36px; height: 46px; transform: translate(-50%, -100%); }
+  /* Un solo pin "vivo" (non tutti e tre, sarebbe troppo): un anello che si
+     espande e sfuma dietro, stesso linguaggio del PulseRing gia' usato
+     nell'app vera per segnalare una posizione live. */
+  .hero-avatar-pin-ping {
+    position: absolute; top: 0; left: 50%; width: 36px; height: 36px; margin-left: -18px;
+    border-radius: 50%; background: var(--primary);
+    animation: heroPinPing 2.2s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+  }
+  @keyframes heroPinPing {
+    0% { transform: scale(0.9); opacity: 0.5; }
+    100% { transform: scale(2.3); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-map-badge .live-dot, .hero-avatar-pin-ping { animation: none; }
+  }
   .hero-avatar-pin-circle {
     position: absolute; top: 0; left: 50%; width: 36px; height: 36px; margin-left: -18px;
     border-radius: 50%; border: 3px solid var(--surface);
@@ -737,6 +759,7 @@
           <div class="hero-visual-grid"></div>
           <div class="hero-map-badge"><span class="live-dot"></span>3 online ora</div>
           <div class="hero-avatar-pin" style="left: 38%; top: 40%;">
+            <div class="hero-avatar-pin-ping"></div>
             <div class="hero-avatar-pin-circle pin-blue">M</div>
             <div class="hero-avatar-pin-tail pin-blue"></div>
           </div>
