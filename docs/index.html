@@ -84,6 +84,18 @@
     background-image: linear-gradient(var(--surface-alt) 1px, transparent 1px), linear-gradient(90deg, var(--surface-alt) 1px, transparent 1px);
     background-size: 18px 18px; background-color: #FAF8F3;
   }
+  /* Percorso tratteggiato + area sicura: un esempio concreto (arrivo a
+     casa) invece di due etichette scollegate dal resto del disegno. */
+  .hero-route { position: absolute; inset: 16px; width: calc(100% - 32px); height: calc(100% - 32px); }
+  .hero-pin { position: absolute; border-radius: 50%; box-shadow: 0 0 0 4px #FAF8F3; }
+  .hero-pin.start { width: 12px; height: 12px; left: 13%; bottom: 16%; background: #C7C0AC; }
+  .hero-pin.end { width: 20px; height: 20px; top: 32%; right: 30%; background: linear-gradient(135deg, #7A8CF0, var(--primary)); }
+  .hero-zone {
+    position: absolute; top: 8%; right: 6%; width: 84px; height: 84px; border-radius: 50%;
+    border: 2px dashed var(--green); background: rgba(35,193,107,0.12);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hero-zone span { font-size: 11px; font-weight: 800; color: #1D7A50; }
   .hero-chip {
     position: absolute; display: flex; align-items: center; gap: 8px;
     background: var(--surface); border-radius: 999px; padding: 7px 14px 7px 7px;
@@ -92,9 +104,7 @@
   }
   .hero-chip-av { width: 28px; height: 28px; border-radius: 50%; flex: none; }
   .hero-chip-av.av-blue { background: linear-gradient(135deg, #7A8CF0, var(--primary)); }
-  .hero-chip-av.av-amber { background: linear-gradient(135deg, #FFCE7A, var(--amber)); }
-  .hero-chip.c1 { top: -6px; left: -4px; }
-  .hero-chip.c2 { bottom: 8%; left: 22%; }
+  .hero-chip.arrived { bottom: 10%; left: -4px; }
 
   @media (max-width: 640px) {
     .hero-inner { grid-template-columns: 1fr; }
@@ -668,9 +678,14 @@
       <div class="hero-visual">
         <div class="hero-visual-card">
           <div class="hero-visual-grid"></div>
+          <svg class="hero-route" viewBox="0 0 300 220" preserveAspectRatio="none" style="color: var(--primary)">
+            <path d="M45 178 C 95 152, 118 108, 158 82" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round" opacity="0.55"/>
+          </svg>
+          <div class="hero-pin start"></div>
+          <div class="hero-zone"><span>Casa</span></div>
+          <div class="hero-pin end"></div>
         </div>
-        <div class="hero-chip c1"><span class="hero-chip-av av-blue"></span>A casa</div>
-        <div class="hero-chip c2"><span class="hero-chip-av av-amber"></span>In arrivo</div>
+        <div class="hero-chip arrived"><span class="hero-chip-av av-blue"></span>Arrivato a casa</div>
       </div>
     </div>
   </div>
