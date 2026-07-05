@@ -12,12 +12,15 @@
     --coral: #FF6B6B;
     --amber: #FFB020;
     --green: #23C16B;
-    --bg: #F4F6FB;
-    --surface: #FFFFFF;
-    --surface-alt: #EEF1FA;
-    --text: #1C2233;
-    --text-secondary: #5B6478;
-    --divider: #E1E5F0;
+    /* Toni neutri caldi (stone/ink) invece del blu-grigio freddo di prima:
+       gli accenti di brand (primary/coral/amber/green, usati per categorie e
+       icone in tutta la pagina) restano identici. */
+    --bg: #EDE8DD;
+    --surface: #FFFDF9;
+    --surface-alt: #F1ECE1;
+    --text: #2B2A22;
+    --text-secondary: #6B675F;
+    --divider: #E3DDCF;
   }
   * { box-sizing: border-box; }
   body {
@@ -28,63 +31,84 @@
   }
   .wrap { max-width: 880px; margin: 0 auto; padding: 0 20px; }
 
-  header.hero {
-    text-align: center;
-    padding: 56px 20px 40px;
-  }
-  .logo {
-    width: 84px;
-    height: 84px;
-    border-radius: 22px;
-    display: block;
-    margin: 0 auto 18px;
-    box-shadow: 0 8px 24px rgba(74, 99, 231, 0.25);
-    animation: float 4s ease-in-out infinite;
-  }
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-  }
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(18px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  /* Hero "Casa": asimmetrico invece di centrato, un titolo serif che si
+     legge come una frase scritta a mano invece di un badge da app-store. */
+  header.hero { padding: 64px 0 44px; }
+  .hero-inner {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 36px;
+    align-items: center;
+  }
+  .hero-mark { display: flex; align-items: center; gap: 9px; margin-bottom: 22px; animation: fadeInUp 0.6s ease both; }
+  .hero-mark img { width: 30px; height: 30px; border-radius: 9px; }
+  .hero-mark span { font-family: Georgia, "Iowan Old Style", "Times New Roman", serif; font-weight: 700; font-size: 16px; }
+  .eyebrow {
+    font-size: 11.5px; font-weight: 700; letter-spacing: 0.07em; color: var(--coral);
+    margin: 0 0 14px; animation: fadeInUp 0.6s ease 0.05s both;
+  }
   h1 {
-    font-size: 30px;
-    margin: 0 0 6px;
-    font-weight: 800;
-    animation: fadeInUp 0.6s ease both;
-  }
-  .slogan {
-    display: inline-block;
-    font-size: 15px;
-    font-weight: 700;
-    margin: 0 0 10px;
-    background: linear-gradient(90deg, var(--primary), var(--coral), var(--amber), var(--primary));
-    background-size: 300% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    animation: fadeInUp 0.6s ease 0.05s both, sloganGradient 5s linear infinite;
-  }
-  @keyframes sloganGradient {
-    to { background-position: 300% center; }
-  }
-  .tagline {
-    font-size: 16px;
-    color: var(--text-secondary);
-    max-width: 480px;
-    margin: 0 auto;
-    line-height: 1.5;
+    font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-weight: 400;
+    font-size: 46px;
+    line-height: 1.08;
+    margin: 0 0 20px;
+    text-wrap: balance;
     animation: fadeInUp 0.6s ease 0.1s both;
+  }
+  h1 em { font-style: italic; color: var(--coral); }
+  .tagline {
+    font-size: 15.5px;
+    color: var(--text-secondary);
+    max-width: 400px;
+    margin: 0 0 26px;
+    line-height: 1.55;
+    animation: fadeInUp 0.6s ease 0.15s both;
+  }
+  .hero-note { font-size: 11.5px; color: var(--text-secondary); margin-top: 12px; }
+
+  .hero-visual { position: relative; height: 260px; animation: fadeInUp 0.6s ease 0.2s both; }
+  .hero-visual-card {
+    position: absolute; inset: 0 0 0 12%;
+    background: var(--surface); border-radius: 22px;
+    box-shadow: 0 22px 44px rgba(43,42,34,0.16);
+    overflow: hidden;
+  }
+  .hero-visual-grid {
+    position: absolute; inset: 16px; border-radius: 14px;
+    background-image: linear-gradient(var(--surface-alt) 1px, transparent 1px), linear-gradient(90deg, var(--surface-alt) 1px, transparent 1px);
+    background-size: 18px 18px; background-color: #FAF8F3;
+  }
+  .hero-chip {
+    position: absolute; display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border-radius: 999px; padding: 7px 14px 7px 7px;
+    box-shadow: 0 10px 22px rgba(43,42,34,0.18);
+    font-size: 12px; font-weight: 700;
+  }
+  .hero-chip-av { width: 28px; height: 28px; border-radius: 50%; flex: none; }
+  .hero-chip-av.av-blue { background: linear-gradient(135deg, #7A8CF0, var(--primary)); }
+  .hero-chip-av.av-amber { background: linear-gradient(135deg, #FFCE7A, var(--amber)); }
+  .hero-chip.c1 { top: -6px; left: -4px; }
+  .hero-chip.c2 { bottom: 8%; left: 22%; }
+
+  @media (max-width: 640px) {
+    .hero-inner { grid-template-columns: 1fr; }
+    .hero-visual { height: 200px; margin-top: 10px; }
+    h1 { font-size: 36px; }
   }
 
   section {
     padding: 32px 0;
   }
   h2 {
-    font-size: 20px;
-    font-weight: 800;
+    font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-weight: 400;
+    font-size: 26px;
     text-align: center;
     margin: 0 0 24px;
   }
@@ -196,29 +220,29 @@
   .hero-ctas {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     gap: 8px 18px;
-    margin-top: 20px;
     animation: fadeInUp 0.6s ease 0.2s both;
   }
   .cta-primary {
     display: inline-block;
-    background: var(--primary);
-    color: white;
+    background: var(--text);
+    color: var(--surface);
     font-size: 14px;
     font-weight: 700;
     text-decoration: none;
-    padding: 12px 22px;
+    padding: 13px 24px;
     border-radius: 999px;
-    box-shadow: 0 8px 20px rgba(74, 99, 231, 0.3);
+    box-shadow: 0 10px 22px rgba(43,42,34,0.2);
   }
   .jump-link {
     display: inline-block;
     font-size: 13px;
     font-weight: 700;
-    color: var(--primary);
-    text-decoration: none;
+    color: var(--text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   @keyframes shimmer {
@@ -625,15 +649,31 @@
 <body>
 
 <header class="hero">
-  <img class="logo" src="icon.png" alt="Kinly">
-  <h1>Kinly</h1>
-  <p class="slogan">Sempre vicini. Mai invadenti.</p>
-  <p class="tagline">Condividi la posizione con chi conta, solo su invito. Famiglia, amici e colleghi: sempre tranquilli, mai controllati.</p>
-  <div class="hero-ctas">
-    <a class="cta-primary" href="app/">Prova Kinly nel browser</a>
-    <a class="jump-link" href="#come-funziona">Scopri come funziona &darr;</a>
+  <div class="wrap">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <div class="hero-mark">
+          <img src="icon.png" alt="Kinly">
+          <span>Kinly</span>
+        </div>
+        <p class="eyebrow">FAMIGLIA &middot; AMICI &middot; COLLEGHI</p>
+        <h1>Sempre vicini.<br><em>Mai invadenti.</em></h1>
+        <p class="tagline">Condividi la posizione con chi conta, solo su invito. Sempre tranquilli, mai controllati.</p>
+        <div class="hero-ctas">
+          <a class="cta-primary" href="app/">Prova Kinly nel browser</a>
+          <a class="jump-link" href="#come-funziona">Scopri come funziona &darr;</a>
+        </div>
+        <p class="hero-note">Versione compagna: utile per cerchie, messaggi e mappa dal computer. Il tracciamento continuo resta solo nell'app.</p>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-visual-card">
+          <div class="hero-visual-grid"></div>
+        </div>
+        <div class="hero-chip c1"><span class="hero-chip-av av-blue"></span>A casa</div>
+        <div class="hero-chip c2"><span class="hero-chip-av av-amber"></span>In arrivo</div>
+      </div>
+    </div>
   </div>
-  <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 10px;">Versione compagna: utile per cerchie, messaggi e mappa dal computer. Il tracciamento continuo resta solo nell'app.</p>
 </header>
 
 <div class="wrap">
