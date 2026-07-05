@@ -210,7 +210,12 @@
     .features {
       display: flex;
       overflow-x: auto;
-      scroll-snap-type: x mandatory;
+      /* "proximity", non "mandatory": con mandatory un dito che scende non
+         perfettamente dritto veniva a volte interpretato come uno scroll
+         orizzontale e restava "agganciato" dentro il carosello invece di
+         continuare a scorrere la pagina verso il basso. */
+      scroll-snap-type: x proximity;
+      overscroll-behavior-x: contain;
       gap: 12px;
       margin: 0 -20px;
       padding: 4px 20px 10px;
@@ -264,7 +269,8 @@
       display: flex;
       flex-direction: row;
       overflow-x: auto;
-      scroll-snap-type: x mandatory;
+      scroll-snap-type: x proximity;
+      overscroll-behavior-x: contain;
       gap: 0;
       max-width: none;
       margin: 0 -20px;
@@ -1626,11 +1632,16 @@
   // trovare quello che interessa, sia per le funzioni che per i mockup di
   // "Come funziona". "Tutte" e' il default, nulla e' nascosto all'inizio.
   // Ogni gruppo di filtri (uno per sezione) resta indipendente dall'altro.
-  function wireCatFilters(filtersContainerId, cardSelector) {
+  function wireCatFilters(filtersContainerId, cardSelector, scrollContainerSelector) {
     var container = document.getElementById(filtersContainerId);
     if (!container) return;
     var filterButtons = container.querySelectorAll('.cat-filter');
     var cards = document.querySelectorAll(cardSelector);
+    // Su mobile le card sono un carosello orizzontale: cambiando filtro si
+    // puo' restare scrollati a meta' di un gruppo che non c'e' piu' (schermo
+    // vuoto finche' non si torna indietro a mano). Riportare lo scroll
+    // all'inizio ad ogni cambio evita di doverlo capire da soli.
+    var scrollEl = scrollContainerSelector ? document.querySelector(scrollContainerSelector) : null;
     filterButtons.forEach(function (btn) {
       btn.addEventListener('click', function () {
         filterButtons.forEach(function (b) { b.classList.remove('active'); });
@@ -1640,11 +1651,12 @@
           var matches = cat === 'all' || card.getAttribute('data-cat') === cat;
           card.classList.toggle('hidden-cat', !matches);
         });
+        if (scrollEl) scrollEl.scrollTo({ left: 0, behavior: 'auto' });
       });
     });
   }
-  wireCatFilters('feature-filters', '.feature[data-cat]');
-  wireCatFilters('story-filters', '.story[data-cat]');
+  wireCatFilters('feature-filters', '.feature[data-cat]', '.features');
+  wireCatFilters('story-filters', '.story[data-cat]', '.story-list');
 </script>
 
 </body>
