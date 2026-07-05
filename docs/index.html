@@ -512,6 +512,33 @@
   .zone-chip { flex: 1; background: var(--surface-alt); border-radius: 10px; padding: 8px 6px; }
   .zone-chip .bar { margin: 0 auto; }
 
+  /* Modalita' Rapida (skeleton): home semplificata con anteprima mappa
+     statica, due azioni grandi (SOS e chiamata rapida) e una riga per
+     persona con un solo pulsante per chiamarla. */
+  .simple-mock { position: absolute; inset: 0; padding: 11% 8% 0; }
+  .simple-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .simple-top .bar { margin: 0; }
+  .simple-map-preview {
+    height: 46px; border-radius: 12px; margin-bottom: 10px;
+    background-image: linear-gradient(var(--surface-alt) 1px, transparent 1px), linear-gradient(90deg, var(--surface-alt) 1px, transparent 1px);
+    background-size: 11px 11px; background-color: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 10px rgba(28,34,51,0.08);
+  }
+  .simple-map-preview svg { width: 18px; height: 18px; color: var(--primary); }
+  .simple-actions { display: flex; gap: 6px; margin-bottom: 10px; }
+  .simple-action {
+    flex: 1; height: 28px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 800; color: #fff;
+  }
+  .simple-action.sos { background: var(--coral); }
+  .simple-action.call { background: var(--green); }
+  .simple-row { display: flex; align-items: center; gap: 8px; background: var(--surface); border-radius: 12px; padding: 8px; margin-bottom: 8px; box-shadow: 0 3px 8px rgba(28,34,51,0.06); }
+  .simple-row-avatar { width: 26px; height: 26px; border-radius: 50%; flex: none; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+  .simple-row-bars { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .simple-row-call { width: 20px; height: 20px; border-radius: 50%; flex: none; background: rgba(35,193,107,0.16); }
+
   .plans {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -864,6 +891,18 @@
         </div>
         <b>Ritrovi</b>
         <span>Proponi di vedervi in un posto salvato e sapete solo quando qualcuno arriva davvero: mai un tragitto, mai una posizione continua.</span>
+      </div>
+      <div class="feature" data-cat="comodita">
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="5" r="2.2"/>
+            <path d="M5.5 9.5c2 1.3 4.2 2 6.5 2s4.5-.7 6.5-2"/>
+            <path d="M12 11.5v4"/>
+            <path d="M9 21l3-5.5 3 5.5"/>
+          </svg>
+        </div>
+        <b>Modalita' Rapida</b>
+        <span>Una home piu' diretta, a misura di chiunque: mappa ridotta, due azioni grandi e un solo pulsante per chiamare ogni persona.</span>
       </div>
     </div>
   </section>
@@ -1319,6 +1358,48 @@
         <div class="story-text">
           <h3>Ritrovi: vi trovate senza mai condividere il tragitto</h3>
           <p>Salva un posto (parco, bar, campetto), proponi un orario e chi vuole risponde "Ci siamo!". Quando qualcuno arriva davvero, un avviso puntuale lo conferma: nessuno ha visto come ci e' arrivato.</p>
+        </div>
+      </div>
+
+      <div class="story" data-cat="comodita">
+        <div class="story-media">
+          <div class="phone-frame">
+            <div class="simple-mock">
+              <div class="simple-top">
+                <div class="bar" style="width: 46px;"></div>
+                <div class="bar light" style="width: 24px;"></div>
+              </div>
+              <div class="simple-map-preview">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 20 3 18V6l6 2m0 12 6-2m-6 2V8m6 10 6 2V8l-6-2m0 14V6m0 0L9 8"/>
+                </svg>
+              </div>
+              <div class="simple-actions">
+                <div class="simple-action sos">SOS</div>
+                <div class="simple-action call">Chiama</div>
+              </div>
+              <div class="simple-row">
+                <div class="simple-row-avatar"></div>
+                <div class="simple-row-bars">
+                  <div class="bar" style="width: 60%; margin: 0;"></div>
+                  <div class="bar light" style="width: 40%; margin: 0;"></div>
+                </div>
+                <div class="simple-row-call"></div>
+              </div>
+              <div class="simple-row">
+                <div class="simple-row-avatar" style="background: linear-gradient(135deg, var(--amber), #E0932A);"></div>
+                <div class="simple-row-bars">
+                  <div class="bar" style="width: 50%; margin: 0;"></div>
+                  <div class="bar light" style="width: 34%; margin: 0;"></div>
+                </div>
+                <div class="simple-row-call"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="story-text">
+          <h3>Modalita' Rapida: la stessa app, meno rumore</h3>
+          <p>Un interruttore in Profilo trasforma la home in una versione piu' diretta: mappa ridotta ma vera, due azioni grandi in cima (SOS e chiama subito) e una riga per persona con un solo pulsante per chiamarla &mdash; per chi trova il resto dell'app, giustamente, troppo pieno di roba.</p>
         </div>
       </div>
     </div>
