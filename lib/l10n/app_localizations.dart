@@ -2570,23 +2570,23 @@ abstract class AppLocalizations {
   /// **'Il sistema può sospenderla'**
   String get privacyPermissionBatteryRestricted;
 
-  /// No description provided for @privacySamsungBatterySettings.
+  /// No description provided for @privacyManufacturerBatterySettings.
   ///
   /// In it, this message translates to:
-  /// **'Impostazioni batteria Samsung'**
-  String get privacySamsungBatterySettings;
+  /// **'Impostazioni batteria {manufacturer}'**
+  String privacyManufacturerBatterySettings(String manufacturer);
 
-  /// No description provided for @privacySamsungBatteryDialogTitle.
+  /// No description provided for @privacyManufacturerBatteryDialogTitle.
   ///
   /// In it, this message translates to:
-  /// **'Un passo in più su Samsung'**
-  String get privacySamsungBatteryDialogTitle;
+  /// **'Un passo in più su {manufacturer}'**
+  String privacyManufacturerBatteryDialogTitle(String manufacturer);
 
-  /// No description provided for @privacySamsungBatteryDialogBody.
+  /// No description provided for @privacyManufacturerBatteryDialogBody.
   ///
   /// In it, this message translates to:
-  /// **'Samsung ha una gestione batteria separata da quella di Android, che può sospendere Kinly anche con i permessi giusti. Nella schermata che si apre, imposta Kinly su \"Nessuna restrizione\" e assicurati che non sia tra le app in sospensione.'**
-  String get privacySamsungBatteryDialogBody;
+  /// **'{manufacturer} ha una gestione batteria separata da quella di Android, che può sospendere Kinly anche con i permessi giusti. Nella schermata che si apre, consenti l\'avvio automatico di Kinly e assicurati che non abbia restrizioni sulla batteria.'**
+  String privacyManufacturerBatteryDialogBody(String manufacturer);
 
   /// No description provided for @privacyBatteryOptimizationDialogTitle.
   ///

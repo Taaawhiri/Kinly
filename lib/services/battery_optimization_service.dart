@@ -35,17 +35,29 @@ class BatteryOptimizationService {
     }
   }
 
-  /// Samsung ha un secondo livello di gestione batteria, separato da quello
-  /// standard di Android, che isIgnoringOptimizations sopra non vede affatto
-  /// (vedi il commento in MainActivity.kt): mostriamo un modo diretto per
-  /// raggiungere quella schermata solo sui telefoni dove esiste davvero,
-  /// invece che genericamente su ogni Android.
-  Future<bool> isSamsungDevice() async {
+  /// Samsung, Xiaomi e Huawei hanno un secondo livello di gestione batteria,
+  /// separato da quello standard di Android, che isIgnoringOptimizations
+  /// sopra non vede affatto (vedi il commento in MainActivity.kt): mostriamo
+  /// un modo diretto per raggiungere quella schermata solo sui telefoni dove
+  /// esiste davvero, invece che genericamente su ogni Android — su un Pixel
+  /// o un altro produttore senza questo layer non c'è niente da mostrare.
+  Future<bool> hasManufacturerBatterySettings() async {
     if (!Platform.isAndroid) return false;
     try {
-      return await _channel.invokeMethod<bool>('isSamsungDevice') ?? false;
+      return await _channel.invokeMethod<bool>('hasManufacturerBatterySettings') ?? false;
     } catch (_) {
       return false;
+    }
+  }
+
+  /// Nome del produttore da mostrare nell'interfaccia (es. "Samsung"),
+  /// null se non applicabile su questo telefono.
+  Future<String?> manufacturerBatterySettingsLabel() async {
+    if (!Platform.isAndroid) return null;
+    try {
+      return await _channel.invokeMethod<String>('manufacturerBatterySettingsLabel');
+    } catch (_) {
+      return null;
     }
   }
 

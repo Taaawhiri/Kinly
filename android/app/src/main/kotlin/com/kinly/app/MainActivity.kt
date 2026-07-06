@@ -31,7 +31,8 @@ class MainActivity : FlutterFragmentActivity() {
                     requestIgnoreBatteryOptimizations()
                     result.success(null)
                 }
-                "isSamsungDevice" -> result.success(Build.MANUFACTURER.equals("samsung", ignoreCase = true))
+                "hasManufacturerBatterySettings" -> result.success(hasManufacturerBatterySettings())
+                "manufacturerBatterySettingsLabel" -> result.success(manufacturerDisplayName())
                 "openManufacturerBatterySettings" -> {
                     openManufacturerBatterySettings()
                     result.success(null)
@@ -62,23 +63,52 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    // Samsung ha un secondo livello di gestione batteria (Device Care >
-    // "App in sospensione"/"App mai in sospensione", e un interruttore
-    // "Nessuna restrizione" per app nella pagina Batteria di ogni app), del
-    // tutto separato da PowerManager.isIgnoringBatteryOptimizations: un'app
-    // può risultare "esente" per Android e venire comunque messa in
-    // sospensione da Samsung. Non esiste un Intent pubblico e documentato
-    // per aprire direttamente quella schermata (a differenza di
+    // Samsung, Xiaomi e Huawei hanno un secondo livello di gestione batteria
+    // (rispettivamente: Device Care > "App in sospensione"/"Nessuna
+    // restrizione"; Sicurezza > Autostart + Risparmio energetico app;
+    // Gestione telefono > Avvio app), del tutto separato da
+    // PowerManager.isIgnoringBatteryOptimizations: un'app può risultare
+    // "esente" per Android e venire comunque messa in sospensione dal
+    // produttore. Google (Pixel, Android puro) e gli altri produttori senza
+    // un layer proprietario non hanno bisogno di niente di tutto questo:
+    // l'esenzione standard sopra basta già.
+    private fun manufacturerKey(): String = Build.MANUFACTURER.lowercase()
+
+    private fun hasManufacturerBatterySettings(): Boolean {
+        val m = manufacturerKey()
+        return m == "samsung" || m == "xiaomi" || m == "huawei"
+    }
+
+    private fun manufacturerDisplayName(): String = when (manufacturerKey()) {
+        "samsung" -> "Samsung"
+        "xiaomi" -> "Xiaomi"
+        "huawei" -> "Huawei"
+        else -> Build.MANUFACTURER
+    }
+
+    // Non esiste un Intent pubblico e documentato per aprire direttamente
+    // queste schermate (a differenza di
     // ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, che è AOSP): questi nomi
     // di componente sono noti solo per uso comune tra sviluppatori
     // (dontkillmyapp.com) e non garantiti — possono cambiare o sparire con
-    // gli aggiornamenti di One UI, da qui la catena di tentativi con
+    // gli aggiornamenti di sistema, da qui la catena di tentativi con
     // fallback finale sulle impostazioni app standard, mai un errore visibile.
     private fun openManufacturerBatterySettings() {
-        val candidates = listOf(
-            ComponentName("com.samsung.android.lool", "com.samsung.android.sm.ui.battery.BatteryActivity"),
-            ComponentName("com.samsung.android.lool", "com.samsung.android.sm.battery.ui.BatteryActivity"),
-        )
+        val candidates = when (manufacturerKey()) {
+            "samsung" -> listOf(
+                ComponentName("com.samsung.android.lool", "com.samsung.android.sm.ui.battery.BatteryActivity"),
+                ComponentName("com.samsung.android.lool", "com.samsung.android.sm.battery.ui.BatteryActivity"),
+            )
+            "xiaomi" -> listOf(
+                ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"),
+                ComponentName("com.miui.powerkeeper", "com.miui.powerkeeper.ui.HiddenAppsConfigActivity"),
+            )
+            "huawei" -> listOf(
+                ComponentName("com.huawei.systemmanager", "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity"),
+                ComponentName("com.huawei.systemmanager", "com.huawei.systemmanager.optimize.process.ProtectActivity"),
+            )
+            else -> emptyList()
+        }
         for (target in candidates) {
             try {
                 val intent = Intent()

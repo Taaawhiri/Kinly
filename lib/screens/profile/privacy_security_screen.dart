@@ -51,7 +51,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   LocationPermission? _locationPermission;
   bool? _notificationsEnabled;
   bool? _batteryOptimizationIgnored;
-  bool _isSamsungDevice = false;
+  String? _manufacturerBatteryLabel;
 
   @override
   void initState() {
@@ -76,36 +76,40 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       }
     }
     bool? batteryIgnored;
-    var isSamsung = false;
+    String? manufacturerLabel;
     if (!kIsWeb && Platform.isAndroid) {
       batteryIgnored = await BatteryOptimizationService.instance.isIgnoringOptimizations();
-      isSamsung = await BatteryOptimizationService.instance.isSamsungDevice();
+      if (await BatteryOptimizationService.instance.hasManufacturerBatterySettings()) {
+        manufacturerLabel = await BatteryOptimizationService.instance.manufacturerBatterySettingsLabel();
+      }
     }
     if (mounted) {
       setState(() {
         _locationPermission = location;
         _notificationsEnabled = notifications;
         _batteryOptimizationIgnored = batteryIgnored;
-        _isSamsungDevice = isSamsung;
+        _manufacturerBatteryLabel = manufacturerLabel;
       });
     }
   }
 
-  /// Samsung ha una gestione batteria separata da quella standard di
-  /// Android (vedi BatteryOptimizationService.openManufacturerBatterySettings):
-  /// un'app può risultare esente dall'ottimizzazione batteria "di sistema"
-  /// (la riga sopra) e venire comunque messa in sospensione da Samsung.
-  /// Spiegarlo prima di aprire le impostazioni, non dopo: senza contesto la
-  /// schermata a cui si arriva ("App in sospensione" ecc.) non si capisce
-  /// perché la si sta guardando.
-  Future<void> _openSamsungBatterySettings() async {
+  /// Samsung, Xiaomi e Huawei hanno una gestione batteria separata da quella
+  /// standard di Android (vedi
+  /// BatteryOptimizationService.openManufacturerBatterySettings): un'app può
+  /// risultare esente dall'ottimizzazione batteria "di sistema" (la riga
+  /// sopra) e venire comunque messa in sospensione dal produttore. Spiegarlo
+  /// prima di aprire le impostazioni, non dopo: senza contesto la schermata
+  /// a cui si arriva non si capisce perché la si sta guardando.
+  Future<void> _openManufacturerBatterySettings() async {
+    final manufacturer = _manufacturerBatteryLabel;
+    if (manufacturer == null) return;
     final l10n = AppLocalizations.of(context)!;
     final proceed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: Text(l10n.privacySamsungBatteryDialogTitle),
-        content: Text(l10n.privacySamsungBatteryDialogBody),
+        title: Text(l10n.privacyManufacturerBatteryDialogTitle(manufacturer)),
+        content: Text(l10n.privacyManufacturerBatteryDialogBody(manufacturer)),
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonNotNow)),
           FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.privacyOpenSettings)),
@@ -642,12 +646,12 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     ],
                   ),
                 ),
-                if (_isSamsungDevice) ...[
+                if (_manufacturerBatteryLabel != null) ...[
                   const SizedBox(height: 10),
                   _ActionTile(
                     icon: Icons.battery_alert_outlined,
-                    label: l10n.privacySamsungBatterySettings,
-                    onTap: _openSamsungBatterySettings,
+                    label: l10n.privacyManufacturerBatterySettings(_manufacturerBatteryLabel!),
+                    onTap: _openManufacturerBatterySettings,
                   ),
                 ],
                 const SizedBox(height: 24),
