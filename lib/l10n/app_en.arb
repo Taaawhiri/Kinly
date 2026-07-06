@@ -429,7 +429,7 @@
   "privacyPermissionNotificationsOn": "On",
   "privacyPermissionNotificationsOff": "Off",
   "privacyPermissionDisableFromSystem": "To turn this off you need to use your phone's system settings.",
-  "privacyPermissionBattery": "Battery saver",
+  "privacyPermissionBattery": "Always active in background",
   "privacyPermissionBatteryExempt": "Kinly excluded (recommended)",
   "privacyPermissionBatteryRestricted": "The system can suspend it",
   "privacyManufacturerBatterySettings": "{manufacturer} battery settings",

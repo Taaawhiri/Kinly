@@ -1456,7 +1456,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Per disattivarlo serve usare le impostazioni di sistema del telefono.';
 
   @override
-  String get privacyPermissionBattery => 'Risparmio energetico';
+  String get privacyPermissionBattery => 'Sempre attiva in background';
 
   @override
   String get privacyPermissionBatteryExempt => 'Kinly esclusa (consigliato)';

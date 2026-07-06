@@ -1453,7 +1453,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'To turn this off you need to use your phone\'s system settings.';
 
   @override
-  String get privacyPermissionBattery => 'Battery saver';
+  String get privacyPermissionBattery => 'Always active in background';
 
   @override
   String get privacyPermissionBatteryExempt => 'Kinly excluded (recommended)';

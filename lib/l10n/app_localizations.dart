@@ -2555,7 +2555,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPermissionBattery.
   ///
   /// In it, this message translates to:
-  /// **'Risparmio energetico'**
+  /// **'Sempre attiva in background'**
   String get privacyPermissionBattery;
 
   /// No description provided for @privacyPermissionBatteryExempt.

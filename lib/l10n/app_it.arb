@@ -489,7 +489,7 @@
   "privacyPermissionNotificationsOn": "Attive",
   "privacyPermissionNotificationsOff": "Disattivate",
   "privacyPermissionDisableFromSystem": "Per disattivarlo serve usare le impostazioni di sistema del telefono.",
-  "privacyPermissionBattery": "Risparmio energetico",
+  "privacyPermissionBattery": "Sempre attiva in background",
   "privacyPermissionBatteryExempt": "Kinly esclusa (consigliato)",
   "privacyPermissionBatteryRestricted": "Il sistema può sospenderla",
   "privacyManufacturerBatterySettings": "Impostazioni batteria {manufacturer}",

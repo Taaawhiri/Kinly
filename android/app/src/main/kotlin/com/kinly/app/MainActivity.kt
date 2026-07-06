@@ -63,26 +63,32 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    // Samsung, Xiaomi e Huawei hanno un secondo livello di gestione batteria
-    // (rispettivamente: Device Care > "App in sospensione"/"Nessuna
-    // restrizione"; Sicurezza > Autostart + Risparmio energetico app;
-    // Gestione telefono > Avvio app), del tutto separato da
+    // Samsung, Xiaomi/Redmi, Huawei/Honor, Oppo/OnePlus e Vivo hanno un
+    // secondo livello di gestione batteria/autostart, del tutto separato da
     // PowerManager.isIgnoringBatteryOptimizations: un'app può risultare
     // "esente" per Android e venire comunque messa in sospensione dal
-    // produttore. Google (Pixel, Android puro) e gli altri produttori senza
-    // un layer proprietario non hanno bisogno di niente di tutto questo:
-    // l'esenzione standard sopra basta già.
+    // produttore. Google (Pixel, Android puro) e Nothing (Nothing OS, molto
+    // vicino ad Android puro, nessun layer proprietario noto) non hanno
+    // bisogno di niente di tutto questo: l'esenzione standard sopra basta
+    // già. Redmi è un marchio di Xiaomi: quasi sempre Build.MANUFACTURER
+    // riporta comunque "Xiaomi" anche su un Redmi, ma teniamo l'alias per
+    // sicurezza nel caso capiti una ROM che riporti "Redmi" direttamente.
     private fun manufacturerKey(): String = Build.MANUFACTURER.lowercase()
 
-    private fun hasManufacturerBatterySettings(): Boolean {
-        val m = manufacturerKey()
-        return m == "samsung" || m == "xiaomi" || m == "huawei"
-    }
+    private val manufacturersWithBatterySettings =
+        setOf("samsung", "xiaomi", "redmi", "huawei", "honor", "oppo", "oneplus", "vivo")
+
+    private fun hasManufacturerBatterySettings(): Boolean = manufacturerKey() in manufacturersWithBatterySettings
 
     private fun manufacturerDisplayName(): String = when (manufacturerKey()) {
         "samsung" -> "Samsung"
         "xiaomi" -> "Xiaomi"
+        "redmi" -> "Redmi"
         "huawei" -> "Huawei"
+        "honor" -> "Honor"
+        "oppo" -> "Oppo"
+        "oneplus" -> "OnePlus"
+        "vivo" -> "Vivo"
         else -> Build.MANUFACTURER
     }
 
@@ -93,19 +99,30 @@ class MainActivity : FlutterFragmentActivity() {
     // (dontkillmyapp.com) e non garantiti — possono cambiare o sparire con
     // gli aggiornamenti di sistema, da qui la catena di tentativi con
     // fallback finale sulle impostazioni app standard, mai un errore visibile.
+    // Oppo e OnePlus condividono la stessa base (ColorOS/OxygenOS fusi dal
+    // 2021): proviamo entrambi i set di nomi noti su entrambi i marchi.
     private fun openManufacturerBatterySettings() {
         val candidates = when (manufacturerKey()) {
             "samsung" -> listOf(
                 ComponentName("com.samsung.android.lool", "com.samsung.android.sm.ui.battery.BatteryActivity"),
                 ComponentName("com.samsung.android.lool", "com.samsung.android.sm.battery.ui.BatteryActivity"),
             )
-            "xiaomi" -> listOf(
+            "xiaomi", "redmi" -> listOf(
                 ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"),
                 ComponentName("com.miui.powerkeeper", "com.miui.powerkeeper.ui.HiddenAppsConfigActivity"),
             )
-            "huawei" -> listOf(
+            "huawei", "honor" -> listOf(
                 ComponentName("com.huawei.systemmanager", "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity"),
                 ComponentName("com.huawei.systemmanager", "com.huawei.systemmanager.optimize.process.ProtectActivity"),
+            )
+            "oppo", "oneplus" -> listOf(
+                ComponentName("com.coloros.safecenter", "com.coloros.safecenter.permission.startup.StartupAppListActivity"),
+                ComponentName("com.oppo.safe", "com.oppo.safe.permission.startup.StartupAppListActivity"),
+                ComponentName("com.oneplus.security", "com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity"),
+            )
+            "vivo" -> listOf(
+                ComponentName("com.vivo.permissionmanager", "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"),
+                ComponentName("com.iqoo.secure", "com.iqoo.secure.ui.phoneoptimize.AddWhiteListActivity"),
             )
             else -> emptyList()
         }
