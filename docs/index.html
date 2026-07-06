@@ -753,7 +753,7 @@
     color: var(--text-secondary);
     line-height: 1.5;
   }
-  .roadmap { position: relative; max-width: 520px; margin: 0 auto; }
+  .roadmap { position: relative; max-width: 760px; margin: 0 auto; }
   .roadmap-line {
     position: absolute;
     top: 22px;
@@ -777,7 +777,7 @@
   .roadmap-stops {
     position: relative;
     display: flex;
-    gap: 28px;
+    gap: 16px;
   }
   .roadmap-stop {
     flex: 1;
@@ -789,7 +789,7 @@
   .roadmap-stop.visible { opacity: 1; transform: translateY(0); }
   .roadmap-icon-wrap { position: relative; width: 44px; height: 44px; margin: 0 auto 14px; }
   .roadmap-icon-wrap .icon-badge { width: 44px; height: 44px; margin: 0; position: relative; z-index: 1; }
-  .roadmap-stop-active .icon-badge { background: rgba(35, 193, 107, 0.14); color: var(--green); }
+  .roadmap-stop-done .icon-badge, .roadmap-stop-active .icon-badge { background: rgba(35, 193, 107, 0.14); color: var(--green); }
   .roadmap-stop-future .icon-badge { background: var(--surface); color: var(--text-secondary); border: 2px solid var(--divider); }
   .roadmap-ping {
     position: absolute;
@@ -816,11 +816,93 @@
   @media (prefers-reduced-motion: reduce) {
     .roadmap-line::after, .roadmap-ping { animation: none; }
   }
+
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+  /* Lascia spazio alla barra fissa in alto quando si salta a una sezione
+     con i link del menu, altrimenti il titolo finirebbe nascosto dietro. */
+  section[id] { scroll-margin-top: 66px; }
+
+  .site-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--surface);
+    border-bottom: 1px solid var(--divider);
+  }
+  .site-nav-inner {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .site-nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    text-decoration: none;
+    color: var(--text);
+    font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .site-nav-brand img { width: 22px; height: 22px; border-radius: 7px; }
+  .site-nav-links {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .site-nav-links::-webkit-scrollbar { display: none; }
+  .site-nav-links a {
+    flex: none;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+  .site-nav-links a:hover { color: var(--text); background: var(--surface-alt); }
+  @media (max-width: 700px) {
+    /* Su schermi stretti i link non entrano tutti: la sfumatura sul bordo
+       destro fa capire che si puo' scorrere, invece di sembrare che la
+       lista finisca li'. */
+    .site-nav-links {
+      mask-image: linear-gradient(90deg, black calc(100% - 28px), transparent 100%);
+      -webkit-mask-image: linear-gradient(90deg, black calc(100% - 28px), transparent 100%);
+    }
+  }
 </style>
 </head>
 <body>
 
-<header class="hero">
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a class="site-nav-brand" href="#top">
+      <img src="icon.png" alt="">
+      <span>Kinly</span>
+    </a>
+    <div class="site-nav-links">
+      <a href="#funzioni">Funzioni</a>
+      <a href="#come-funziona">Come funziona</a>
+      <a href="#piani">Piani</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="#faq">Domande</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
   <div class="wrap">
     <div class="hero-inner">
       <div class="hero-copy">
@@ -862,7 +944,7 @@
 
 <div class="wrap">
 
-  <section>
+  <section id="funzioni">
     <h2>Cosa fa Kinly</h2>
     <div class="cat-filters" id="feature-filters">
       <button class="cat-filter active" data-cat="all">Tutte</button>
@@ -1632,7 +1714,7 @@
     <p class="story-note">Anteprime in stile Kinly.</p>
   </section>
 
-  <section>
+  <section id="piani">
     <h2>Piani</h2>
     <div class="plans">
       <div class="plan">
@@ -1654,12 +1736,28 @@
     </div>
   </section>
 
-  <section>
+  <section id="roadmap">
     <h2>Roadmap</h2>
-    <p class="roadmap-intro">Web e Android arrivano per primi perche' sono gia' la strada percorsa oggi. iOS segue: le sue regole piu' severe sul tracciamento in background meritano un motore costruito su misura, non una scorciatoia.</p>
+    <p class="roadmap-intro">Il percorso di Kinly, passo dopo passo.</p>
     <div class="roadmap">
       <div class="roadmap-line"></div>
       <div class="roadmap-stops">
+        <div class="roadmap-stop roadmap-stop-done">
+          <div class="roadmap-icon-wrap">
+            <div class="icon-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3a6 6 0 0 0-3.5 10.9c.5.4.8 1 .8 1.6v.5h5.4v-.5c0-.6.3-1.2.8-1.6A6 6 0 0 0 12 3Z"/>
+                <line x1="10" y1="19.5" x2="14" y2="19.5"/>
+                <line x1="10.7" y1="21.5" x2="13.3" y2="21.5"/>
+              </svg>
+            </div>
+          </div>
+          <div class="roadmap-text">
+            <div class="roadmap-year">2025</div>
+            <b>L'idea prende forma</b>
+            <span>Iniziamo a costruire Kinly.</span>
+          </div>
+        </div>
         <div class="roadmap-stop roadmap-stop-active">
           <div class="roadmap-icon-wrap">
             <div class="icon-badge">
@@ -1674,7 +1772,7 @@
           <div class="roadmap-text">
             <div class="roadmap-year">2026</div>
             <b>Web e Android</b>
-            <span>La versione che puoi gia' provare qui sopra, portata a un rilascio stabile e completo.</span>
+            <span>La versione che puoi gia' provare qui sopra.</span>
           </div>
         </div>
         <div class="roadmap-stop roadmap-stop-future">
@@ -1688,15 +1786,29 @@
           </div>
           <div class="roadmap-text">
             <div class="roadmap-year">2027</div>
-            <b>iOS</b>
-            <span>Serve un motore di tracciamento in background su misura per le regole di Apple (Significant Location Change + CoreMotion): meglio farlo bene che in fretta.</span>
+            <b>iPhone</b>
+            <span>In arrivo anche su iPhone.</span>
+          </div>
+        </div>
+        <div class="roadmap-stop roadmap-stop-future">
+          <div class="roadmap-icon-wrap">
+            <div class="icon-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2.5 13.8 8.3 19.5 10 13.8 11.7 12 17.5 10.2 11.7 4.5 10 10.2 8.3Z" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+          <div class="roadmap-text">
+            <div class="roadmap-year">2028</div>
+            <b>Sempre nuove idee</b>
+            <span>Continuiamo a migliorare Kinly, un passo alla volta.</span>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section>
+  <section id="faq">
     <h2>Domande frequenti</h2>
     <div class="faq">
       <details class="faq-item">
