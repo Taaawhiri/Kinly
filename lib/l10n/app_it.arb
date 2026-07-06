@@ -62,6 +62,7 @@
   "mapLocationUnavailable": "Non siamo riusciti a rilevare la tua posizione.",
   "mapSosConfirmTitle": "Attivare l'SOS?",
   "mapSosConfirmBody": "La tua posizione esatta verrà condivisa subito con tutte le tue cerchie, anche se hai una modalità di condivisione ridotta. Nessuna registrazione audio: solo posizione.",
+  "sosDisclaimer": "Kinly avvisa i tuoi contatti fidati, non i servizi di emergenza: in un pericolo reale chiama sempre prima il 112. La consegna dell'avviso dipende da rete, batteria e permessi del telefono e non è garantita.",
   "mapActivateSos": "Attiva SOS",
   "mapLocationUnavailableForSos": "Non siamo riusciti a rilevare la tua posizione per l'SOS.",
   "mapSosNotSentOffline": "SOS non inviato (sei offline?). Imposta un numero SOS via SMS in Privacy e sicurezza per avere un piano B.",

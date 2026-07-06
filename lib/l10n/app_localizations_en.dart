@@ -166,6 +166,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your exact location will be shared immediately with all your circles, even if you have a reduced sharing mode. No audio recording: location only.';
 
   @override
+  String get sosDisclaimer =>
+      'Kinly alerts your trusted contacts, not emergency services: in a real emergency always call 112 first. Delivery of the alert depends on network, battery and phone permissions and is not guaranteed.';
+
+  @override
   String get mapActivateSos => 'Activate SOS';
 
   @override

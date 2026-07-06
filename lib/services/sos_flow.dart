@@ -23,7 +23,38 @@ class SosFlow {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: Text(l10n.mapSosConfirmTitle),
-        content: Text(l10n.mapSosConfirmBody),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.mapSosConfirmBody),
+            const SizedBox(height: 14),
+            // Disclaimer di sicurezza (e legale): l'SOS avvisa i contatti
+            // fidati, non i servizi di emergenza, e la consegna non è
+            // garantita. Va mostrato proprio nel momento in cui si sta per
+            // contare su questa funzione, non nascosto in un menu.
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.accentCoral.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.info_outline_rounded, size: 17, color: AppTheme.accentCoral),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.sosDisclaimer,
+                      style: TextStyle(fontSize: 12, height: 1.4, color: AppTheme.textSecondary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonCancel)),
           FilledButton(

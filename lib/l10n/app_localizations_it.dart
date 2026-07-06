@@ -167,6 +167,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'La tua posizione esatta verrà condivisa subito con tutte le tue cerchie, anche se hai una modalità di condivisione ridotta. Nessuna registrazione audio: solo posizione.';
 
   @override
+  String get sosDisclaimer =>
+      'Kinly avvisa i tuoi contatti fidati, non i servizi di emergenza: in un pericolo reale chiama sempre prima il 112. La consegna dell\'avviso dipende da rete, batteria e permessi del telefono e non è garantita.';
+
+  @override
   String get mapActivateSos => 'Attiva SOS';
 
   @override

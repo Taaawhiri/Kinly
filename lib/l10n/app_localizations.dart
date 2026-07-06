@@ -386,6 +386,12 @@ abstract class AppLocalizations {
   /// **'La tua posizione esatta verrà condivisa subito con tutte le tue cerchie, anche se hai una modalità di condivisione ridotta. Nessuna registrazione audio: solo posizione.'**
   String get mapSosConfirmBody;
 
+  /// No description provided for @sosDisclaimer.
+  ///
+  /// In it, this message translates to:
+  /// **'Kinly avvisa i tuoi contatti fidati, non i servizi di emergenza: in un pericolo reale chiama sempre prima il 112. La consegna dell\'avviso dipende da rete, batteria e permessi del telefono e non è garantita.'**
+  String get sosDisclaimer;
+
   /// No description provided for @mapActivateSos.
   ///
   /// In it, this message translates to:
