@@ -733,6 +733,83 @@
     font-size: 12.5px;
     color: var(--text-secondary);
   }
+
+  /* Roadmap: due tappe invece di un generico "presto disponibile" — la
+     stessa strada percorsa dall'app, non un widget a se stante. Il tratto
+     verso il 2026 e' pieno (la versione che si puo' gia' provare qui
+     sopra), quello verso il 2027 e' tratteggiato e in movimento: la parte
+     ancora da costruire. */
+  .roadmap-intro {
+    max-width: 480px;
+    margin: 0 auto 32px;
+    text-align: center;
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .roadmap { position: relative; max-width: 520px; margin: 0 auto; }
+  .roadmap-line {
+    position: absolute;
+    top: 22px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--green) 0%, var(--green) 46%, var(--divider) 46%, var(--divider) 100%);
+    overflow: hidden;
+  }
+  .roadmap-line::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    left: 46%;
+    background-image: repeating-linear-gradient(90deg, var(--text-secondary) 0 8px, transparent 8px 18px);
+    background-size: 36px 100%;
+    opacity: 0.55;
+    animation: roadmapFlow 1.4s linear infinite;
+  }
+  .roadmap-stops {
+    position: relative;
+    display: flex;
+    gap: 28px;
+  }
+  .roadmap-stop {
+    flex: 1;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .roadmap-stop.visible { opacity: 1; transform: translateY(0); }
+  .roadmap-icon-wrap { position: relative; width: 44px; height: 44px; margin: 0 auto 14px; }
+  .roadmap-icon-wrap .icon-badge { width: 44px; height: 44px; margin: 0; position: relative; z-index: 1; }
+  .roadmap-stop-active .icon-badge { background: rgba(35, 193, 107, 0.14); color: var(--green); }
+  .roadmap-stop-future .icon-badge { background: var(--surface); color: var(--text-secondary); border: 2px solid var(--divider); }
+  .roadmap-ping {
+    position: absolute;
+    inset: -6px;
+    border-radius: 15px;
+    border: 2px solid var(--green);
+    animation: roadmapPing 2.2s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+  }
+  .roadmap-year { font-size: 22px; font-weight: 900; margin-bottom: 2px; }
+  .roadmap-stop-future .roadmap-year { color: var(--text-secondary); }
+  .roadmap-stop b { display: block; font-size: 14.5px; margin-bottom: 6px; }
+  .roadmap-stop span { font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; }
+  @keyframes roadmapFlow { from { background-position-x: 0; } to { background-position-x: 36px; } }
+  @keyframes roadmapPing { 0% { transform: scale(0.85); opacity: 0.6; } 100% { transform: scale(1.35); opacity: 0; } }
+  @media (max-width: 700px) {
+    .roadmap-stops { flex-direction: column; gap: 24px; }
+    .roadmap-stop { display: flex; align-items: flex-start; gap: 14px; text-align: left; }
+    .roadmap-icon-wrap { margin: 0; flex: none; }
+    .roadmap-text { flex: 1; }
+    .roadmap-line { left: 22px; right: auto; top: 0; bottom: 0; width: 3px; height: auto; background: linear-gradient(180deg, var(--green) 0%, var(--green) 46%, var(--divider) 46%, var(--divider) 100%); }
+    .roadmap-line::after { inset: 0; left: 0; top: 46%; background-image: repeating-linear-gradient(180deg, var(--text-secondary) 0 8px, transparent 8px 18px); background-size: 100% 36px; animation: roadmapFlowVertical 1.4s linear infinite; }
+  }
+  @keyframes roadmapFlowVertical { from { background-position-y: 0; } to { background-position-y: 36px; } }
+  @media (prefers-reduced-motion: reduce) {
+    .roadmap-line::after, .roadmap-ping { animation: none; }
+  }
 </style>
 </head>
 <body>
@@ -1572,6 +1649,48 @@
   </section>
 
   <section>
+    <h2>Roadmap</h2>
+    <p class="roadmap-intro">Web e Android arrivano per primi perche' sono gia' la strada percorsa oggi. iOS segue: le sue regole piu' severe sul tracciamento in background meritano un motore costruito su misura, non una scorciatoia.</p>
+    <div class="roadmap">
+      <div class="roadmap-line"></div>
+      <div class="roadmap-stops">
+        <div class="roadmap-stop roadmap-stop-active">
+          <div class="roadmap-icon-wrap">
+            <div class="icon-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4.5" width="18" height="12" rx="2"/>
+                <line x1="8" y1="20" x2="16" y2="20"/>
+                <line x1="12" y1="16.5" x2="12" y2="20"/>
+              </svg>
+            </div>
+            <div class="roadmap-ping"></div>
+          </div>
+          <div class="roadmap-text">
+            <div class="roadmap-year">2026</div>
+            <b>Web e Android</b>
+            <span>La versione che puoi gia' provare qui sopra, portata a un rilascio stabile e completo.</span>
+          </div>
+        </div>
+        <div class="roadmap-stop roadmap-stop-future">
+          <div class="roadmap-icon-wrap">
+            <div class="icon-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="7" y="2.5" width="10" height="19" rx="2.5"/>
+                <line x1="10.5" y1="18.3" x2="13.5" y2="18.3"/>
+              </svg>
+            </div>
+          </div>
+          <div class="roadmap-text">
+            <div class="roadmap-year">2027</div>
+            <b>iOS</b>
+            <span>Serve un motore di tracciamento in background su misura per le regole di Apple (Significant Location Change + CoreMotion): meglio farlo bene che in fretta.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
     <h2>Domande frequenti</h2>
     <div class="faq">
       <details class="faq-item">
@@ -1615,7 +1734,7 @@
   // Le card di funzioni e piani compaiono una alla volta mentre si scorre,
   // invece di essere tutte visibili da subito: un tocco di movimento senza
   // dipendenze esterne.
-  var items = document.querySelectorAll('.feature, .plan, .faq-item, .story');
+  var items = document.querySelectorAll('.feature, .plan, .faq-item, .story, .roadmap-stop');
   items.forEach(function (el, i) {
     el.style.transitionDelay = (i % 4) * 0.08 + 's';
   });
