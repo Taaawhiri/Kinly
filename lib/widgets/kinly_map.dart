@@ -90,6 +90,15 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
   final Set<String> _registeredImages = {};
   bool _styleLoaded = false;
 
+  /// Simboli persona/punto d'incontro/etichetta area già presenti sulla
+  /// mappa nativa, tenuti qui per aggiornarli sul posto (updateSymbol)
+  /// invece di cancellarli e riaggiungerli ad ogni sincronizzazione — vedi
+  /// il commento su _doSyncSymbols per il perché è la parte che conta
+  /// davvero per non far sparire i pin.
+  final Map<String, Symbol> _personSymbols = {};
+  final Map<String, Symbol> _meetingPointSymbols = {};
+  final Map<String, Symbol> _zoneLabelSymbols = {};
+
   /// Catena che serializza le sincronizzazioni dei simboli: _syncSymbols fa
   /// clearSymbols() e poi riaggiunge tutto, quindi due esecuzioni in corsa
   /// (tipico quando resume, onStyleLoaded e didUpdateWidget arrivano quasi
@@ -126,29 +135,21 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     // solo al rientro, senza bisogno di un pulsante "riprova" manuale.
     if (state == AppLifecycleState.resumed) {
       unawaited(_refreshPermissionStatus());
-      // Al rientro da un'altra app, il sistema operativo può aver distrutto
-      // e ricreato la superficie grafica nativa della mappa (per liberare
-      // memoria mentre Kinly era in background): MapLibre la ridisegna da
-      // sola, ma i simboli (pin persona, punti d'incontro, aree sicure) che
-      // avevamo aggiunto a mano non fanno parte dello stile e vanno persi
-      // senza nessun avviso a Flutter — da qui i pin che sparivano. Poiché
-      // widget.people non è cambiato, didUpdateWidget da solo non se ne
-      // accorgerebbe: bisogna forzare un risincronismo ad ogni resume.
-      //
-      // Non basta riaggiungere i simboli: la ricreazione della superficie
-      // cancella anche le immagini registrate con addImage (gli avatar), che
-      // il nostro _registeredImages crede però ancora presenti. Riattaccare i
-      // simboli senza re-caricare le immagini lascia pin che puntano a
-      // un'icona inesistente, cioè invisibili — ed è esattamente perché il
-      // primo tentativo di fix (solo risincronismo simboli) non bastava.
-      // Svuotiamo quindi la cache così gli avatar vengono ricaricati. Solo su
-      // mobile: sul web cambiare scheda non distrugge la superficie e addImage
-      // lì lancerebbe un errore se l'immagine esiste già. Su Android/iOS,
-      // invece, addImage sovrascrive senza errori, quindi è sicuro anche se la
-      // superficie in realtà non era stata ricreata.
-      if (_styleLoaded) {
-        if (!kIsWeb) _registeredImages.clear();
-        unawaited(_syncSymbols(fitCamera: false));
+      // Al rientro da un'altra app, il sistema operativo potrebbe aver
+      // distrutto e ricreato la superficie grafica nativa della mappa (per
+      // liberare memoria mentre Kinly era in background): in quel caso i
+      // riferimenti ai Symbol che teniamo in _personSymbols e alle immagini
+      // in _registeredImages non esistono più lato nativo, e usarli con
+      // updateSymbol/addImage-con-nome-già-noto non farebbe ricomparire
+      // nulla. Non possiamo sapere con certezza se è successo, quindi qui
+      // trattiamo il resume come un reset completo (svuota le mappe di
+      // bookkeeping + clearSymbols reale), non come un aggiornamento
+      // incrementale: costa un po' di ridisegno in più nel caso comune (la
+      // superficie non era stata toccata), ma è l'unico modo di garantire
+      // che i pin tornino sempre, anche nel caso raro. Solo su mobile: sul
+      // web cambiare scheda non distrugge la superficie.
+      if (_styleLoaded && !kIsWeb) {
+        unawaited(_hardResetSymbols(fitCamera: false));
         unawaited(_syncSafeZoneFills());
       }
     }
@@ -373,12 +374,9 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
       },
       onStyleLoadedCallback: () async {
         _styleLoaded = true;
-        // Lo stile è stato (ri)caricato: qualunque immagine aggiunta prima con
-        // addImage (gli avatar dei pin) non esiste più sul lato nativo. Se non
-        // svuotiamo la cache, _ensureAvatarImage le crederebbe ancora presenti
-        // e i simboli punterebbero a immagini inesistenti — pin invisibili.
-        _registeredImages.clear();
-        await _syncSymbols(fitCamera: true);
+        // Lo stile è stato (ri)caricato: qualunque immagine o simbolo
+        // aggiunto prima non esiste più sul lato nativo (vedi _hardResetSymbols).
+        await _hardResetSymbols(fitCamera: true);
         await _syncSafeZoneFills();
       },
       compassEnabled: false,
@@ -392,25 +390,81 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
   }
 
   /// Esegue le sincronizzazioni una alla volta (vedi _symbolSync): incatena
-  /// ogni chiamata dopo la precedente così non si sovrappongono. Il
-  /// catchError tiene la catena "pulita" anche se una sync fallisce, senza
-  /// bloccare tutte le successive; chi attende il Future restituito vede
-  /// comunque l'eventuale errore.
+  /// ogni chiamata dopo la precedente così non si sovrappongono — due
+  /// sincronizzazioni incrociate potrebbero altrimenti aggiornare lo stesso
+  /// simbolo con dati vecchi. Il catchError tiene la catena "pulita" anche
+  /// se una sync fallisce, senza bloccare tutte le successive.
   Future<void> _syncSymbols({required bool fitCamera}) {
     final next = _symbolSync.then((_) => _doSyncSymbols(fitCamera: fitCamera));
     _symbolSync = next.catchError((_) {});
     return next;
   }
 
+  /// Da chiamare SOLO quando i simboli nativi potrebbero non corrispondere
+  /// più a quello che Dart crede di aver aggiunto (primo caricamento dello
+  /// stile, o un resume che potrebbe aver ricreato la superficie): svuota
+  /// per davvero la mappa e la bookkeeping (_registeredImages e le tre
+  /// mappe di simboli), così la sincronizzazione successiva ricostruisce
+  /// tutto da zero con addSymbol invece di provare un updateSymbol su
+  /// riferimenti che potrebbero non esistere più.
+  Future<void> _hardResetSymbols({required bool fitCamera}) {
+    final next = _symbolSync.then((_) async {
+      final controller = _controller;
+      if (controller == null) return;
+      _registeredImages.clear();
+      _personSymbols.clear();
+      _meetingPointSymbols.clear();
+      _zoneLabelSymbols.clear();
+      try {
+        await controller.clearSymbols();
+      } catch (_) {}
+      await _doSyncSymbols(fitCamera: fitCamera);
+    });
+    _symbolSync = next.catchError((_) {});
+    return next;
+  }
+
+  /// Aggiorna i simboli sulla mappa SENZA MAI cancellarli tutti e
+  /// riaggiungerli: prima invece _doSyncSymbols faceva clearSymbols() e poi
+  /// riaggiungeva tutto con una serie di await sequenziali — chiamata ad
+  /// ogni singolo cambiamento di posizione (cioè spessissimo, appena
+  /// qualcuno della cerchia si muove). Se un secondo cambiamento arrivava
+  /// mentre il primo giro era ancora a metà — il caso tipico appena tornati
+  /// da un'altra app, quando arrivano quasi insieme il fix GPS fresco, la
+  /// sincronizzazione realtime e il timer di polling — la mappa restava con
+  /// dei pin mancanti per tutto il tempo che i giri si accavallavano, non
+  /// per un solo istante: da qui il pin (spesso il mio, sempre il primo
+  /// della lista) che sembrava sparito. Ora ogni persona/punto/etichetta ha
+  /// un Symbol proprio, tenuto in _personSymbols e affini: se esiste già lo
+  /// spostiamo con updateSymbol invece di toglierlo e rimetterlo, e viene
+  /// rimosso singolarmente solo chi non è più nella lista. Un pin non
+  /// scompare mai per un aggiornamento normale, al più si sposta.
   Future<void> _doSyncSymbols({required bool fitCamera}) async {
     final controller = _controller;
     if (controller == null) return;
     final people = _visiblePeople;
 
+    await _syncCircles(controller, people);
+
+    // Su web l'immagine viene sempre registrata come se fosse a 1x (vedi
+    // commento su _avatarBitmapPixelRatio): compensiamo qui riducendo la
+    // dimensione visualizzata, così il pin torna alla stessa grandezza
+    // "logica" che si vede su Android/iOS invece di apparire doppio.
+    final iconSize = kIsWeb ? 1 / _avatarBitmapPixelRatio : 1.0;
+
+    await _syncPersonSymbols(controller, people, iconSize);
+    await _syncMeetingPointSymbols(controller, iconSize);
+    await _syncZoneLabelSymbols(controller);
+
+    if (fitCamera) await _fitCamera(controller, people);
+  }
+
+  /// Le "nuvole" di posizione approssimativa e l'anteprima di ricerca sono
+  /// poche e cambiano raramente: restano a clear+riaggiungi, non fanno
+  /// parte del problema del pin che sparisce (quello, sempre presente e
+  /// aggiornato spessissimo, sì — vedi _syncPersonSymbols).
+  Future<void> _syncCircles(MapLibreMapController controller, List<Person> people) async {
     await controller.clearCircles();
-    // Chi condivide in modalità "approssimativa" ha già ricevuto una
-    // posizione arrotondata dal server: la "nuvola" comunica visivamente
-    // che quel punto non è quello esatto.
     for (final person in people.where((p) => p.isFuzzyLocation)) {
       await controller.addCircle(
         CircleOptions(
@@ -439,58 +493,96 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
         ),
       );
     }
+  }
 
-    await controller.clearSymbols();
-    // Su web l'immagine viene sempre registrata come se fosse a 1x (vedi
-    // commento su _avatarBitmapPixelRatio): compensiamo qui riducendo la
-    // dimensione visualizzata, così il pin torna alla stessa grandezza
-    // "logica" che si vede su Android/iOS invece di apparire doppio.
-    final iconSize = kIsWeb ? 1 / _avatarBitmapPixelRatio : 1.0;
+  Future<void> _syncPersonSymbols(MapLibreMapController controller, List<Person> people, double iconSize) async {
+    final currentIds = people.map((p) => p.id).toSet();
+    final staleIds = _personSymbols.keys.where((id) => !currentIds.contains(id)).toList();
+    for (final id in staleIds) {
+      final symbol = _personSymbols.remove(id);
+      if (symbol == null) continue;
+      try {
+        await controller.removeSymbol(symbol);
+      } catch (_) {
+        // Se non c'è già più (es. un hard reset in corso in parallelo lo ha
+        // tolto per conto suo), va bene comunque: l'obiettivo era sparisse.
+      }
+    }
+
     for (final person in people) {
       // Ogni persona è isolata dalle altre: un errore imprevisto qui (che
       // sia sulla mia posizione, sempre la prima della lista, o su
       // qualunque altra) deve al più far mancare quel singolo pin, mai
-      // interrompere il giro e cancellare anche tutti i pin successivi.
+      // interrompere il giro e toccare quelli già sincronizzati.
       try {
         final imageName = await _ensureAvatarImage(controller, person);
-        await controller.addSymbol(
-          SymbolOptions(
-            geometry: LatLng(person.lat!, person.lng!),
-            iconImage: imageName,
-            iconSize: iconSize,
-            iconAnchor: 'bottom',
-          ),
-          {'personId': person.id},
+        final options = SymbolOptions(
+          geometry: LatLng(person.lat!, person.lng!),
+          iconImage: imageName,
+          iconSize: iconSize,
+          iconAnchor: 'bottom',
         );
+        final existing = _personSymbols[person.id];
+        if (existing != null) {
+          await controller.updateSymbol(existing, options);
+        } else {
+          _personSymbols[person.id] = await controller.addSymbol(options, {'personId': person.id});
+        }
       } catch (_) {
         // Vedi commento sopra: non deve mai propagarsi.
       }
     }
+  }
 
-    if (widget.meetingPoints.isNotEmpty) {
-      final meetingImageName = await _ensureMeetingPointImage(controller);
-      for (final point in widget.meetingPoints) {
-        await controller.addSymbol(
-          SymbolOptions(
-            geometry: LatLng(point.lat, point.lng),
-            iconImage: meetingImageName,
-            iconSize: iconSize,
-            iconAnchor: 'bottom',
-          ),
-          {'meetingPointId': point.id},
-        );
-      }
+  Future<void> _syncMeetingPointSymbols(MapLibreMapController controller, double iconSize) async {
+    final points = widget.meetingPoints;
+    final currentIds = points.map((p) => p.id).toSet();
+    final staleIds = _meetingPointSymbols.keys.where((id) => !currentIds.contains(id)).toList();
+    for (final id in staleIds) {
+      final symbol = _meetingPointSymbols.remove(id);
+      if (symbol == null) continue;
+      try {
+        await controller.removeSymbol(symbol);
+      } catch (_) {}
     }
+    if (points.isEmpty) return;
 
-    // Nome dell'area scritto al centro del cerchio colorato (vedi
-    // _syncSafeZoneFills): prima si capiva solo toccandolo, ora si legge
-    // a colpo d'occhio, verde per una sicura o rosso per una pericolosa.
-    // Vive qui (non in _syncSafeZoneFills) perché condivide lo stesso
-    // clearSymbols/addSymbol dei pin persona: tenerlo in un posto diverso
-    // lo farebbe sparire ad ogni aggiornamento posizione.
-    for (final zone in widget.safeZones) {
-      await controller.addSymbol(
-        SymbolOptions(
+    final meetingImageName = await _ensureMeetingPointImage(controller);
+    for (final point in points) {
+      try {
+        final options = SymbolOptions(
+          geometry: LatLng(point.lat, point.lng),
+          iconImage: meetingImageName,
+          iconSize: iconSize,
+          iconAnchor: 'bottom',
+        );
+        final existing = _meetingPointSymbols[point.id];
+        if (existing != null) {
+          await controller.updateSymbol(existing, options);
+        } else {
+          _meetingPointSymbols[point.id] = await controller.addSymbol(options, {'meetingPointId': point.id});
+        }
+      } catch (_) {}
+    }
+  }
+
+  /// Nome dell'area scritto al centro del cerchio colorato (vedi
+  /// _syncSafeZoneFills): prima si capiva solo toccandolo, ora si legge a
+  /// colpo d'occhio, verde per una sicura o rosso per una pericolosa.
+  Future<void> _syncZoneLabelSymbols(MapLibreMapController controller) async {
+    final zones = widget.safeZones;
+    final currentIds = zones.map((z) => z.id).toSet();
+    final staleIds = _zoneLabelSymbols.keys.where((id) => !currentIds.contains(id)).toList();
+    for (final id in staleIds) {
+      final symbol = _zoneLabelSymbols.remove(id);
+      if (symbol == null) continue;
+      try {
+        await controller.removeSymbol(symbol);
+      } catch (_) {}
+    }
+    for (final zone in zones) {
+      try {
+        final options = SymbolOptions(
           geometry: LatLng(zone.lat, zone.lng),
           textField: zone.name,
           textSize: 12,
@@ -498,12 +590,15 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
           textHaloColor: '#FFFFFF',
           textHaloWidth: 1.2,
           textAnchor: 'center',
-        ),
-        {'zoneId': zone.id},
-      );
+        );
+        final existing = _zoneLabelSymbols[zone.id];
+        if (existing != null) {
+          await controller.updateSymbol(existing, options);
+        } else {
+          _zoneLabelSymbols[zone.id] = await controller.addSymbol(options, {'zoneId': zone.id});
+        }
+      } catch (_) {}
     }
-
-    if (fitCamera) await _fitCamera(controller, people);
   }
 
   /// Disegna le aree sicure come cerchi in scala reale (metri, non pixel):
