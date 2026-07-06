@@ -15,7 +15,13 @@
     /* Toni neutri caldi (stone/ink) invece del blu-grigio freddo di prima:
        gli accenti di brand (primary/coral/amber/green, usati per categorie e
        icone in tutta la pagina) restano identici. */
-    --bg: #EDE8DD;
+    --bg: #F5F1E6;
+    /* Sfondo dei mockup telefono (.phone-frame/.homescreen-mock): il valore
+       che --bg aveva prima. Erano lo stesso colore della pagina, quindi uno
+       screenshot senza molto contenuto vicino ai bordi si vedeva solo grazie
+       al bordo scuro/ombra — con la pagina schiarita, restare su questo tono
+       piu' caldo fa risaltare la "cornice" del telefono invece di perdersi. */
+    --bg-mock: #EDE8DD;
     --surface: #FFFDF9;
     --surface-alt: #F1ECE1;
     --text: #2B2A22;
@@ -296,7 +302,7 @@
     overflow: hidden;
     box-shadow: 0 14px 32px rgba(28, 34, 51, 0.22);
     position: relative;
-    background: var(--bg);
+    background: var(--bg-mock);
   }
   .story-note {
     text-align: center;
@@ -393,7 +399,7 @@
   /* Widget schermata home (skeleton): una card bianca in mezzo a qualche
      icona di app, per far capire che vive sulla home del telefono e non
      dentro l'app. */
-  .homescreen-mock { position: absolute; inset: 0; background: var(--bg); }
+  .homescreen-mock { position: absolute; inset: 0; background: var(--bg-mock); }
   .hs-app-icon { position: absolute; width: 30px; height: 30px; border-radius: 9px; opacity: 0.85; }
   .widget-mock {
     position: absolute; left: 8%; right: 8%; top: 32%;
