@@ -1,11 +1,8 @@
 import 'dart:async';
-import 'dart:math' show min;
-import 'dart:typed_data';
-import 'dart:ui' as ui;
+import 'dart:math' show Point;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
 import 'package:maplibre_gl/maplibre_gl.dart';
 import '../l10n/app_localizations.dart';
 import '../models/meeting_point.dart';
@@ -13,26 +10,30 @@ import '../models/person.dart';
 import '../models/safe_zone.dart';
 import '../services/location_tracker.dart';
 import '../theme/app_theme.dart';
-import '../utils/avatar_catalog.dart';
 import '../utils/color_hex.dart';
-import '../utils/generative_avatar.dart';
 import '../utils/geo_circle.dart';
-
-/// I pin persona/punto d'incontro vengono disegnati a questa risoluzione
-/// (2x le dimensioni "logiche") per restare nitidi sugli schermi ad alta
-/// densità. Su Android/iOS il plugin comunica questo fattore alla mappa
-/// nativa, che quindi li mostra già alla dimensione giusta; il plugin web
-/// invece lo ignora sempre (vedi `addImage` in maplibre_gl_web, che passa
-/// `pixelRatio: 1` in modo fisso) e mostrerebbe l'immagine a grandezza
-/// doppia — da qui l'avatar "enorme" sul browser. Su web compensiamo
-/// dimezzando `iconSize` in fase di aggiunta del simbolo.
-const double _avatarBitmapPixelRatio = 2.0;
+import 'person_avatar.dart';
 
 /// La mappa vera di Kinly: dati OpenStreetMap via OpenFreeMap (nessuna
 /// chiave, nessun limite d'uso), con uno stile personalizzato nei colori
 /// morbidi dell'app (vedi assets/map/kinly_style.json). Le persone sono
 /// marcatori disegnati come il resto dell'app: un avatar colorato con le
 /// iniziali e una piccola coda a goccia.
+///
+/// I pin persona/punto d'incontro NON sono simboli nativi MapLibre: sono
+/// normali widget Flutter sovrapposti alla mappa (vedi _buildPersonPins/
+/// _buildMeetingPointPins), riposizionati ad ogni movimento della camera
+/// tramite controller.toScreenLocationBatch. Prima erano Symbol nativi, ma
+/// vivono nella superficie grafica GL che Android/iOS può distruggere e
+/// ricreare senza preavviso quando l'app va in background per liberare
+/// memoria: qualunque logica di resync "dopo il fatto" (quella che c'era
+/// prima qui) rincorre il sintomo ma non può essere davvero affidabile,
+/// perché da Dart non c'è modo di sapere con certezza se la superficie è
+/// sopravvissuta. Un widget Flutter invece non dipende da quella superficie
+/// e il sistema operativo non può farlo sparire in quel modo: la mappa
+/// nativa resta solo per le tile di sfondo, il riempimento delle aree
+/// sicure e i cerchi (posizione approssimativa, anteprima ricerca), niente
+/// di tutto ciò che deve restare sempre visibile in modo affidabile.
 class KinlyMap extends StatefulWidget {
   const KinlyMap({
     super.key,
@@ -87,23 +88,33 @@ class KinlyMap extends StatefulWidget {
 
 class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
   MapLibreMapController? _controller;
-  final Set<String> _registeredImages = {};
   bool _styleLoaded = false;
 
-  /// Simboli persona/punto d'incontro/etichetta area già presenti sulla
-  /// mappa nativa, tenuti qui per aggiornarli sul posto (updateSymbol)
-  /// invece di cancellarli e riaggiungerli ad ogni sincronizzazione — vedi
-  /// il commento su _doSyncSymbols per il perché è la parte che conta
-  /// davvero per non far sparire i pin.
-  final Map<String, Symbol> _personSymbols = {};
-  final Map<String, Symbol> _meetingPointSymbols = {};
+  /// Simboli etichetta area già presenti sulla mappa nativa, tenuti qui per
+  /// aggiornarli sul posto (updateSymbol) invece di cancellarli e
+  /// riaggiungerli. I pin persona/punto d'incontro non sono più qui: vedi
+  /// il commento in testa al file.
   final Map<String, Symbol> _zoneLabelSymbols = {};
 
-  /// Catena che serializza le sincronizzazioni dei simboli: _syncSymbols fa
-  /// clearSymbols() e poi riaggiunge tutto, quindi due esecuzioni in corsa
-  /// (tipico quando resume, onStyleLoaded e didUpdateWidget arrivano quasi
-  /// insieme) finivano per cancellarsi i pin a vicenda. Incatenandole qui,
-  /// una parte solo quando la precedente ha finito.
+  /// Posizione a schermo (in pixel, relativa a questo widget) dell'ultimo
+  /// pin persona/punto d'incontro calcolata da _updateOverlayPositions.
+  /// Assente finché la prima proiezione non è arrivata, il che è normale
+  /// nei primissimi istanti dopo la creazione della mappa.
+  Map<String, Offset> _personScreenPositions = {};
+  Map<String, Offset> _meetingPointScreenPositions = {};
+
+  /// Coalescing delle richieste di riproiezione: onCameraMove viene chiamato
+  /// molte volte durante un singolo gesto di pan/zoom, ma toScreenLocationBatch
+  /// è una chiamata a canale nativo — lanciarne una per ogni tick
+  /// accumulerebbe richieste in coda. Con questi due flag ne teniamo al più
+  /// una in volo, e se ne arrivano altre mentre è in corso ne rilanciamo una
+  /// sola appena finisce, invece di scartarle o accumularle.
+  bool _positionUpdateInFlight = false;
+  bool _positionUpdateQueued = false;
+
+  /// Catena che serializza le sincronizzazioni dei livelli nativi (cerchi ed
+  /// etichette area): _doSyncSymbols fa clearSymbols() sulle etichette e poi
+  /// le riaggiunge, quindi due esecuzioni in corsa potrebbero accavallarsi.
   Future<void> _symbolSync = Future.value();
 
   /// Vero dopo il primo ricentraggio automatico sulla MIA posizione: serve a
@@ -135,22 +146,22 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     // solo al rientro, senza bisogno di un pulsante "riprova" manuale.
     if (state == AppLifecycleState.resumed) {
       unawaited(_refreshPermissionStatus());
-      // Al rientro da un'altra app, il sistema operativo potrebbe aver
-      // distrutto e ricreato la superficie grafica nativa della mappa (per
-      // liberare memoria mentre Kinly era in background): in quel caso i
-      // riferimenti ai Symbol che teniamo in _personSymbols e alle immagini
-      // in _registeredImages non esistono più lato nativo, e usarli con
-      // updateSymbol/addImage-con-nome-già-noto non farebbe ricomparire
-      // nulla. Non possiamo sapere con certezza se è successo, quindi qui
-      // trattiamo il resume come un reset completo (svuota le mappe di
-      // bookkeeping + clearSymbols reale), non come un aggiornamento
-      // incrementale: costa un po' di ridisegno in più nel caso comune (la
-      // superficie non era stata toccata), ma è l'unico modo di garantire
-      // che i pin tornino sempre, anche nel caso raro. Solo su mobile: sul
-      // web cambiare scheda non distrugge la superficie.
-      if (_styleLoaded && !kIsWeb) {
-        unawaited(_hardResetSymbols(fitCamera: false));
-        unawaited(_syncSafeZoneFills());
+      if (_styleLoaded) {
+        // I pin sono widget Flutter: non dipendono dalla superficie nativa
+        // e sopravvivono al resume da soli, ma la loro posizione a schermo
+        // potrebbe essere cambiata (rotazione, camera diversa) mentre erano
+        // in background, quindi la ricalcoliamo comunque.
+        _schedulePositionUpdate();
+        // Il riempimento aree sicure e le etichette testo, invece, restano
+        // simboli/fill nativi: quelli sì possono essere stati cancellati
+        // dal sistema operativo insieme alla superficie GL. Non possiamo
+        // sapere con certezza se è successo, quindi al resume li
+        // ricostruiamo sempre da zero (solo su mobile: sul web cambiare
+        // scheda non distrugge la superficie).
+        if (!kIsWeb) {
+          unawaited(_hardResetSymbols(fitCamera: false));
+          unawaited(_syncSafeZoneFills());
+        }
       }
     }
   }
@@ -202,17 +213,15 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     final safeZonesChanged = !_sameSafeZones(oldWidget.safeZones, widget.safeZones);
     final previewChanged = !_sameLatLng(oldWidget.searchPreviewPoint, widget.searchPreviewPoint);
 
-    // Una sola chiamata anche se più cose cambiano nello stesso momento
-    // (tipico al primo avvio, quando persone e aree sicure arrivano dallo
-    // stesso notifyListeners): _syncSymbols fa clearSymbols() e poi
-    // riaggiunge tutto, quindi due chiamate in corsa senza coordinarsi
-    // finivano per farsi cancellare i pin a vicenda — bug reale, non
-    // teorico, che lasciava la mappa senza nessun pin persona.
-    if (peopleOrMeetingPointsChanged || safeZonesChanged || previewChanged) {
+    if (peopleOrMeetingPointsChanged || previewChanged) {
       unawaited(_syncSymbols(fitCamera: false));
     }
     if (safeZonesChanged) {
       unawaited(_syncSafeZoneFills());
+      unawaited(_syncSymbols(fitCamera: false));
+    }
+    if (peopleOrMeetingPointsChanged) {
+      _schedulePositionUpdate();
     }
     if (previewChanged) {
       final point = widget.searchPreviewPoint;
@@ -363,57 +372,167 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
       return _buildEmptyState(context);
     }
 
-    return MapLibreMap(
-      styleString: KinlyMap.styleAsset,
-      initialCameraPosition: CameraPosition(target: LatLng(people.first.lat!, people.first.lng!), zoom: 14),
-      onMapCreated: (controller) {
-        _controller = controller;
-        controller.onSymbolTapped.add(_handleSymbolTap);
-        controller.onFillTapped.add(_handleFillTap);
-        widget.onMapReady?.call(controller);
-      },
-      onStyleLoadedCallback: () async {
-        _styleLoaded = true;
-        // Lo stile è stato (ri)caricato: qualunque immagine o simbolo
-        // aggiunto prima non esiste più sul lato nativo (vedi _hardResetSymbols).
-        await _hardResetSymbols(fitCamera: true);
-        await _syncSafeZoneFills();
-      },
-      compassEnabled: false,
-      logoEnabled: false,
-      rotateGesturesEnabled: widget.interactive,
-      scrollGesturesEnabled: widget.interactive,
-      zoomGesturesEnabled: widget.interactive,
-      tiltGesturesEnabled: widget.interactive,
-      doubleClickZoomEnabled: widget.interactive,
+    return Stack(
+      children: [
+        MapLibreMap(
+          styleString: KinlyMap.styleAsset,
+          initialCameraPosition: CameraPosition(target: LatLng(people.first.lat!, people.first.lng!), zoom: 14),
+          onMapCreated: (controller) {
+            _controller = controller;
+            controller.onFillTapped.add(_handleFillTap);
+            widget.onMapReady?.call(controller);
+          },
+          onStyleLoadedCallback: () async {
+            _styleLoaded = true;
+            // Lo stile è stato (ri)caricato: qualunque simbolo nativo
+            // aggiunto prima (etichette area) non esiste più lato nativo.
+            await _hardResetSymbols(fitCamera: true);
+            await _syncSafeZoneFills();
+          },
+          // I pin sono widget Flutter sovrapposti (vedi commento in testa al
+          // file): ad ogni movimento della camera ricalcoliamo dove metterli
+          // a schermo, coalescendo le chiamate (vedi _schedulePositionUpdate)
+          // perché durante un pan/zoom questo viene chiamato molte volte.
+          onCameraMove: (_) => _schedulePositionUpdate(),
+          onCameraIdle: _schedulePositionUpdate,
+          compassEnabled: false,
+          logoEnabled: false,
+          rotateGesturesEnabled: widget.interactive,
+          scrollGesturesEnabled: widget.interactive,
+          zoomGesturesEnabled: widget.interactive,
+          tiltGesturesEnabled: widget.interactive,
+          doubleClickZoomEnabled: widget.interactive,
+        ),
+        ..._buildMeetingPointPins(),
+        ..._buildPersonPins(people),
+      ],
     );
   }
 
-  /// Esegue le sincronizzazioni una alla volta (vedi _symbolSync): incatena
-  /// ogni chiamata dopo la precedente così non si sovrappongono — due
-  /// sincronizzazioni incrociate potrebbero altrimenti aggiornare lo stesso
-  /// simbolo con dati vecchi. Il catchError tiene la catena "pulita" anche
-  /// se una sync fallisce, senza bloccare tutte le successive.
+  List<Widget> _buildPersonPins(List<Person> people) {
+    final pins = <Widget>[];
+    for (final person in people) {
+      final offset = _personScreenPositions[person.id];
+      if (offset == null) continue;
+      pins.add(
+        Positioned(
+          left: offset.dx - _PersonMapPin.avatarSize / 2,
+          top: offset.dy - _PersonMapPin.avatarSize - _PersonMapPin.tailHeight,
+          child: _PersonMapPin(person: person, onTap: () => widget.onPersonTap?.call(person.id)),
+        ),
+      );
+    }
+    return pins;
+  }
+
+  List<Widget> _buildMeetingPointPins() {
+    final pins = <Widget>[];
+    for (final point in widget.meetingPoints) {
+      final offset = _meetingPointScreenPositions[point.id];
+      if (offset == null) continue;
+      pins.add(
+        Positioned(
+          left: offset.dx - _MeetingPointMapPin.size / 2,
+          top: offset.dy - _MeetingPointMapPin.size - _MeetingPointMapPin.tailHeight,
+          child: _MeetingPointMapPin(onTap: () => widget.onMeetingPointTap?.call(point.id)),
+        ),
+      );
+    }
+    return pins;
+  }
+
+  /// Vedi la doc su _positionUpdateInFlight/_positionUpdateQueued: incatena
+  /// le richieste invece di lanciarle in parallelo.
+  void _schedulePositionUpdate() {
+    if (_positionUpdateInFlight) {
+      _positionUpdateQueued = true;
+      return;
+    }
+    _positionUpdateInFlight = true;
+    unawaited(
+      _updateOverlayPositions().whenComplete(() {
+        _positionUpdateInFlight = false;
+        if (_positionUpdateQueued) {
+          _positionUpdateQueued = false;
+          _schedulePositionUpdate();
+        }
+      }),
+    );
+  }
+
+  /// Proietta le coordinate di persone e punti d'incontro in pixel a
+  /// schermo con un'unica chiamata batch, poi aggiorna lo stato che i pin
+  /// Flutter usano per posizionarsi. Un requestId scarta il risultato se nel
+  /// frattempo è partita una richiesta più recente (può succedere: questa è
+  /// una chiamata a canale nativo asincrona, e onCameraMove può richiamarla
+  /// prima che la precedente torni).
+  int _positionRequestId = 0;
+
+  Future<void> _updateOverlayPositions() async {
+    final controller = _controller;
+    if (controller == null) return;
+    final people = _visiblePeople;
+    final points = widget.meetingPoints;
+    if (people.isEmpty && points.isEmpty) {
+      if (_personScreenPositions.isNotEmpty || _meetingPointScreenPositions.isNotEmpty) {
+        setState(() {
+          _personScreenPositions = {};
+          _meetingPointScreenPositions = {};
+        });
+      }
+      return;
+    }
+
+    final requestId = ++_positionRequestId;
+    final latLngs = [
+      for (final p in people) LatLng(p.lat!, p.lng!),
+      for (final m in points) LatLng(m.lat, m.lng),
+    ];
+
+    List<Point> screenPoints;
+    try {
+      screenPoints = await controller.toScreenLocationBatch(latLngs);
+    } catch (_) {
+      return;
+    }
+    if (!mounted || requestId != _positionRequestId) return;
+
+    final newPersonPositions = <String, Offset>{};
+    for (var i = 0; i < people.length; i++) {
+      final point = screenPoints[i];
+      newPersonPositions[people[i].id] = Offset(point.x.toDouble(), point.y.toDouble());
+    }
+    final newMeetingPositions = <String, Offset>{};
+    for (var i = 0; i < points.length; i++) {
+      final point = screenPoints[people.length + i];
+      newMeetingPositions[points[i].id] = Offset(point.x.toDouble(), point.y.toDouble());
+    }
+
+    setState(() {
+      _personScreenPositions = newPersonPositions;
+      _meetingPointScreenPositions = newMeetingPositions;
+    });
+  }
+
+  /// Esegue le sincronizzazioni dei livelli nativi rimasti (cerchi ed
+  /// etichette area) una alla volta (vedi _symbolSync).
   Future<void> _syncSymbols({required bool fitCamera}) {
     final next = _symbolSync.then((_) => _doSyncSymbols(fitCamera: fitCamera));
     _symbolSync = next.catchError((_) {});
     return next;
   }
 
-  /// Da chiamare SOLO quando i simboli nativi potrebbero non corrispondere
-  /// più a quello che Dart crede di aver aggiunto (primo caricamento dello
-  /// stile, o un resume che potrebbe aver ricreato la superficie): svuota
-  /// per davvero la mappa e la bookkeeping (_registeredImages e le tre
-  /// mappe di simboli), così la sincronizzazione successiva ricostruisce
-  /// tutto da zero con addSymbol invece di provare un updateSymbol su
-  /// riferimenti che potrebbero non esistere più.
+  /// Da chiamare SOLO quando le etichette area nativa potrebbero non
+  /// corrispondere più a quello che Dart crede di aver aggiunto (primo
+  /// caricamento dello stile, o un resume che potrebbe aver ricreato la
+  /// superficie): svuota per davvero la mappa e la bookkeeping, così la
+  /// sincronizzazione successiva ricostruisce tutto da zero con addSymbol
+  /// invece di provare un updateSymbol su riferimenti che potrebbero non
+  /// esistere più.
   Future<void> _hardResetSymbols({required bool fitCamera}) {
     final next = _symbolSync.then((_) async {
       final controller = _controller;
       if (controller == null) return;
-      _registeredImages.clear();
-      _personSymbols.clear();
-      _meetingPointSymbols.clear();
       _zoneLabelSymbols.clear();
       try {
         await controller.clearSymbols();
@@ -424,45 +543,20 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     return next;
   }
 
-  /// Aggiorna i simboli sulla mappa SENZA MAI cancellarli tutti e
-  /// riaggiungerli: prima invece _doSyncSymbols faceva clearSymbols() e poi
-  /// riaggiungeva tutto con una serie di await sequenziali — chiamata ad
-  /// ogni singolo cambiamento di posizione (cioè spessissimo, appena
-  /// qualcuno della cerchia si muove). Se un secondo cambiamento arrivava
-  /// mentre il primo giro era ancora a metà — il caso tipico appena tornati
-  /// da un'altra app, quando arrivano quasi insieme il fix GPS fresco, la
-  /// sincronizzazione realtime e il timer di polling — la mappa restava con
-  /// dei pin mancanti per tutto il tempo che i giri si accavallavano, non
-  /// per un solo istante: da qui il pin (spesso il mio, sempre il primo
-  /// della lista) che sembrava sparito. Ora ogni persona/punto/etichetta ha
-  /// un Symbol proprio, tenuto in _personSymbols e affini: se esiste già lo
-  /// spostiamo con updateSymbol invece di toglierlo e rimetterlo, e viene
-  /// rimosso singolarmente solo chi non è più nella lista. Un pin non
-  /// scompare mai per un aggiornamento normale, al più si sposta.
   Future<void> _doSyncSymbols({required bool fitCamera}) async {
     final controller = _controller;
     if (controller == null) return;
     final people = _visiblePeople;
 
     await _syncCircles(controller, people);
-
-    // Su web l'immagine viene sempre registrata come se fosse a 1x (vedi
-    // commento su _avatarBitmapPixelRatio): compensiamo qui riducendo la
-    // dimensione visualizzata, così il pin torna alla stessa grandezza
-    // "logica" che si vede su Android/iOS invece di apparire doppio.
-    final iconSize = kIsWeb ? 1 / _avatarBitmapPixelRatio : 1.0;
-
-    await _syncPersonSymbols(controller, people, iconSize);
-    await _syncMeetingPointSymbols(controller, iconSize);
     await _syncZoneLabelSymbols(controller);
 
     if (fitCamera) await _fitCamera(controller, people);
   }
 
   /// Le "nuvole" di posizione approssimativa e l'anteprima di ricerca sono
-  /// poche e cambiano raramente: restano a clear+riaggiungi, non fanno
-  /// parte del problema del pin che sparisce (quello, sempre presente e
-  /// aggiornato spessissimo, sì — vedi _syncPersonSymbols).
+  /// poche e cambiano raramente: restano cerchi nativi, un livello separato
+  /// dai pin Flutter e non toccato dal problema che li riguardava.
   Future<void> _syncCircles(MapLibreMapController controller, List<Person> people) async {
     await controller.clearCircles();
     for (final person in people.where((p) => p.isFuzzyLocation)) {
@@ -492,77 +586,6 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
           circleStrokeColor: '#FFFFFF',
         ),
       );
-    }
-  }
-
-  Future<void> _syncPersonSymbols(MapLibreMapController controller, List<Person> people, double iconSize) async {
-    final currentIds = people.map((p) => p.id).toSet();
-    final staleIds = _personSymbols.keys.where((id) => !currentIds.contains(id)).toList();
-    for (final id in staleIds) {
-      final symbol = _personSymbols.remove(id);
-      if (symbol == null) continue;
-      try {
-        await controller.removeSymbol(symbol);
-      } catch (_) {
-        // Se non c'è già più (es. un hard reset in corso in parallelo lo ha
-        // tolto per conto suo), va bene comunque: l'obiettivo era sparisse.
-      }
-    }
-
-    for (final person in people) {
-      // Ogni persona è isolata dalle altre: un errore imprevisto qui (che
-      // sia sulla mia posizione, sempre la prima della lista, o su
-      // qualunque altra) deve al più far mancare quel singolo pin, mai
-      // interrompere il giro e toccare quelli già sincronizzati.
-      try {
-        final imageName = await _ensureAvatarImage(controller, person);
-        final options = SymbolOptions(
-          geometry: LatLng(person.lat!, person.lng!),
-          iconImage: imageName,
-          iconSize: iconSize,
-          iconAnchor: 'bottom',
-        );
-        final existing = _personSymbols[person.id];
-        if (existing != null) {
-          await controller.updateSymbol(existing, options);
-        } else {
-          _personSymbols[person.id] = await controller.addSymbol(options, {'personId': person.id});
-        }
-      } catch (_) {
-        // Vedi commento sopra: non deve mai propagarsi.
-      }
-    }
-  }
-
-  Future<void> _syncMeetingPointSymbols(MapLibreMapController controller, double iconSize) async {
-    final points = widget.meetingPoints;
-    final currentIds = points.map((p) => p.id).toSet();
-    final staleIds = _meetingPointSymbols.keys.where((id) => !currentIds.contains(id)).toList();
-    for (final id in staleIds) {
-      final symbol = _meetingPointSymbols.remove(id);
-      if (symbol == null) continue;
-      try {
-        await controller.removeSymbol(symbol);
-      } catch (_) {}
-    }
-    if (points.isEmpty) return;
-
-    final meetingImageName = await _ensureMeetingPointImage(controller);
-    for (final point in points) {
-      try {
-        final options = SymbolOptions(
-          geometry: LatLng(point.lat, point.lng),
-          iconImage: meetingImageName,
-          iconSize: iconSize,
-          iconAnchor: 'bottom',
-        );
-        final existing = _meetingPointSymbols[point.id];
-        if (existing != null) {
-          await controller.updateSymbol(existing, options);
-        } else {
-          _meetingPointSymbols[point.id] = await controller.addSymbol(options, {'meetingPointId': point.id});
-        }
-      } catch (_) {}
     }
   }
 
@@ -617,16 +640,6 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     }
   }
 
-  void _handleSymbolTap(Symbol symbol) {
-    final personId = symbol.data?['personId'] as String?;
-    if (personId != null) {
-      widget.onPersonTap?.call(personId);
-      return;
-    }
-    final meetingPointId = symbol.data?['meetingPointId'] as String?;
-    if (meetingPointId != null) widget.onMeetingPointTap?.call(meetingPointId);
-  }
-
   void _handleFillTap(Fill fill) {
     final zoneId = fill.data?['zoneId'] as String?;
     if (zoneId != null) widget.onSafeZoneTap?.call(zoneId);
@@ -659,287 +672,110 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     await controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, left: 60, top: 80, right: 60, bottom: 80));
   }
 
-  /// Priorità delle immagini pin, coerente con [PersonAvatar] usato nel
-  /// resto dell'app: foto vera, poi avatar generativo da seed, poi avatar
-  /// a tema, infine iniziali. Il download della foto può fallire (rete
-  /// assente, URL scaduto): in quel caso si ripiega sotto senza bloccare
-  /// la mappa, che non deve mai dipendere da una chiamata di rete extra.
-  Future<String> _ensureAvatarImage(MapLibreMapController controller, Person person) async {
-    final photoUrl = person.photoUrl;
-    if (photoUrl != null) {
-      final name = 'kinly_avatar_photo_${person.id}_${photoUrl.hashCode}';
-      if (_registeredImages.contains(name)) return name;
-      try {
-        final bytes = await _renderAvatarPinWithPhoto(photoUrl, person.color);
-        await _registerImage(controller, name, bytes);
-        return name;
-      } catch (_) {
-        // Foto non raggiungibile: si prosegue sotto con l'avatar/iniziali.
-      }
-    }
-
-    final generativeKey = person.avatarKey;
-    if (GenerativeAvatar.isGenerativeKey(generativeKey)) {
-      final seed = GenerativeAvatar.seedFromKey(generativeKey!);
-      final name = 'kinly_avatar_gen_${person.id}_$seed';
-      if (!_registeredImages.contains(name)) {
-        final bytes = await _renderAvatarPinWithGenerative(seed);
-        await _registerImage(controller, name, bytes);
-      }
-      return name;
-    }
-
-    final avatar = AvatarCatalog.find(person.avatarKey);
-    final name = avatar != null
-        ? 'kinly_avatar_${person.id}_${avatar.key}'
-        : 'kinly_avatar_${person.id}_${person.color.toHex()}';
-    if (!_registeredImages.contains(name)) {
-      final bytes = avatar != null
-          ? await _renderAvatarPinWithEmoji(avatar)
-          : await _renderAvatarPin(person.color, person.initials);
-      await _registerImage(controller, name, bytes);
-    }
-    return name;
-  }
-
-  /// Registra un'immagine sulla mappa senza mai lanciare. Al rientro da
-  /// un'altra app svuotiamo solo la NOSTRA cache locale (_registeredImages),
-  /// non è detto che il motore mappa nativo abbia davvero perso l'immagine
-  /// (succede solo se la superficie è stata ricreata): se non l'ha persa,
-  /// una addImage con lo stesso nome può essere rifiutata da alcune
-  /// piattaforme. Prima questo errore risaliva fino a _doSyncSymbols e
-  /// interrompeva il giro sulle persone a metà — da qui i pin che
-  /// sparivano, spesso proprio il mio perché sono sempre il primo della
-  /// lista e un mio errore bloccava tutti quelli dopo di me. Ignorandolo
-  /// qui, il nome resta comunque utilizzabile per il simbolo (l'immagine
-  /// c'è già, oppure nel peggiore dei casi manca solo quell'icona) e il
-  /// resincronismo prosegue con tutti gli altri.
-  Future<void> _registerImage(MapLibreMapController controller, String name, Uint8List bytes) async {
-    try {
-      await controller.addImage(name, bytes);
-    } catch (_) {
-      // Ignorato di proposito, vedi doc sopra.
-    }
-    _registeredImages.add(name);
-  }
-
-  static const _meetingPointImageName = 'kinly_meeting_point_pin';
-
-  Future<String> _ensureMeetingPointImage(MapLibreMapController controller) async {
-    if (!_registeredImages.contains(_meetingPointImageName)) {
-      final bytes = await _renderFlagPin();
-      await _registerImage(controller, _meetingPointImageName, bytes);
-    }
-    return _meetingPointImageName;
-  }
-
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _controller?.onSymbolTapped.remove(_handleSymbolTap);
     _controller?.onFillTapped.remove(_handleFillTap);
     super.dispose();
   }
 }
 
-/// Disegna un pin come quelli dell'app: cerchio colorato con iniziali
-/// bianche, bordo bianco e una coda a goccia verso il basso, così il punto
-/// dell'icona coincide con la coordinata geografica (iconAnchor: bottom).
-Future<Uint8List> _renderAvatarPin(Color color, String initials) async {
-  const double circleSize = 72;
-  const double tailHeight = 22;
-  const double pixelRatio = 2.0;
-  const width = circleSize * pixelRatio;
-  const height = (circleSize + tailHeight) * pixelRatio;
+/// Coda a goccia sotto il pin, così la punta (non il centro del cerchio)
+/// coincide con la coordinata geografica esatta — stessa idea dei vecchi
+/// pin disegnati su canvas, solo che qui è un widget vero.
+class _MapPinTail extends StatelessWidget {
+  const _MapPinTail({required this.color, required this.width, required this.height});
 
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder);
-  const center = Offset(width / 2, (circleSize / 2) * pixelRatio);
-  const radius = (circleSize / 2) * pixelRatio;
+  final Color color;
+  final double width;
+  final double height;
 
-  final tail = Path()
-    ..moveTo(center.dx - radius * 0.42, center.dy + radius * 0.82)
-    ..lineTo(center.dx + radius * 0.42, center.dy + radius * 0.82)
-    ..lineTo(center.dx, height)
-    ..close();
-  canvas.drawPath(tail, Paint()..color = color);
-
-  canvas.drawCircle(center, radius, Paint()..color = Colors.white);
-  canvas.drawCircle(center, radius * 0.92, Paint()..color = color);
-
-  final textPainter = TextPainter(
-    text: TextSpan(
-      text: initials,
-      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: radius * 0.72),
-    ),
-    textDirection: TextDirection.ltr,
-  )..layout();
-  textPainter.paint(canvas, center - Offset(textPainter.width / 2, textPainter.height / 2));
-
-  final picture = recorder.endRecording();
-  final image = await picture.toImage(width.round(), height.round());
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  return byteData!.buffer.asUint8List();
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(size: Size(width, height), painter: _MapPinTailPainter(color));
+  }
 }
 
-/// Marcatore a bandiera per un punto d'incontro: stessa forma a goccia dei
-/// pin persona (punta verso il basso, ancorata alla coordinata esatta), ma
-/// viola per distinguerlo a colpo d'occhio dagli avatar.
-Future<Uint8List> _renderFlagPin() async {
-  const double circleSize = 64;
-  const double tailHeight = 20;
-  const double pixelRatio = 2.0;
-  const width = circleSize * pixelRatio;
-  const height = (circleSize + tailHeight) * pixelRatio;
-  const color = Color(0xFF8A6DE7);
+class _MapPinTailPainter extends CustomPainter {
+  _MapPinTailPainter(this.color);
+  final Color color;
 
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder);
-  const center = Offset(width / 2, (circleSize / 2) * pixelRatio);
-  const radius = (circleSize / 2) * pixelRatio;
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(size.width * 0.08, 0)
+      ..lineTo(size.width * 0.92, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..close();
+    canvas.drawPath(path, Paint()..color = color);
+  }
 
-  final tail = Path()
-    ..moveTo(center.dx - radius * 0.42, center.dy + radius * 0.82)
-    ..lineTo(center.dx + radius * 0.42, center.dy + radius * 0.82)
-    ..lineTo(center.dx, height)
-    ..close();
-  canvas.drawPath(tail, Paint()..color = color);
-
-  canvas.drawCircle(center, radius, Paint()..color = Colors.white);
-  canvas.drawCircle(center, radius * 0.92, Paint()..color = color);
-
-  final textPainter = TextPainter(
-    text: const TextSpan(text: '🚩', style: TextStyle(fontSize: radius * 0.85)),
-    textDirection: TextDirection.ltr,
-  )..layout();
-  textPainter.paint(canvas, center - Offset(textPainter.width / 2, textPainter.height / 2));
-
-  final picture = recorder.endRecording();
-  final image = await picture.toImage(width.round(), height.round());
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  return byteData!.buffer.asUint8List();
+  @override
+  bool shouldRepaint(covariant _MapPinTailPainter oldDelegate) => oldDelegate.color != color;
 }
 
-/// Stessa forma del pin con iniziali, ma con lo sfondo a gradiente e
-/// l'emoji dell'avatar a tema scelto (vedi AvatarCatalog), coerente con
-/// come viene mostrato nelle liste e nel dettaglio persona.
-Future<Uint8List> _renderAvatarPinWithEmoji(AvatarOption avatar) async {
-  const double circleSize = 72;
-  const double tailHeight = 22;
-  const double pixelRatio = 2.0;
-  const width = circleSize * pixelRatio;
-  const height = (circleSize + tailHeight) * pixelRatio;
+/// Pin persona sulla mappa: lo stesso [PersonAvatar] usato nel resto
+/// dell'app (foto, avatar generativo/a tema o iniziali, puntino di stato),
+/// con una coda a goccia sotto per ancorarlo al punto esatto.
+class _PersonMapPin extends StatelessWidget {
+  const _PersonMapPin({required this.person, required this.onTap});
 
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder);
-  const center = Offset(width / 2, (circleSize / 2) * pixelRatio);
-  const radius = (circleSize / 2) * pixelRatio;
+  final Person person;
+  final VoidCallback? onTap;
 
-  final tail = Path()
-    ..moveTo(center.dx - radius * 0.42, center.dy + radius * 0.82)
-    ..lineTo(center.dx + radius * 0.42, center.dy + radius * 0.82)
-    ..lineTo(center.dx, height)
-    ..close();
-  canvas.drawPath(tail, Paint()..color = avatar.colors.last);
+  static const double avatarSize = 44;
+  static const double tailHeight = 9;
 
-  canvas.drawCircle(center, radius, Paint()..color = Colors.white);
-  final gradientPaint = Paint()
-    ..shader = ui.Gradient.linear(
-      Offset(center.dx - radius, center.dy - radius),
-      Offset(center.dx + radius, center.dy + radius),
-      avatar.colors,
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PersonAvatar(person: person, size: avatarSize, showActivityBadge: false),
+          _MapPinTail(color: person.color, width: avatarSize * 0.36, height: tailHeight),
+        ],
+      ),
     );
-  canvas.drawCircle(center, radius * 0.92, gradientPaint);
-
-  final textPainter = TextPainter(
-    text: TextSpan(text: avatar.emoji, style: TextStyle(fontSize: radius * 0.95)),
-    textDirection: TextDirection.ltr,
-  )..layout();
-  textPainter.paint(canvas, center - Offset(textPainter.width / 2, textPainter.height / 2));
-
-  final picture = recorder.endRecording();
-  final image = await picture.toImage(width.round(), height.round());
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  return byteData!.buffer.asUint8List();
+  }
 }
 
-/// Stessa forma del pin con iniziali, ma con la foto profilo vera al
-/// centro (ritagliata quadrata dal centro, poi in un cerchio): coerente
-/// con [PersonAvatar], che nel resto dell'app mostra la foto quando c'è.
-/// Il download può lanciare un'eccezione (rete assente, URL non valido,
-/// formato non decodificabile): sta a chi chiama ripiegare sull'avatar
-/// a tema o sulle iniziali in quel caso.
-Future<Uint8List> _renderAvatarPinWithPhoto(String photoUrl, Color tailColor) async {
-  final response = await http.get(Uri.parse(photoUrl)).timeout(const Duration(seconds: 8));
-  if (response.statusCode != 200) throw Exception('Foto non raggiungibile: HTTP ${response.statusCode}');
-  final codec = await ui.instantiateImageCodec(response.bodyBytes);
-  final frame = await codec.getNextFrame();
-  final photo = frame.image;
+/// Pin a bandiera per un punto d'incontro: stessa forma a goccia dei pin
+/// persona, ma viola per distinguerlo a colpo d'occhio dagli avatar.
+class _MeetingPointMapPin extends StatelessWidget {
+  const _MeetingPointMapPin({required this.onTap});
 
-  const double circleSize = 72;
-  const double tailHeight = 22;
-  const double pixelRatio = 2.0;
-  const width = circleSize * pixelRatio;
-  const height = (circleSize + tailHeight) * pixelRatio;
+  final VoidCallback? onTap;
 
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder);
-  const center = Offset(width / 2, (circleSize / 2) * pixelRatio);
-  const radius = (circleSize / 2) * pixelRatio;
+  static const double size = 40;
+  static const double tailHeight = 9;
+  static const Color _color = Color(0xFF8A6DE7);
 
-  final tail = Path()
-    ..moveTo(center.dx - radius * 0.42, center.dy + radius * 0.82)
-    ..lineTo(center.dx + radius * 0.42, center.dy + radius * 0.82)
-    ..lineTo(center.dx, height)
-    ..close();
-  canvas.drawPath(tail, Paint()..color = tailColor);
-  canvas.drawCircle(center, radius, Paint()..color = Colors.white);
-
-  canvas.save();
-  canvas.clipPath(Path()..addOval(Rect.fromCircle(center: center, radius: radius * 0.92)));
-  final side = min(photo.width, photo.height).toDouble();
-  final srcSquare = Rect.fromCenter(center: Offset(photo.width / 2, photo.height / 2), width: side, height: side);
-  final dstCircle = Rect.fromCircle(center: center, radius: radius * 0.92);
-  canvas.drawImageRect(photo, srcSquare, dstCircle, Paint());
-  canvas.restore();
-
-  final picture2 = recorder.endRecording();
-  final image2 = await picture2.toImage(width.round(), height.round());
-  final byteData2 = await image2.toByteData(format: ui.ImageByteFormat.png);
-  return byteData2!.buffer.asUint8List();
-}
-
-/// Stessa forma del pin con iniziali, ma con l'avatar generativo da seed
-/// (vedi GenerativeAvatar) al centro, per chi ha scelto quello invece di
-/// un avatar a tema o di una foto.
-Future<Uint8List> _renderAvatarPinWithGenerative(String seed) async {
-  const double circleSize = 72;
-  const double tailHeight = 22;
-  const double pixelRatio = 2.0;
-  const width = circleSize * pixelRatio;
-  const height = (circleSize + tailHeight) * pixelRatio;
-
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder);
-  const center = Offset(width / 2, (circleSize / 2) * pixelRatio);
-  const radius = (circleSize / 2) * pixelRatio;
-  final tailColor = GenerativeAvatar.accentColor(seed);
-
-  final tail = Path()
-    ..moveTo(center.dx - radius * 0.42, center.dy + radius * 0.82)
-    ..lineTo(center.dx + radius * 0.42, center.dy + radius * 0.82)
-    ..lineTo(center.dx, height)
-    ..close();
-  canvas.drawPath(tail, Paint()..color = tailColor);
-  canvas.drawCircle(center, radius, Paint()..color = Colors.white);
-
-  canvas.save();
-  canvas.clipPath(Path()..addOval(Rect.fromCircle(center: center, radius: radius * 0.92)));
-  GenerativeAvatar.paint(canvas, Rect.fromCircle(center: center, radius: radius * 0.92), seed);
-  canvas.restore();
-
-  final picture3 = recorder.endRecording();
-  final image3 = await picture3.toImage(width.round(), height.round());
-  final byteData3 = await image3.toByteData(format: ui.ImageByteFormat.png);
-  return byteData3!.buffer.asUint8List();
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _color,
+              border: Border.all(color: Colors.white, width: size * 0.08),
+              boxShadow: [BoxShadow(color: _color.withValues(alpha: 0.35), blurRadius: size * 0.22, offset: const Offset(0, size * 0.06))],
+            ),
+            alignment: Alignment.center,
+            child: const Text('🚩', style: TextStyle(fontSize: size * 0.5)),
+          ),
+          const _MapPinTail(color: _color, width: size * 0.36, height: tailHeight),
+        ],
+      ),
+    );
+  }
 }
