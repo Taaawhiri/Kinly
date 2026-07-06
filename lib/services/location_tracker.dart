@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -68,7 +69,22 @@ class LocationTracker with WidgetsBindingObserver {
   /// riapriva l'app a mano.
   Timer? _restartTimer;
   int _restartAttempts = 0;
-  static const _maxRestartAttempts = 5;
+
+  /// Ritardo prima del prossimo tentativo di riavvio dopo un errore (vedi
+  /// _handleStreamDown): cresce ad ogni tentativo consecutivo fallito
+  /// (10s, 20s, 40s, poi fisso a 60s), ma SENZA MAI arrendersi del tutto.
+  /// Prima, dopo 5 tentativi da 10s (circa 50 secondi totali), si smetteva
+  /// di riprovare e si restava senza posizione fresca finché non ci
+  /// pensava il battito ogni 4 minuti (vedi _sendHeartbeat) a notare lo
+  /// stream morto e riprovare: se il problema di fondo durava più di un
+  /// ciclo di battito, il buco poteva arrivare a 10-15 minuti prima di
+  /// essere notato e risolto — esattamente il sintomo segnalato da un
+  /// utente con tracciamento in background attivo. Ritentando sempre, al
+  /// più ogni 60 secondi, quel buco resta sotto il minuto nella stragrande
+  /// maggioranza dei casi (Play Services riavviato da un'altra app, GPS
+  /// momentaneamente non disponibile), invece di dipendere dal battito.
+  static const _restartBackoffBase = Duration(seconds: 10);
+  static const _restartBackoffMax = Duration(seconds: 60);
   bool _observingLifecycle = false;
   // Evita che due percorsi (il timer di riavvio e il guardiano nel battito)
   // creino due stream di posizione in parallelo, con doppie scritture e un
@@ -248,8 +264,11 @@ class LocationTracker with WidgetsBindingObserver {
   /// vero e proprio (es. Play Services riavviato in background da
   /// un'altra app che chiede il GPS, tipicamente un navigatore): senza
   /// questo, Kinly restava silenzioso finché non si riapriva l'app a mano.
-  /// Qualche tentativo con una pausa breve invece di ritentare all'infinito
-  /// se il problema è persistente (es. permesso revocato davvero).
+  /// Riprova sempre, con un ritardo crescente (vedi _restartBackoffBase/Max)
+  /// invece di martellare un problema persistente a raffica costante, ma
+  /// anche invece di arrendersi: un permesso revocato davvero fa comunque
+  /// fallire ogni tentativo in modo innocuo, un problema transitorio invece
+  /// si risolve da solo entro un minuto o due.
   void _handleStreamDown() {
     // Su onError lo stream può essere ancora vivo: cancellalo prima di
     // perderne il riferimento, altrimenti resta un listener orfano che può
@@ -257,10 +276,11 @@ class LocationTracker with WidgetsBindingObserver {
     final sub = _positionSub;
     _positionSub = null;
     unawaited(sub?.cancel());
-    if (_restartAttempts >= _maxRestartAttempts) return;
     _restartAttempts++;
+    final backoffMs = _restartBackoffBase.inMilliseconds * math.pow(2, _restartAttempts - 1).toInt();
+    final delay = Duration(milliseconds: math.min(backoffMs, _restartBackoffMax.inMilliseconds));
     _restartTimer?.cancel();
-    _restartTimer = Timer(const Duration(seconds: 10), () => unawaited(_subscribe()));
+    _restartTimer = Timer(delay, () => unawaited(_subscribe()));
   }
 
   @override
