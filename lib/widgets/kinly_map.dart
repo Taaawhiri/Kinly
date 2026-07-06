@@ -317,14 +317,14 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
       // Permesso concesso e GPS acceso: è solo questione di aspettare il
       // primo fix, il caso genuino che il messaggio originale copriva.
       return Container(
-        color: const Color(0xFFEEF1FA),
+        color: AppTheme.surfaceAlt,
         alignment: Alignment.center,
         child: Text(l10n.mapWaitingForLocation, style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
       );
     }
 
     return Container(
-      color: const Color(0xFFEEF1FA),
+      color: AppTheme.surfaceAlt,
       alignment: Alignment.center,
       padding: const EdgeInsets.all(28),
       child: Column(
@@ -447,16 +447,24 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     // "logica" che si vede su Android/iOS invece di apparire doppio.
     final iconSize = kIsWeb ? 1 / _avatarBitmapPixelRatio : 1.0;
     for (final person in people) {
-      final imageName = await _ensureAvatarImage(controller, person);
-      await controller.addSymbol(
-        SymbolOptions(
-          geometry: LatLng(person.lat!, person.lng!),
-          iconImage: imageName,
-          iconSize: iconSize,
-          iconAnchor: 'bottom',
-        ),
-        {'personId': person.id},
-      );
+      // Ogni persona è isolata dalle altre: un errore imprevisto qui (che
+      // sia sulla mia posizione, sempre la prima della lista, o su
+      // qualunque altra) deve al più far mancare quel singolo pin, mai
+      // interrompere il giro e cancellare anche tutti i pin successivi.
+      try {
+        final imageName = await _ensureAvatarImage(controller, person);
+        await controller.addSymbol(
+          SymbolOptions(
+            geometry: LatLng(person.lat!, person.lng!),
+            iconImage: imageName,
+            iconSize: iconSize,
+            iconAnchor: 'bottom',
+          ),
+          {'personId': person.id},
+        );
+      } catch (_) {
+        // Vedi commento sopra: non deve mai propagarsi.
+      }
     }
 
     if (widget.meetingPoints.isNotEmpty) {
@@ -568,8 +576,7 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
       if (_registeredImages.contains(name)) return name;
       try {
         final bytes = await _renderAvatarPinWithPhoto(photoUrl, person.color);
-        await controller.addImage(name, bytes);
-        _registeredImages.add(name);
+        await _registerImage(controller, name, bytes);
         return name;
       } catch (_) {
         // Foto non raggiungibile: si prosegue sotto con l'avatar/iniziali.
@@ -582,8 +589,7 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
       final name = 'kinly_avatar_gen_${person.id}_$seed';
       if (!_registeredImages.contains(name)) {
         final bytes = await _renderAvatarPinWithGenerative(seed);
-        await controller.addImage(name, bytes);
-        _registeredImages.add(name);
+        await _registerImage(controller, name, bytes);
       }
       return name;
     }
@@ -596,10 +602,30 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
       final bytes = avatar != null
           ? await _renderAvatarPinWithEmoji(avatar)
           : await _renderAvatarPin(person.color, person.initials);
-      await controller.addImage(name, bytes);
-      _registeredImages.add(name);
+      await _registerImage(controller, name, bytes);
     }
     return name;
+  }
+
+  /// Registra un'immagine sulla mappa senza mai lanciare. Al rientro da
+  /// un'altra app svuotiamo solo la NOSTRA cache locale (_registeredImages),
+  /// non è detto che il motore mappa nativo abbia davvero perso l'immagine
+  /// (succede solo se la superficie è stata ricreata): se non l'ha persa,
+  /// una addImage con lo stesso nome può essere rifiutata da alcune
+  /// piattaforme. Prima questo errore risaliva fino a _doSyncSymbols e
+  /// interrompeva il giro sulle persone a metà — da qui i pin che
+  /// sparivano, spesso proprio il mio perché sono sempre il primo della
+  /// lista e un mio errore bloccava tutti quelli dopo di me. Ignorandolo
+  /// qui, il nome resta comunque utilizzabile per il simbolo (l'immagine
+  /// c'è già, oppure nel peggiore dei casi manca solo quell'icona) e il
+  /// resincronismo prosegue con tutti gli altri.
+  Future<void> _registerImage(MapLibreMapController controller, String name, Uint8List bytes) async {
+    try {
+      await controller.addImage(name, bytes);
+    } catch (_) {
+      // Ignorato di proposito, vedi doc sopra.
+    }
+    _registeredImages.add(name);
   }
 
   static const _meetingPointImageName = 'kinly_meeting_point_pin';
@@ -607,8 +633,7 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
   Future<String> _ensureMeetingPointImage(MapLibreMapController controller) async {
     if (!_registeredImages.contains(_meetingPointImageName)) {
       final bytes = await _renderFlagPin();
-      await controller.addImage(_meetingPointImageName, bytes);
-      _registeredImages.add(_meetingPointImageName);
+      await _registerImage(controller, _meetingPointImageName, bytes);
     }
     return _meetingPointImageName;
   }

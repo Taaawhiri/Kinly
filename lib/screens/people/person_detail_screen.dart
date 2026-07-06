@@ -73,7 +73,7 @@ class PersonDetailScreen extends StatelessWidget {
                   child: canSee && person.lat != null
                       ? KinlyMap(people: [person], interactive: false)
                       : Container(
-                          color: const Color(0xFFEEF1FA),
+                          color: AppTheme.surfaceAlt,
                           alignment: Alignment.center,
                           child: Container(
                             padding: const EdgeInsets.all(18),
