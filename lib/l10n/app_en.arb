@@ -21,6 +21,7 @@
 
   "navMap": "Map",
   "navCircles": "Circles",
+  "navMessages": "Messages",
   "navRequests": "Requests",
   "navProfile": "Profile",
 
@@ -396,8 +397,10 @@
   "privacyBackgroundTrackingPlusBody": "Background tracking (location keeps updating even with the app closed) is a Kinly+ benefit.",
   "privacyEnableBackgroundTrackingTitle": "Enable background tracking?",
   "privacyEnableBackgroundTrackingBody": "Your location will keep updating even when Kinly isn't in the foreground. It uses more battery and always shows a persistent notification while active, as required by Android.",
+  "privacyEnableBackgroundTrackingBodyIos": "Your location will keep updating even when Kinly isn't in the foreground. It uses more battery and iOS shows a blue bar at the top of the screen while active.",
   "privacyExtraStepTitle": "One more step needed",
   "privacyExtraStepBody": "Your Android requires manually enabling the \"Allow all the time\" location permission from system settings, then come back here and turn the switch back on.",
+  "privacyExtraStepBodyIos": "Your iPhone requires manually enabling the \"Always\" location permission from Settings, then come back here and turn the switch back on.",
   "privacyOpenSettings": "Open settings",
   "privacyGrantLocationFirst": "You need to grant Kinly location permission first.",
   "privacyBiometricAuthFailed": "We couldn't verify your identity.",
@@ -446,6 +449,7 @@
   "privacyBiometricHint": "Require fingerprint, face or device code every time you open Kinly.",
   "privacyBiometricUnlock": "Biometric unlock",
   "privacyBackgroundTrackingHint": "By default Kinly only updates your location while it's open. Turn this on to keep it updating in the background too: it uses more battery and always shows a persistent notification while active.",
+  "privacyBackgroundTrackingHintIos": "By default Kinly only updates your location while it's open. Turn this on to keep it updating in the background too: it uses more battery and iOS shows a blue bar while active.",
   "privacyEnableInBackground": "Enable in background",
   "privacyGhostScheduleHint": "Useful for work: outside this time window no one sees your location, in any of your circles (automatic \"clock-out\").",
   "privacyLimitHours": "Limit hours",
@@ -837,6 +841,11 @@
   "simpleModeCloseMap": "Close map",
   "simpleModeOpenMapHint": "Tap to open",
   "simpleModeLocationHidden": "Location not shared",
+  "simpleMessagesTitle": "Messages",
+  "simpleMessagesChooseCircle": "Circle",
+  "simplePersonFullDetails": "See full details",
+  "simpleProfileFullSettings": "Full settings",
+  "simpleProfileModeToggleHint": "Go back to the normal screen with all features.",
 
   "helpReqReasonFlatTire": "Flat tire",
   "helpReqReasonAccident": "Accident",

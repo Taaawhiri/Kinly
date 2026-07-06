@@ -66,6 +66,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navCircles => 'Circles';
 
   @override
+  String get navMessages => 'Messages';
+
+  @override
   String get navRequests => 'Requests';
 
   @override
@@ -1336,11 +1339,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your location will keep updating even when Kinly isn\'t in the foreground. It uses more battery and always shows a persistent notification while active, as required by Android.';
 
   @override
+  String get privacyEnableBackgroundTrackingBodyIos =>
+      'Your location will keep updating even when Kinly isn\'t in the foreground. It uses more battery and iOS shows a blue bar at the top of the screen while active.';
+
+  @override
   String get privacyExtraStepTitle => 'One more step needed';
 
   @override
   String get privacyExtraStepBody =>
       'Your Android requires manually enabling the \"Allow all the time\" location permission from system settings, then come back here and turn the switch back on.';
+
+  @override
+  String get privacyExtraStepBodyIos =>
+      'Your iPhone requires manually enabling the \"Always\" location permission from Settings, then come back here and turn the switch back on.';
 
   @override
   String get privacyOpenSettings => 'Open settings';
@@ -1500,6 +1511,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get privacyBackgroundTrackingHint =>
       'By default Kinly only updates your location while it\'s open. Turn this on to keep it updating in the background too: it uses more battery and always shows a persistent notification while active.';
+
+  @override
+  String get privacyBackgroundTrackingHintIos =>
+      'By default Kinly only updates your location while it\'s open. Turn this on to keep it updating in the background too: it uses more battery and iOS shows a blue bar while active.';
 
   @override
   String get privacyEnableInBackground => 'Enable in background';
@@ -2783,6 +2798,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get simpleModeLocationHidden => 'Location not shared';
+
+  @override
+  String get simpleMessagesTitle => 'Messages';
+
+  @override
+  String get simpleMessagesChooseCircle => 'Circle';
+
+  @override
+  String get simplePersonFullDetails => 'See full details';
+
+  @override
+  String get simpleProfileFullSettings => 'Full settings';
+
+  @override
+  String get simpleProfileModeToggleHint =>
+      'Go back to the normal screen with all features.';
 
   @override
   String get helpReqReasonFlatTire => 'Flat tire';

@@ -49,9 +49,20 @@
 	<string>Kinly usa la tua posizione per condividerla con le persone della tua cerchia, secondo la modalità che scegli tu.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Kinly usa la tua posizione per condividerla con le persone della tua cerchia, secondo la modalità che scegli tu.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Kinly usa la tua posizione per condividerla con le persone della tua cerchia, secondo la modalità che scegli tu.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Per scegliere una foto profilo dalla tua libreria.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Per scattare una foto profilo.</string>
+	<!-- Senza questa chiave, allowBackgroundLocationUpdates di geolocator_apple
+	     (vedi LocationTracker._buildLocationSettings) non ha alcun effetto:
+	     iOS sospende comunque l'app pochi secondi dopo che va in background,
+	     anche con permesso "Sempre" concesso. È il pezzo mancante che rendeva
+	     il Tracciamento in background di Kinly+ disponibile solo su Android. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 </dict>
 </plist>

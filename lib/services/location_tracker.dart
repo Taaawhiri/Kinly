@@ -246,18 +246,38 @@ class LocationTracker with WidgetsBindingObserver {
 
   /// Le impostazioni normali funzionano solo mentre Kinly è in primo piano.
   /// Chi ha attivato "Tracciamento in background" (e ha concesso il
-  /// permesso di posizione "sempre") ottiene invece un vero servizio in
-  /// primo piano Android, con una notifica fissa obbligatoria dal sistema:
-  /// aumenta la probabilità che la posizione continui ad aggiornarsi anche
-  /// quando l'app non è aperta, ma non lo garantisce al 100% se l'app viene
-  /// chiusa a forza (dipende anche dal produttore del telefono).
+  /// permesso di posizione "sempre") ottiene impostazioni specifiche per
+  /// piattaforma che aumentano la probabilità che la posizione continui ad
+  /// aggiornarsi anche quando l'app non è aperta, senza garantirlo al 100%
+  /// se l'app viene chiusa a forza (dipende anche dal produttore/versione).
+  ///
+  /// Su Android è un vero servizio in primo piano, con una notifica fissa
+  /// obbligatoria dal sistema. Su iOS non esiste un equivalente: si chiede
+  /// invece a CLLocationManager di continuare ad aggiornare in background
+  /// (allowBackgroundLocationUpdates), che richiede sia il permesso "Sempre"
+  /// sia la chiave UIBackgroundModes con valore "location" in Info.plist —
+  /// senza quest'ultima l'opzione qui sotto non ha alcun effetto e iOS
+  /// sospende comunque l'app.
   Future<LocationSettings> _buildLocationSettings() async {
     const base = LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 30);
-    // kIsWeb prima di Platform.isAndroid: dart:io.Platform non e' disponibile
-    // sul web e solleverebbe un'eccezione appena chiamato.
-    if (kIsWeb || !Platform.isAndroid) return base;
+    // kIsWeb prima di Platform.isAndroid/isIOS: dart:io.Platform non e'
+    // disponibile sul web e solleverebbe un'eccezione appena chiamato.
+    if (kIsWeb || !(Platform.isAndroid || Platform.isIOS)) return base;
     if (!await BackgroundTrackingSettings.instance.isEnabled()) return base;
     if (await Geolocator.checkPermission() != LocationPermission.always) return base;
+
+    if (Platform.isIOS) {
+      return AppleSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 30,
+        pauseLocationUpdatesAutomatically: false,
+        // La "barra blu" che iOS mostra quando un'app legge la posizione in
+        // background: è l'unico avviso persistente che l'utente vede su
+        // questa piattaforma, equivalente alla notifica fissa di Android.
+        showBackgroundLocationIndicator: true,
+        allowBackgroundLocationUpdates: true,
+      );
+    }
 
     return AndroidSettings(
       accuracy: LocationAccuracy.high,
@@ -276,7 +296,7 @@ class LocationTracker with WidgetsBindingObserver {
   /// Riavvia il tracciamento con le nuove impostazioni se il permesso viene
   /// concesso subito.
   Future<BackgroundTrackingResult> enableBackgroundTracking() async {
-    if (kIsWeb || !Platform.isAndroid) return BackgroundTrackingResult.locationPermissionDenied;
+    if (kIsWeb || !(Platform.isAndroid || Platform.isIOS)) return BackgroundTrackingResult.locationPermissionDenied;
 
     var permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
@@ -287,10 +307,10 @@ class LocationTracker with WidgetsBindingObserver {
     }
 
     if (permission != LocationPermission.always) {
-      // Da Android 11 in poi il sistema non mostra più un dialogo per il
-      // permesso "sempre" insieme a quello base: bisogna chiederlo di
-      // nuovo, e se il sistema non lo concede subito va attivato a mano
-      // dalle impostazioni dell'app.
+      // Sia Android (dalla versione 11) sia iOS mostrano il permesso
+      // "sempre" solo con una richiesta separata, dopo quello base: bisogna
+      // chiederlo di nuovo, e se il sistema non lo concede subito va
+      // attivato a mano dalle impostazioni dell'app.
       permission = await Geolocator.requestPermission();
     }
     if (permission != LocationPermission.always) {

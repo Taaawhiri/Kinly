@@ -8,7 +8,7 @@ import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/kinly_map.dart';
 import '../../widgets/person_avatar.dart';
-import '../people/person_detail_screen.dart';
+import '../people/simple_person_detail_screen.dart';
 
 /// Modalità Rapida: la home a mappa sostituita da una schermata più diretta —
 /// un saluto, un'anteprima piccola della mappa, due azioni evidenti (SOS e
@@ -58,7 +58,7 @@ class _SimpleHomeScreenState extends State<SimpleHomeScreen> {
   }
 
   void _openPerson(Person person) {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: person.id)));
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => SimplePersonDetailScreen(personId: person.id)));
   }
 
   @override
@@ -89,7 +89,7 @@ class _SimpleHomeScreenState extends State<SimpleHomeScreen> {
               safeZones: state.visibleSafeZones(),
               meetingPoints: state.visibleMeetingPoints(),
               onPersonTap: (id) => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: id)),
+                MaterialPageRoute(builder: (_) => SimplePersonDetailScreen(personId: id)),
               ),
             ),
           ),

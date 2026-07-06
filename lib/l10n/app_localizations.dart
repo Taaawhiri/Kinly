@@ -200,6 +200,12 @@ abstract class AppLocalizations {
   /// **'Cerchie'**
   String get navCircles;
 
+  /// No description provided for @navMessages.
+  ///
+  /// In it, this message translates to:
+  /// **'Messaggi'**
+  String get navMessages;
+
   /// No description provided for @navRequests.
   ///
   /// In it, this message translates to:
@@ -2354,6 +2360,12 @@ abstract class AppLocalizations {
   /// **'La tua posizione continuerà ad aggiornarsi anche quando Kinly non è in primo piano. Consuma più batteria e mostra sempre una notifica fissa mentre è attivo, come richiesto da Android.'**
   String get privacyEnableBackgroundTrackingBody;
 
+  /// No description provided for @privacyEnableBackgroundTrackingBodyIos.
+  ///
+  /// In it, this message translates to:
+  /// **'La tua posizione continuerà ad aggiornarsi anche quando Kinly non è in primo piano. Consuma più batteria e iOS mostra una barra blu nella parte alta dello schermo mentre è attivo.'**
+  String get privacyEnableBackgroundTrackingBodyIos;
+
   /// No description provided for @privacyExtraStepTitle.
   ///
   /// In it, this message translates to:
@@ -2365,6 +2377,12 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Il tuo Android richiede di attivare a mano il permesso di posizione \"Consenti sempre\" dalle impostazioni di sistema, poi torna qui e riattiva l\'interruttore.'**
   String get privacyExtraStepBody;
+
+  /// No description provided for @privacyExtraStepBodyIos.
+  ///
+  /// In it, this message translates to:
+  /// **'Il tuo iPhone richiede di attivare a mano il permesso di posizione \"Sempre\" dalle Impostazioni, poi torna qui e riattiva l\'interruttore.'**
+  String get privacyExtraStepBodyIos;
 
   /// No description provided for @privacyOpenSettings.
   ///
@@ -2653,6 +2671,12 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Per impostazione predefinita Kinly aggiorna la tua posizione solo mentre è aperta. Attivalo per farla continuare anche in background: consuma più batteria e mostra sempre una notifica fissa mentre è attivo.'**
   String get privacyBackgroundTrackingHint;
+
+  /// No description provided for @privacyBackgroundTrackingHintIos.
+  ///
+  /// In it, this message translates to:
+  /// **'Per impostazione predefinita Kinly aggiorna la tua posizione solo mentre è aperta. Attivalo per farla continuare anche in background: consuma più batteria e iOS mostra una barra blu mentre è attivo.'**
+  String get privacyBackgroundTrackingHintIos;
 
   /// No description provided for @privacyEnableInBackground.
   ///
@@ -4819,6 +4843,36 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Posizione non condivisa'**
   String get simpleModeLocationHidden;
+
+  /// No description provided for @simpleMessagesTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Messaggi'**
+  String get simpleMessagesTitle;
+
+  /// No description provided for @simpleMessagesChooseCircle.
+  ///
+  /// In it, this message translates to:
+  /// **'Cerchia'**
+  String get simpleMessagesChooseCircle;
+
+  /// No description provided for @simplePersonFullDetails.
+  ///
+  /// In it, this message translates to:
+  /// **'Vedi dettagli completi'**
+  String get simplePersonFullDetails;
+
+  /// No description provided for @simpleProfileFullSettings.
+  ///
+  /// In it, this message translates to:
+  /// **'Impostazioni complete'**
+  String get simpleProfileFullSettings;
+
+  /// No description provided for @simpleProfileModeToggleHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Torna alla schermata normale con tutte le funzioni.'**
+  String get simpleProfileModeToggleHint;
 
   /// No description provided for @helpReqReasonFlatTire.
   ///

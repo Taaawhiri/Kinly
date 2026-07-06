@@ -239,7 +239,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: Text(l10n.privacyEnableBackgroundTrackingTitle),
-        content: Text(l10n.privacyEnableBackgroundTrackingBody),
+        content: Text(Platform.isIOS ? l10n.privacyEnableBackgroundTrackingBodyIos : l10n.privacyEnableBackgroundTrackingBody),
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonCancel)),
           FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.commonActivate)),
@@ -262,7 +262,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
         builder: (context) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           title: Text(l10n.privacyExtraStepTitle),
-          content: Text(l10n.privacyExtraStepBody),
+          content: Text(Platform.isIOS ? l10n.privacyExtraStepBodyIos : l10n.privacyExtraStepBody),
           actions: [
             TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonNotNow)),
             FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.privacyOpenSettings)),
@@ -647,7 +647,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     ),
                   ),
                 ],
-                if (!kIsWeb && Platform.isAndroid) ...[
+                if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) ...[
                   const SizedBox(height: 24),
                   Row(
                     children: [
@@ -664,7 +664,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    l10n.privacyBackgroundTrackingHint,
+                    Platform.isIOS ? l10n.privacyBackgroundTrackingHintIos : l10n.privacyBackgroundTrackingHint,
                     style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
                   ),
                   const SizedBox(height: 10),

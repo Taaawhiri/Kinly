@@ -66,6 +66,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navCircles => 'Cerchie';
 
   @override
+  String get navMessages => 'Messaggi';
+
+  @override
   String get navRequests => 'Richieste';
 
   @override
@@ -1339,11 +1342,19 @@ class AppLocalizationsIt extends AppLocalizations {
       'La tua posizione continuerà ad aggiornarsi anche quando Kinly non è in primo piano. Consuma più batteria e mostra sempre una notifica fissa mentre è attivo, come richiesto da Android.';
 
   @override
+  String get privacyEnableBackgroundTrackingBodyIos =>
+      'La tua posizione continuerà ad aggiornarsi anche quando Kinly non è in primo piano. Consuma più batteria e iOS mostra una barra blu nella parte alta dello schermo mentre è attivo.';
+
+  @override
   String get privacyExtraStepTitle => 'Serve un passaggio in più';
 
   @override
   String get privacyExtraStepBody =>
       'Il tuo Android richiede di attivare a mano il permesso di posizione \"Consenti sempre\" dalle impostazioni di sistema, poi torna qui e riattiva l\'interruttore.';
+
+  @override
+  String get privacyExtraStepBodyIos =>
+      'Il tuo iPhone richiede di attivare a mano il permesso di posizione \"Sempre\" dalle Impostazioni, poi torna qui e riattiva l\'interruttore.';
 
   @override
   String get privacyOpenSettings => 'Apri impostazioni';
@@ -1503,6 +1514,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get privacyBackgroundTrackingHint =>
       'Per impostazione predefinita Kinly aggiorna la tua posizione solo mentre è aperta. Attivalo per farla continuare anche in background: consuma più batteria e mostra sempre una notifica fissa mentre è attivo.';
+
+  @override
+  String get privacyBackgroundTrackingHintIos =>
+      'Per impostazione predefinita Kinly aggiorna la tua posizione solo mentre è aperta. Attivalo per farla continuare anche in background: consuma più batteria e iOS mostra una barra blu mentre è attivo.';
 
   @override
   String get privacyEnableInBackground => 'Attiva in background';
@@ -2786,6 +2801,22 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get simpleModeLocationHidden => 'Posizione non condivisa';
+
+  @override
+  String get simpleMessagesTitle => 'Messaggi';
+
+  @override
+  String get simpleMessagesChooseCircle => 'Cerchia';
+
+  @override
+  String get simplePersonFullDetails => 'Vedi dettagli completi';
+
+  @override
+  String get simpleProfileFullSettings => 'Impostazioni complete';
+
+  @override
+  String get simpleProfileModeToggleHint =>
+      'Torna alla schermata normale con tutte le funzioni.';
 
   @override
   String get helpReqReasonFlatTire => 'Gomma bucata';

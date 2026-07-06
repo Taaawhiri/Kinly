@@ -23,6 +23,7 @@
 
   "navMap": "Mappa",
   "navCircles": "Cerchie",
+  "navMessages": "Messaggi",
   "navRequests": "Richieste",
   "navProfile": "Profilo",
 
@@ -454,8 +455,10 @@
   "privacyBackgroundTrackingPlusBody": "Il tracciamento in background (la posizione continua ad aggiornarsi anche con l'app chiusa) è un vantaggio Kinly+.",
   "privacyEnableBackgroundTrackingTitle": "Attivare il tracciamento in background?",
   "privacyEnableBackgroundTrackingBody": "La tua posizione continuerà ad aggiornarsi anche quando Kinly non è in primo piano. Consuma più batteria e mostra sempre una notifica fissa mentre è attivo, come richiesto da Android.",
+  "privacyEnableBackgroundTrackingBodyIos": "La tua posizione continuerà ad aggiornarsi anche quando Kinly non è in primo piano. Consuma più batteria e iOS mostra una barra blu nella parte alta dello schermo mentre è attivo.",
   "privacyExtraStepTitle": "Serve un passaggio in più",
   "privacyExtraStepBody": "Il tuo Android richiede di attivare a mano il permesso di posizione \"Consenti sempre\" dalle impostazioni di sistema, poi torna qui e riattiva l'interruttore.",
+  "privacyExtraStepBodyIos": "Il tuo iPhone richiede di attivare a mano il permesso di posizione \"Sempre\" dalle Impostazioni, poi torna qui e riattiva l'interruttore.",
   "privacyOpenSettings": "Apri impostazioni",
   "privacyGrantLocationFirst": "Prima serve concedere il permesso di posizione a Kinly.",
   "privacyBiometricAuthFailed": "Non siamo riusciti a verificare la tua identità.",
@@ -506,6 +509,7 @@
   "privacyBiometricHint": "Richiedi impronta, volto o codice del dispositivo ogni volta che apri Kinly.",
   "privacyBiometricUnlock": "Sblocco biometrico",
   "privacyBackgroundTrackingHint": "Per impostazione predefinita Kinly aggiorna la tua posizione solo mentre è aperta. Attivalo per farla continuare anche in background: consuma più batteria e mostra sempre una notifica fissa mentre è attivo.",
+  "privacyBackgroundTrackingHintIos": "Per impostazione predefinita Kinly aggiorna la tua posizione solo mentre è aperta. Attivalo per farla continuare anche in background: consuma più batteria e iOS mostra una barra blu mentre è attivo.",
   "privacyEnableInBackground": "Attiva in background",
   "privacyGhostScheduleHint": "Utile per il lavoro: fuori da questa fascia oraria nessuno vede la tua posizione, in nessuna delle tue cerchie (\"clock-out\" automatico).",
   "privacyLimitHours": "Limita l'orario",
@@ -941,6 +945,11 @@
   "simpleModeCloseMap": "Chiudi mappa",
   "simpleModeOpenMapHint": "Tocca per aprire",
   "simpleModeLocationHidden": "Posizione non condivisa",
+  "simpleMessagesTitle": "Messaggi",
+  "simpleMessagesChooseCircle": "Cerchia",
+  "simplePersonFullDetails": "Vedi dettagli completi",
+  "simpleProfileFullSettings": "Impostazioni complete",
+  "simpleProfileModeToggleHint": "Torna alla schermata normale con tutte le funzioni.",
 
   "helpReqReasonFlatTire": "Gomma bucata",
   "helpReqReasonAccident": "Incidente",
