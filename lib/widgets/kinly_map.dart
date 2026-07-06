@@ -1,6 +1,5 @@
 import 'dart:async';
-import 'dart:io' show Platform;
-import 'dart:math' show Point;
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -23,18 +22,27 @@ import 'person_avatar.dart';
 ///
 /// I pin persona/punto d'incontro NON sono simboli nativi MapLibre: sono
 /// normali widget Flutter sovrapposti alla mappa (vedi _buildPersonPins/
-/// _buildMeetingPointPins), riposizionati ad ogni movimento della camera
-/// tramite controller.toScreenLocationBatch. Prima erano Symbol nativi, ma
-/// vivono nella superficie grafica GL che Android/iOS può distruggere e
-/// ricreare senza preavviso quando l'app va in background per liberare
-/// memoria: qualunque logica di resync "dopo il fatto" (quella che c'era
-/// prima qui) rincorre il sintomo ma non può essere davvero affidabile,
-/// perché da Dart non c'è modo di sapere con certezza se la superficie è
-/// sopravvissuta. Un widget Flutter invece non dipende da quella superficie
-/// e il sistema operativo non può farlo sparire in quel modo: la mappa
-/// nativa resta solo per le tile di sfondo, il riempimento delle aree
-/// sicure e i cerchi (posizione approssimativa, anteprima ricerca), niente
-/// di tutto ciò che deve restare sempre visibile in modo affidabile.
+/// _buildMeetingPointPins). Due motivi, non uno solo:
+/// 1) i Symbol nativi vivono nella superficie GL che Android/iOS può
+///    distruggere e ricreare senza preavviso in background — un widget
+///    Flutter no.
+/// 2) la loro posizione a schermo è calcolata IN DART, sincrona, con la
+///    stessa proiezione "Web Mercator a piastrelle" che MapLibre usa
+///    internamente (vedi _project), invece che con una chiamata a canale
+///    nativo asincrona (controller.toScreenLocationBatch): quella richiede
+///    un giro di round-trip che durante un trascinamento arriva sempre in
+///    ritardo di uno o più fotogrammi rispetto al rendering reale della
+///    mappa, dando l'impressione che i pin "seguano" il dito invece di
+///    restare ancorati al posto giusto. Calcolandola qui, i pin si spostano
+///    esattamente insieme alla mappa, fotogramma per fotogramma, senza
+///    nessun ritardo percepibile. Il prezzo: la mappa deve restare "piatta"
+///    (bearing e tilt a zero, vedi rotateGesturesEnabled/tiltGesturesEnabled
+///    sotto), perché con una rotazione o un'inclinazione la proiezione
+///    andrebbe rifatta con una trasformazione prospettica.
+/// La mappa nativa resta comunque per le tile di sfondo, il riempimento
+/// delle aree sicure e i cerchi (posizione approssimativa, anteprima
+/// ricerca): niente di tutto ciò che deve restare sempre visibile o allineato
+/// pixel-per-pixel col gesto dell'utente.
 class KinlyMap extends StatefulWidget {
   const KinlyMap({
     super.key,
@@ -77,8 +85,10 @@ class KinlyMap extends StatefulWidget {
   /// di sincronizzazione dei marcatori (che altrimenti lo cancellerebbero).
   final LatLng? searchPreviewPoint;
 
-  /// Se false disabilita pan/zoom/rotazione (utile per un'anteprima piccola
-  /// e non interattiva, come nel dettaglio di una persona).
+  /// Se false disabilita pan/zoom (utile per un'anteprima piccola e non
+  /// interattiva, come nel dettaglio di una persona). Rotazione e tilt sono
+  /// sempre disabilitati, indipendentemente da questo flag: vedi il
+  /// commento sulla classe per il perché.
   final bool interactive;
 
   static const String styleAsset = 'assets/map/kinly_style.json';
@@ -97,21 +107,14 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
   /// il commento in testa al file.
   final Map<String, Symbol> _zoneLabelSymbols = {};
 
-  /// Posizione a schermo (in pixel, relativa a questo widget) dell'ultimo
-  /// pin persona/punto d'incontro calcolata da _updateOverlayPositions.
-  /// Assente finché la prima proiezione non è arrivata, il che è normale
-  /// nei primissimi istanti dopo la creazione della mappa.
-  Map<String, Offset> _personScreenPositions = {};
-  Map<String, Offset> _meetingPointScreenPositions = {};
-
-  /// Coalescing delle richieste di riproiezione: onCameraMove viene chiamato
-  /// molte volte durante un singolo gesto di pan/zoom, ma toScreenLocationBatch
-  /// è una chiamata a canale nativo — lanciarne una per ogni tick
-  /// accumulerebbe richieste in coda. Con questi due flag ne teniamo al più
-  /// una in volo, e se ne arrivano altre mentre è in corso ne rilanciamo una
-  /// sola appena finisce, invece di scartarle o accumularle.
-  bool _positionUpdateInFlight = false;
-  bool _positionUpdateQueued = false;
+  /// Ultima posizione di camera nota, aggiornata in modo sincrono da
+  /// onCameraMove/onCameraIdle: è l'unico dato che serve a _project per
+  /// calcolare dove disegnare i pin, vedi il commento in testa al file.
+  /// Finché è null (primissimo frame, prima che la mappa nativa abbia
+  /// comunicato una posizione) build() usa la stessa camera passata come
+  /// initialCameraPosition, così i pin compaiono già al primo disegno
+  /// invece di aspettare il primo evento della mappa.
+  CameraPosition? _camera;
 
   /// Catena che serializza le sincronizzazioni dei livelli nativi (cerchi ed
   /// etichette area): _doSyncSymbols fa clearSymbols() sulle etichette e poi
@@ -147,22 +150,16 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     // solo al rientro, senza bisogno di un pulsante "riprova" manuale.
     if (state == AppLifecycleState.resumed) {
       unawaited(_refreshPermissionStatus());
-      if (_styleLoaded) {
-        // I pin sono widget Flutter: non dipendono dalla superficie nativa
-        // e sopravvivono al resume da soli, ma la loro posizione a schermo
-        // potrebbe essere cambiata (rotazione, camera diversa) mentre erano
-        // in background, quindi la ricalcoliamo comunque.
-        _schedulePositionUpdate();
-        // Il riempimento aree sicure e le etichette testo, invece, restano
-        // simboli/fill nativi: quelli sì possono essere stati cancellati
-        // dal sistema operativo insieme alla superficie GL. Non possiamo
-        // sapere con certezza se è successo, quindi al resume li
-        // ricostruiamo sempre da zero (solo su mobile: sul web cambiare
-        // scheda non distrugge la superficie).
-        if (!kIsWeb) {
-          unawaited(_hardResetSymbols(fitCamera: false));
-          unawaited(_syncSafeZoneFills());
-        }
+      // Il riempimento aree sicure e le etichette testo restano simboli/fill
+      // nativi: possono essere stati cancellati dal sistema operativo insieme
+      // alla superficie GL mentre l'app era in background. Non possiamo
+      // sapere con certezza se è successo, quindi al resume li ricostruiamo
+      // sempre da zero (solo su mobile: sul web cambiare scheda non
+      // distrugge la superficie). I pin non ne hanno bisogno: sono widget
+      // Flutter, calcolati da _camera ad ogni build.
+      if (_styleLoaded && !kIsWeb) {
+        unawaited(_hardResetSymbols(fitCamera: false));
+        unawaited(_syncSafeZoneFills());
       }
     }
   }
@@ -214,6 +211,10 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     final safeZonesChanged = !_sameSafeZones(oldWidget.safeZones, widget.safeZones);
     final previewChanged = !_sameLatLng(oldWidget.searchPreviewPoint, widget.searchPreviewPoint);
 
+    // I pin non hanno bisogno di nessuna azione qui: sono ricalcolati da
+    // build() ogni volta che widget.people/meetingPoints cambiano, dato che
+    // dipendono solo da quei valori e da _camera. Qui restano solo i livelli
+    // nativi (cerchi, etichette area) e i movimenti di camera.
     if (peopleOrMeetingPointsChanged || previewChanged) {
       unawaited(_syncSymbols(fitCamera: false));
     }
@@ -221,14 +222,11 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
       unawaited(_syncSafeZoneFills());
       unawaited(_syncSymbols(fitCamera: false));
     }
-    if (peopleOrMeetingPointsChanged) {
-      _schedulePositionUpdate();
-    }
     if (previewChanged) {
       final point = widget.searchPreviewPoint;
       final controller = _controller;
       if (point != null && controller != null) {
-        unawaited(controller.animateCamera(CameraUpdate.newLatLngZoom(point, 16)));
+        unawaited(controller.animateCamera(CameraUpdate.newLatLngZoom(point, 16)).then((_) => _syncCameraFromController()));
       }
     }
     if (!_autoCenteredOnFreshFix) {
@@ -238,7 +236,9 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
         _autoCenteredOnFreshFix = true;
         final controller = _controller;
         if (controller != null) {
-          unawaited(controller.animateCamera(CameraUpdate.newLatLng(LatLng(newMe!.lat!, newMe.lng!))));
+          unawaited(
+            controller.animateCamera(CameraUpdate.newLatLng(LatLng(newMe!.lat!, newMe.lng!))).then((_) => _syncCameraFromController()),
+          );
         }
       }
     }
@@ -373,48 +373,57 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
       return _buildEmptyState(context);
     }
 
-    return Stack(
-      children: [
-        MapLibreMap(
-          styleString: KinlyMap.styleAsset,
-          initialCameraPosition: CameraPosition(target: LatLng(people.first.lat!, people.first.lng!), zoom: 14),
-          onMapCreated: (controller) {
-            _controller = controller;
-            controller.onFillTapped.add(_handleFillTap);
-            widget.onMapReady?.call(controller);
-          },
-          onStyleLoadedCallback: () async {
-            _styleLoaded = true;
-            // Lo stile è stato (ri)caricato: qualunque simbolo nativo
-            // aggiunto prima (etichette area) non esiste più lato nativo.
-            await _hardResetSymbols(fitCamera: true);
-            await _syncSafeZoneFills();
-          },
-          // I pin sono widget Flutter sovrapposti (vedi commento in testa al
-          // file): ad ogni movimento della camera ricalcoliamo dove metterli
-          // a schermo, coalescendo le chiamate (vedi _schedulePositionUpdate)
-          // perché durante un pan/zoom questo viene chiamato molte volte.
-          onCameraMove: (_) => _schedulePositionUpdate(),
-          onCameraIdle: _schedulePositionUpdate,
-          compassEnabled: false,
-          logoEnabled: false,
-          rotateGesturesEnabled: widget.interactive,
-          scrollGesturesEnabled: widget.interactive,
-          zoomGesturesEnabled: widget.interactive,
-          tiltGesturesEnabled: widget.interactive,
-          doubleClickZoomEnabled: widget.interactive,
-        ),
-        ..._buildMeetingPointPins(),
-        ..._buildPersonPins(people),
-      ],
+    final initialCamera = CameraPosition(target: LatLng(people.first.lat!, people.first.lng!), zoom: 14);
+    final camera = _camera ?? initialCamera;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final viewport = constraints.biggest;
+        return Stack(
+          children: [
+            MapLibreMap(
+              styleString: KinlyMap.styleAsset,
+              initialCameraPosition: initialCamera,
+              onMapCreated: (controller) {
+                _controller = controller;
+                controller.onFillTapped.add(_handleFillTap);
+                widget.onMapReady?.call(controller);
+              },
+              onStyleLoadedCallback: () async {
+                _styleLoaded = true;
+                // Lo stile è stato (ri)caricato: qualunque simbolo nativo
+                // aggiunto prima (etichette area) non esiste più lato nativo.
+                await _hardResetSymbols(fitCamera: true);
+                await _syncSafeZoneFills();
+              },
+              // Aggiornamento sincrono di _camera, vedi il commento in testa
+              // al file sul perché non usiamo più una chiamata a canale
+              // nativo per posizionare i pin.
+              onCameraMove: (position) => setState(() => _camera = position),
+              onCameraIdle: _syncCameraFromController,
+              compassEnabled: false,
+              logoEnabled: false,
+              // Sempre disabilitati, indipendentemente da interactive: la
+              // proiezione dei pin (vedi _project) assume una mappa "piatta",
+              // senza rotazione né inclinazione della camera.
+              rotateGesturesEnabled: false,
+              tiltGesturesEnabled: false,
+              scrollGesturesEnabled: widget.interactive,
+              zoomGesturesEnabled: widget.interactive,
+              doubleClickZoomEnabled: widget.interactive,
+            ),
+            ..._buildMeetingPointPins(camera, viewport),
+            ..._buildPersonPins(people, camera, viewport),
+          ],
+        );
+      },
     );
   }
 
-  List<Widget> _buildPersonPins(List<Person> people) {
+  List<Widget> _buildPersonPins(List<Person> people, CameraPosition camera, Size viewport) {
     final pins = <Widget>[];
     for (final person in people) {
-      final offset = _personScreenPositions[person.id];
-      if (offset == null) continue;
+      final offset = _project(LatLng(person.lat!, person.lng!), camera, viewport);
       pins.add(
         Positioned(
           left: offset.dx - _PersonMapPin.avatarSize / 2,
@@ -426,11 +435,10 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     return pins;
   }
 
-  List<Widget> _buildMeetingPointPins() {
+  List<Widget> _buildMeetingPointPins(CameraPosition camera, Size viewport) {
     final pins = <Widget>[];
     for (final point in widget.meetingPoints) {
-      final offset = _meetingPointScreenPositions[point.id];
-      if (offset == null) continue;
+      final offset = _project(LatLng(point.lat, point.lng), camera, viewport);
       pins.add(
         Positioned(
           left: offset.dx - _MeetingPointMapPin.size / 2,
@@ -442,85 +450,16 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     return pins;
   }
 
-  /// Vedi la doc su _positionUpdateInFlight/_positionUpdateQueued: incatena
-  /// le richieste invece di lanciarle in parallelo.
-  void _schedulePositionUpdate() {
-    if (_positionUpdateInFlight) {
-      _positionUpdateQueued = true;
-      return;
-    }
-    _positionUpdateInFlight = true;
-    unawaited(
-      _updateOverlayPositions().whenComplete(() {
-        _positionUpdateInFlight = false;
-        if (_positionUpdateQueued) {
-          _positionUpdateQueued = false;
-          _schedulePositionUpdate();
-        }
-      }),
-    );
-  }
-
-  /// Proietta le coordinate di persone e punti d'incontro in pixel a
-  /// schermo con un'unica chiamata batch, poi aggiorna lo stato che i pin
-  /// Flutter usano per posizionarsi. Un requestId scarta il risultato se nel
-  /// frattempo è partita una richiesta più recente (può succedere: questa è
-  /// una chiamata a canale nativo asincrona, e onCameraMove può richiamarla
-  /// prima che la precedente torni).
-  int _positionRequestId = 0;
-
-  Future<void> _updateOverlayPositions() async {
-    final controller = _controller;
-    if (controller == null) return;
-    final people = _visiblePeople;
-    final points = widget.meetingPoints;
-    if (people.isEmpty && points.isEmpty) {
-      if (_personScreenPositions.isNotEmpty || _meetingPointScreenPositions.isNotEmpty) {
-        setState(() {
-          _personScreenPositions = {};
-          _meetingPointScreenPositions = {};
-        });
-      }
-      return;
-    }
-
-    final requestId = ++_positionRequestId;
-    final latLngs = [
-      for (final p in people) LatLng(p.lat!, p.lng!),
-      for (final m in points) LatLng(m.lat, m.lng),
-    ];
-
-    List<Point> screenPoints;
-    try {
-      screenPoints = await controller.toScreenLocationBatch(latLngs);
-    } catch (_) {
-      return;
-    }
-    if (!mounted || requestId != _positionRequestId) return;
-
-    // Su Android il plugin nativo (Projection.toScreenLocation) restituisce
-    // pixel fisici del dispositivo, non i pixel logici che Flutter usa per
-    // Positioned/Offset: senza dividere per il devicePixelRatio ogni pin
-    // finiva piazzato 2-4 volte più lontano del dovuto, ben fuori dallo
-    // schermo visibile — invisibile, ma senza nessun errore da intercettare.
-    // iOS (punti) e il web (pixel CSS) sono già in unità logiche.
-    final scale = (!kIsWeb && Platform.isAndroid) ? MediaQuery.of(context).devicePixelRatio : 1.0;
-
-    final newPersonPositions = <String, Offset>{};
-    for (var i = 0; i < people.length; i++) {
-      final point = screenPoints[i];
-      newPersonPositions[people[i].id] = Offset(point.x.toDouble() / scale, point.y.toDouble() / scale);
-    }
-    final newMeetingPositions = <String, Offset>{};
-    for (var i = 0; i < points.length; i++) {
-      final point = screenPoints[people.length + i];
-      newMeetingPositions[points[i].id] = Offset(point.x.toDouble() / scale, point.y.toDouble() / scale);
-    }
-
-    setState(() {
-      _personScreenPositions = newPersonPositions;
-      _meetingPointScreenPositions = newMeetingPositions;
-    });
+  /// Rilegge la posizione di camera dal controller (aggiornata in modo
+  /// sincrono dal plugin ad ogni movimento) e aggiorna _camera. Usato dopo
+  /// le animateCamera lanciate da questo widget e da onCameraIdle, come rete
+  /// di sicurezza: onCameraMove copre già il caso comune, ma un'animazione
+  /// che non genera nessun movimento reale (perché il bersaglio coincide con
+  /// la posizione attuale) non lo farebbe scattare — vedi la cronologia del
+  /// bug dei pin invisibili al primo avvio.
+  void _syncCameraFromController() {
+    final position = _controller?.cameraPosition;
+    if (position != null && mounted) setState(() => _camera = position);
   }
 
   /// Esegue le sincronizzazioni dei livelli nativi rimasti (cerchi ed
@@ -561,15 +500,6 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     await _syncZoneLabelSymbols(controller);
 
     if (fitCamera) await _fitCamera(controller, people);
-
-    // I pin non dipendono solo da onCameraMove/onCameraIdle: se la camera
-    // è già dove deve stare (tipico proprio al primo avvio, quando il
-    // target di _fitCamera coincide con initialCameraPosition), animateCamera
-    // non genera nessun movimento reale e quei callback non scattano mai —
-    // lasciando i pin invisibili per sempre finché non si tocca la mappa.
-    // Ricalcolare qui, ad ogni sincronizzazione, garantisce che compaiano
-    // anche in quel caso.
-    _schedulePositionUpdate();
   }
 
   /// Le "nuvole" di posizione approssimativa e l'anteprima di ricerca sono
@@ -670,24 +600,26 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     // il ricentraggio su di me scatta poi da solo appena arriva un fix GPS
     // fresco (vedi didUpdateWidget / _autoCenteredOnFreshFix).
     final me = _meIn(people);
+    final CameraUpdate update;
     if (me?.lat != null && me?.lng != null) {
-      await controller.animateCamera(CameraUpdate.newLatLngZoom(LatLng(me!.lat!, me.lng!), 15.5));
-      return;
+      update = CameraUpdate.newLatLngZoom(LatLng(me!.lat!, me.lng!), 15.5);
+    } else if (people.length == 1) {
+      update = CameraUpdate.newLatLngZoom(LatLng(people.first.lat!, people.first.lng!), 14);
+    } else {
+      var minLat = people.first.lat!, maxLat = people.first.lat!;
+      var minLng = people.first.lng!, maxLng = people.first.lng!;
+      for (final p in people) {
+        if (p.lat! < minLat) minLat = p.lat!;
+        if (p.lat! > maxLat) maxLat = p.lat!;
+        if (p.lng! < minLng) minLng = p.lng!;
+        if (p.lng! > maxLng) maxLng = p.lng!;
+      }
+      final bounds = LatLngBounds(southwest: LatLng(minLat, minLng), northeast: LatLng(maxLat, maxLng));
+      update = CameraUpdate.newLatLngBounds(bounds, left: 60, top: 80, right: 60, bottom: 80);
     }
-    if (people.length == 1) {
-      await controller.animateCamera(CameraUpdate.newLatLngZoom(LatLng(people.first.lat!, people.first.lng!), 14));
-      return;
-    }
-    var minLat = people.first.lat!, maxLat = people.first.lat!;
-    var minLng = people.first.lng!, maxLng = people.first.lng!;
-    for (final p in people) {
-      if (p.lat! < minLat) minLat = p.lat!;
-      if (p.lat! > maxLat) maxLat = p.lat!;
-      if (p.lng! < minLng) minLng = p.lng!;
-      if (p.lng! > maxLng) maxLng = p.lng!;
-    }
-    final bounds = LatLngBounds(southwest: LatLng(minLat, minLng), northeast: LatLng(maxLat, maxLng));
-    await controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, left: 60, top: 80, right: 60, bottom: 80));
+    await controller.animateCamera(update);
+    // Rete di sicurezza: vedi la doc su _syncCameraFromController.
+    _syncCameraFromController();
   }
 
   @override
@@ -696,6 +628,35 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     _controller?.onFillTapped.remove(_handleFillTap);
     super.dispose();
   }
+}
+
+/// Proietta una coordinata geografica in pixel a schermo (relativi al
+/// riquadro della mappa), con la stessa proiezione "Web Mercator a
+/// piastrelle" che MapLibre/Mapbox/Google Maps usano internamente per il
+/// loro sistema di zoom (un giro completo del mondo è largo 256 * 2^zoom
+/// pixel): calcolo puro, sincrono, che replica fedelmente la proiezione
+/// della mappa nativa purché la camera non sia ruotata né inclinata (vedi
+/// il commento sulla classe _KinlyMapState).
+Offset _project(LatLng point, CameraPosition camera, Size viewport) {
+  final worldSize = 256.0 * math.pow(2, camera.zoom).toDouble();
+
+  double mercatorX(double lng) => (lng + 180) / 360 * worldSize;
+  double mercatorY(double lat) {
+    final latRad = lat * math.pi / 180;
+    final mercN = math.log(math.tan(math.pi / 4 + latRad / 2));
+    return (0.5 - mercN / (2 * math.pi)) * worldSize;
+  }
+
+  final centerX = mercatorX(camera.target.longitude);
+  final centerY = mercatorY(camera.target.latitude);
+  var dx = mercatorX(point.longitude) - centerX;
+  final dy = mercatorY(point.latitude) - centerY;
+  // Attraversamento dell'antimeridiano: prendi la via più corta invece di
+  // proiettare dall'altra parte del mondo.
+  if (dx > worldSize / 2) dx -= worldSize;
+  if (dx < -worldSize / 2) dx += worldSize;
+
+  return Offset(viewport.width / 2 + dx, viewport.height / 2 + dy);
 }
 
 /// Coda a goccia sotto il pin, così la punta (non il centro del cerchio)
