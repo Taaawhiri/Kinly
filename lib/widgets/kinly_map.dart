@@ -422,13 +422,30 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     );
   }
 
+  /// Durata della transizione quando un pin passa da una posizione
+  /// calcolata alla successiva (vedi AnimatedPositioned sotto): senza,
+  /// ogni risposta di toScreenLocationBatch spostava il pin di scatto,
+  /// e la cadenza di quelle risposte (un giro di canale nativo alla
+  /// volta) è comunque un po' più lenta del refresh dello schermo — visibile
+  /// come un piccolo scatto ad ogni aggiornamento invece di un movimento
+  /// continuo. Interpolando qui il tragitto tra un valore e il successivo,
+  /// il risultato è una scia fluida invece di una serie di salti, anche se
+  /// la sorgente aggiorna a scatti. Lineare, non con un'accelerazione: ogni
+  /// nuovo valore in arrivo ridefinisce il traguardo dell'animazione in
+  /// corso, e una curva con rallentamento in coda darebbe una sensazione di
+  /// "elastico" invece che di aderenza alla mappa.
+  static const _pinMoveDuration = Duration(milliseconds: 90);
+
   List<Widget> _buildPersonPins(List<Person> people) {
     final pins = <Widget>[];
     for (final person in people) {
       final offset = _personScreenPositions[person.id];
       if (offset == null) continue;
       pins.add(
-        Positioned(
+        AnimatedPositioned(
+          key: ValueKey('person-${person.id}'),
+          duration: _pinMoveDuration,
+          curve: Curves.linear,
           left: offset.dx - _PersonMapPin.avatarSize / 2,
           top: offset.dy - _PersonMapPin.avatarSize - _PersonMapPin.tailHeight,
           child: _PersonMapPin(person: person, onTap: () => widget.onPersonTap?.call(person.id)),
@@ -444,7 +461,10 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
       final offset = _meetingPointScreenPositions[point.id];
       if (offset == null) continue;
       pins.add(
-        Positioned(
+        AnimatedPositioned(
+          key: ValueKey('meeting-${point.id}'),
+          duration: _pinMoveDuration,
+          curve: Curves.linear,
           left: offset.dx - _MeetingPointMapPin.size / 2,
           top: offset.dy - _MeetingPointMapPin.size - _MeetingPointMapPin.tailHeight,
           child: _MeetingPointMapPin(onTap: () => widget.onMeetingPointTap?.call(point.id)),
