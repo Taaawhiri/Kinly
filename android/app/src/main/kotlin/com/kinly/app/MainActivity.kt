@@ -1,7 +1,9 @@
 package com.kinly.app
 
+import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -29,6 +31,11 @@ class MainActivity : FlutterFragmentActivity() {
                     requestIgnoreBatteryOptimizations()
                     result.success(null)
                 }
+                "isSamsungDevice" -> result.success(Build.MANUFACTURER.equals("samsung", ignoreCase = true))
+                "openManufacturerBatterySettings" -> {
+                    openManufacturerBatterySettings()
+                    result.success(null)
+                }
                 else -> result.notImplemented()
             }
         }
@@ -52,6 +59,41 @@ class MainActivity : FlutterFragmentActivity() {
             } catch (_: Exception) {
                 // Va bene rinunciare: non è un'operazione critica per l'app.
             }
+        }
+    }
+
+    // Samsung ha un secondo livello di gestione batteria (Device Care >
+    // "App in sospensione"/"App mai in sospensione", e un interruttore
+    // "Nessuna restrizione" per app nella pagina Batteria di ogni app), del
+    // tutto separato da PowerManager.isIgnoringBatteryOptimizations: un'app
+    // può risultare "esente" per Android e venire comunque messa in
+    // sospensione da Samsung. Non esiste un Intent pubblico e documentato
+    // per aprire direttamente quella schermata (a differenza di
+    // ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, che è AOSP): questi nomi
+    // di componente sono noti solo per uso comune tra sviluppatori
+    // (dontkillmyapp.com) e non garantiti — possono cambiare o sparire con
+    // gli aggiornamenti di One UI, da qui la catena di tentativi con
+    // fallback finale sulle impostazioni app standard, mai un errore visibile.
+    private fun openManufacturerBatterySettings() {
+        val candidates = listOf(
+            ComponentName("com.samsung.android.lool", "com.samsung.android.sm.ui.battery.BatteryActivity"),
+            ComponentName("com.samsung.android.lool", "com.samsung.android.sm.battery.ui.BatteryActivity"),
+        )
+        for (target in candidates) {
+            try {
+                val intent = Intent()
+                intent.component = target
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
+                return
+            } catch (_: Exception) {
+                // Prova il prossimo componente noto.
+            }
+        }
+        try {
+            startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
+        } catch (_: Exception) {
+            // Va bene rinunciare: non è un'operazione critica per l'app.
         }
     }
 }

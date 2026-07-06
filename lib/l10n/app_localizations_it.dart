@@ -1465,6 +1465,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get privacyPermissionBatteryRestricted => 'Il sistema può sospenderla';
 
   @override
+  String get privacySamsungBatterySettings => 'Impostazioni batteria Samsung';
+
+  @override
+  String get privacySamsungBatteryDialogTitle => 'Un passo in più su Samsung';
+
+  @override
+  String get privacySamsungBatteryDialogBody =>
+      'Samsung ha una gestione batteria separata da quella di Android, che può sospendere Kinly anche con i permessi giusti. Nella schermata che si apre, imposta Kinly su \"Nessuna restrizione\" e assicurati che non sia tra le app in sospensione.';
+
+  @override
   String get privacyBatteryOptimizationDialogTitle =>
       'Escludi Kinly dal risparmio energetico';
 

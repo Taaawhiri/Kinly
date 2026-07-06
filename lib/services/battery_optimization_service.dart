@@ -34,4 +34,27 @@ class BatteryOptimizationService {
       // Non deve mai bloccare il resto del flusso di attivazione.
     }
   }
+
+  /// Samsung ha un secondo livello di gestione batteria, separato da quello
+  /// standard di Android, che isIgnoringOptimizations sopra non vede affatto
+  /// (vedi il commento in MainActivity.kt): mostriamo un modo diretto per
+  /// raggiungere quella schermata solo sui telefoni dove esiste davvero,
+  /// invece che genericamente su ogni Android.
+  Future<bool> isSamsungDevice() async {
+    if (!Platform.isAndroid) return false;
+    try {
+      return await _channel.invokeMethod<bool>('isSamsungDevice') ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> openManufacturerBatterySettings() async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _channel.invokeMethod('openManufacturerBatterySettings');
+    } catch (_) {
+      // Non deve mai bloccare il resto del flusso.
+    }
+  }
 }

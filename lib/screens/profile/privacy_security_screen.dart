@@ -51,6 +51,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   LocationPermission? _locationPermission;
   bool? _notificationsEnabled;
   bool? _batteryOptimizationIgnored;
+  bool _isSamsungDevice = false;
 
   @override
   void initState() {
@@ -75,16 +76,43 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       }
     }
     bool? batteryIgnored;
+    var isSamsung = false;
     if (!kIsWeb && Platform.isAndroid) {
       batteryIgnored = await BatteryOptimizationService.instance.isIgnoringOptimizations();
+      isSamsung = await BatteryOptimizationService.instance.isSamsungDevice();
     }
     if (mounted) {
       setState(() {
         _locationPermission = location;
         _notificationsEnabled = notifications;
         _batteryOptimizationIgnored = batteryIgnored;
+        _isSamsungDevice = isSamsung;
       });
     }
+  }
+
+  /// Samsung ha una gestione batteria separata da quella standard di
+  /// Android (vedi BatteryOptimizationService.openManufacturerBatterySettings):
+  /// un'app può risultare esente dall'ottimizzazione batteria "di sistema"
+  /// (la riga sopra) e venire comunque messa in sospensione da Samsung.
+  /// Spiegarlo prima di aprire le impostazioni, non dopo: senza contesto la
+  /// schermata a cui si arriva ("App in sospensione" ecc.) non si capisce
+  /// perché la si sta guardando.
+  Future<void> _openSamsungBatterySettings() async {
+    final l10n = AppLocalizations.of(context)!;
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(l10n.privacySamsungBatteryDialogTitle),
+        content: Text(l10n.privacySamsungBatteryDialogBody),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonNotNow)),
+          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.privacyOpenSettings)),
+        ],
+      ),
+    );
+    if (proceed == true) await BatteryOptimizationService.instance.openManufacturerBatterySettings();
   }
 
   /// A differenza di posizione/notifiche, qui non ha senso "disattivare":
@@ -614,6 +642,14 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     ],
                   ),
                 ),
+                if (_isSamsungDevice) ...[
+                  const SizedBox(height: 10),
+                  _ActionTile(
+                    icon: Icons.battery_alert_outlined,
+                    label: l10n.privacySamsungBatterySettings,
+                    onTap: _openSamsungBatterySettings,
+                  ),
+                ],
                 const SizedBox(height: 24),
                 Text(l10n.privacyAccountHeader, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary)),
                 const SizedBox(height: 10),
