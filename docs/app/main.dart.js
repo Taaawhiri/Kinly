@@ -152275,7 +152275,7 @@ return null},
 $S:0}
 A.b71.prototype={
 $2(a,b){var s,r=this,q=new A.G(A.P(1/0,b.a,b.b),A.P(1/0,b.c,b.d)),p=r.a,o=p.a.z
-o=A.b([A.aEY(!1,o,r.b,!1,p.gb3g(),new A.b6Z(p),new A.b7_(p),new A.b70(p),!1,o,"assets/map/kinly_style.json",!1,!1,o)],t.p)
+o=A.b([A.aEY(!1,o,r.b,!1,p.gb3g(),new A.b6Z(p),new A.b7_(p),new A.b70(p),!1,o,"assets/map/kinly_style.json",!1,!0,o)],t.p)
 s=r.c
 B.c.M(o,p.aK9(s,q))
 B.c.M(o,p.aKi(r.d,s,q))

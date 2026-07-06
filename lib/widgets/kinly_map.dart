@@ -396,6 +396,14 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
                 await _hardResetSymbols(fitCamera: true);
                 await _syncSafeZoneFills();
               },
+              // Senza trackCameraPosition: true, sia Android sia iOS non
+              // inviano affatto la posizione della camera durante un gesto
+              // (il nativo scarta l'evento "onCameraMove" e invia "onIdle"
+              // senza posizione) — _camera restava quindi bloccato a quello
+              // iniziale per tutta la durata di un trascinamento, ed è per
+              // questo che i pin sembravano "seguire il dito" invece di
+              // restare ancorati al posto giusto.
+              trackCameraPosition: true,
               // Aggiornamento sincrono di _camera, vedi il commento in testa
               // al file sul perché non usiamo più una chiamata a canale
               // nativo per posizionare i pin.
