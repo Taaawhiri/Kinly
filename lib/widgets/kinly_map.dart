@@ -552,6 +552,15 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     await _syncZoneLabelSymbols(controller);
 
     if (fitCamera) await _fitCamera(controller, people);
+
+    // I pin non dipendono solo da onCameraMove/onCameraIdle: se la camera
+    // è già dove deve stare (tipico proprio al primo avvio, quando il
+    // target di _fitCamera coincide con initialCameraPosition), animateCamera
+    // non genera nessun movimento reale e quei callback non scattano mai —
+    // lasciando i pin invisibili per sempre finché non si tocca la mappa.
+    // Ricalcolare qui, ad ogni sincronizzazione, garantisce che compaiano
+    // anche in quel caso.
+    _schedulePositionUpdate();
   }
 
   /// Le "nuvole" di posizione approssimativa e l'anteprima di ricerca sono
