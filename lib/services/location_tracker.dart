@@ -14,6 +14,7 @@ import '../state/app_state.dart';
 import '../state/locale_controller.dart';
 import '../utils/address_formatter.dart';
 import 'background_tracking_settings.dart';
+import 'ios_significant_location_bridge.dart';
 import 'kinly_repository.dart';
 import 'place_search_service.dart';
 import 'push_notification_service.dart';
@@ -141,6 +142,19 @@ class LocationTracker with WidgetsBindingObserver {
       // moto da solo, invece di restare fermo finché non si riavvia l'app.
       WidgetsBinding.instance.addObserver(this);
       _observingLifecycle = true;
+
+      // Le posizioni che arrivano dal Significant Location Change Service
+      // nativo (vedi ios_significant_location_bridge.dart) passano dalla
+      // STESSA pipeline di un fix GPS normale, force:true perché possono
+      // distare minuti/ore l'una dall'altra (niente soglia di frequenza).
+      if (!kIsWeb && Platform.isIOS) {
+        IosSignificantLocationBridge.instance.ensureInitialized();
+        IosSignificantLocationBridge.instance.onPosition = (position) => _onPosition(position, force: true);
+        // Recupera un'eventuale posizione arrivata mentre l'app era
+        // terminata, prima che questo handler fosse pronto ad ascoltare
+        // (vedi il commento su consumePending).
+        unawaited(IosSignificantLocationBridge.instance.consumePending());
+      }
     }
     if (isTracking || _starting) return;
     _starting = true;
@@ -150,6 +164,18 @@ class LocationTracker with WidgetsBindingObserver {
 
       _restartAttempts = 0;
       await _subscribe();
+
+      // Riprende anche il Significant Location Change Service se era già
+      // stato attivato in una sessione precedente: senza questo, solo
+      // riaprendo la schermata "Tracciamento in background" e ritoccando
+      // l'interruttore lo si sarebbe fatto ripartire dopo un riavvio
+      // dell'app o del telefono.
+      if (!kIsWeb &&
+          Platform.isIOS &&
+          await BackgroundTrackingSettings.instance.isEnabled() &&
+          await Geolocator.checkPermission() == LocationPermission.always) {
+        unawaited(IosSignificantLocationBridge.instance.start());
+      }
 
       _updateBattery();
       // cancel-before-assign su TUTTI i timer: se start() gira mentre un
@@ -319,12 +345,18 @@ class LocationTracker with WidgetsBindingObserver {
 
     await BackgroundTrackingSettings.instance.setEnabled(true);
     await _restart();
+    // Rete di sicurezza oltre al GPS continuo (vedi _buildLocationSettings):
+    // se iOS sospende comunque l'app per inattività o memoria, il
+    // Significant Location Change Service la risveglia comunque al
+    // prossimo spostamento importante.
+    if (!kIsWeb && Platform.isIOS) unawaited(IosSignificantLocationBridge.instance.start());
     return BackgroundTrackingResult.enabled;
   }
 
   Future<void> disableBackgroundTracking() async {
     await BackgroundTrackingSettings.instance.setEnabled(false);
     await _restart();
+    if (!kIsWeb && Platform.isIOS) unawaited(IosSignificantLocationBridge.instance.stop());
   }
 
   Future<void> _restart() async {

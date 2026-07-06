@@ -131,6 +131,8 @@
   "circlesGeneralModeDescription": "The one chosen in your profile ({modeLabel}).",
   "circlesAnomalyStillAt": "{name} is still {zoneName}",
   "circlesAnomalyLate": "Usually leaves by {expected} · {minutes} min late",
+  "circlesAnomalyNotYetAt": "{name} hasn't arrived at {zoneName} yet",
+  "circlesAnomalyLateArrival": "Usually arrives by {expected} · {minutes} min late",
   "circlesInviteCodeCopied": "Invite code copied",
   "circlesActionInvite": "Invite",
   "circlesInviteShareMessage": "Join my circle \"{circleName}\" on Kinly!\n\nInvite code: {inviteCode}\n\nOpen Kinly and tap \"I have an invite code\", or tap: kinly://join/{inviteCode}",

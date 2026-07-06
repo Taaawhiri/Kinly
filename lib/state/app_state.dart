@@ -826,16 +826,24 @@ class AppState extends ChangeNotifier {
 
   List<SafeZoneEvent> eventsForZone(String zoneId) => _safeZoneEvents.where((e) => e.zoneId == zoneId).toList();
 
-  /// Anomalie di routine: qualcuno è ancora dentro un'area sicura oltre il
-  /// suo solito orario di uscita (mediana delle uscite passate). Calcolato
-  /// al volo dallo storico già disponibile, senza notifiche push: si vede
-  /// solo aprendo l'app.
+  /// Anomalie di routine, in entrambe le direzioni: qualcuno è ancora
+  /// dentro un'area sicura oltre il suo solito orario di uscita
+  /// ([RoutineAnomalyKind.lateExit], es. ancora al lavoro), oppure non è
+  /// ancora arrivato dove di solito è a quest'ora
+  /// ([RoutineAnomalyKind.lateArrival], es. non ancora a scuola — prima non
+  /// rilevato: si vedeva solo chi restava, mai chi non arrivava affatto).
+  /// Calcolato al volo dallo storico già disponibile, senza notifiche push:
+  /// si vede solo aprendo l'app.
   List<RoutineAnomaly> get routineAnomalies {
     const minHistory = 3;
     const lateThresholdMinutes = 20;
 
     final now = DateTime.now();
     final nowMinutes = now.hour * 60 + now.minute;
+    bool isToday(DateTime dt) {
+      final local = dt.toLocal();
+      return local.year == now.year && local.month == now.month && local.day == now.day;
+    }
 
     final grouped = <String, List<SafeZoneEvent>>{};
     for (final e in _safeZoneEvents) {
@@ -845,41 +853,67 @@ class AppState extends ChangeNotifier {
     final anomalies = <RoutineAnomaly>[];
     for (final events in grouped.values) {
       events.sort((a, b) => a.occurredAt.compareTo(b.occurredAt));
+      final zoneId = events.first.zoneId;
+      final profileId = events.first.profileId;
+      SafeZone? zone;
+      for (final z in _safeZones) {
+        if (z.id == zoneId) {
+          zone = z;
+          break;
+        }
+      }
+      if (zone == null) continue;
+
       final last = events.last;
-      if (last.type != SafeZoneEventType.enter) continue;
-
       final lastLocal = last.occurredAt.toLocal();
-      final isToday = lastLocal.year == now.year && lastLocal.month == now.month && lastLocal.day == now.day;
-      if (!isToday) continue;
 
-      final exitMinutes = events
-          .where((e) => e.type == SafeZoneEventType.exit)
-          .map((e) => e.occurredAt.toLocal())
-          .map((dt) => dt.hour * 60 + dt.minute)
-          .toList()
-        ..sort();
-      if (exitMinutes.length < minHistory) continue;
-      final medianExit = exitMinutes[exitMinutes.length ~/ 2];
-
-      final enterMinutes = lastLocal.hour * 60 + lastLocal.minute;
-      if (enterMinutes >= medianExit) continue; // entrato dopo il solito orario di uscita: non è un ritardo
-
-      if (nowMinutes > medianExit + lateThresholdMinutes) {
-        SafeZone? zone;
-        for (final z in _safeZones) {
-          if (z.id == last.zoneId) {
-            zone = z;
-            break;
+      // Lato uscita: ancora dentro oltre il solito orario di uscita.
+      if (last.type == SafeZoneEventType.enter && isToday(last.occurredAt)) {
+        final exitMinutes = events
+            .where((e) => e.type == SafeZoneEventType.exit)
+            .map((e) => e.occurredAt.toLocal())
+            .map((dt) => dt.hour * 60 + dt.minute)
+            .toList()
+          ..sort();
+        if (exitMinutes.length >= minHistory) {
+          final medianExit = exitMinutes[exitMinutes.length ~/ 2];
+          final enterMinutes = lastLocal.hour * 60 + lastLocal.minute;
+          // entrato dopo il solito orario di uscita: non è un ritardo.
+          if (enterMinutes < medianExit && nowMinutes > medianExit + lateThresholdMinutes) {
+            anomalies.add(RoutineAnomaly(
+              kind: RoutineAnomalyKind.lateExit,
+              zoneId: zoneId,
+              zoneName: zone.name,
+              profileId: profileId,
+              expectedTime: TimeOfDay(hour: medianExit ~/ 60, minute: medianExit % 60),
+              minutesLate: nowMinutes - medianExit,
+            ));
           }
         }
-        if (zone == null) continue;
-        anomalies.add(RoutineAnomaly(
-          zoneId: last.zoneId,
-          zoneName: zone.name,
-          profileId: last.profileId,
-          expectedExit: TimeOfDay(hour: medianExit ~/ 60, minute: medianExit % 60),
-          minutesLate: nowMinutes - medianExit,
-        ));
+      }
+
+      // Lato arrivo: di solito è arrivato qui a quest'ora, oggi ancora no.
+      final enteredToday = events.any((e) => e.type == SafeZoneEventType.enter && isToday(e.occurredAt));
+      if (!enteredToday) {
+        final enterMinutesHistory = events
+            .where((e) => e.type == SafeZoneEventType.enter)
+            .map((e) => e.occurredAt.toLocal())
+            .map((dt) => dt.hour * 60 + dt.minute)
+            .toList()
+          ..sort();
+        if (enterMinutesHistory.length >= minHistory) {
+          final medianEnter = enterMinutesHistory[enterMinutesHistory.length ~/ 2];
+          if (nowMinutes > medianEnter + lateThresholdMinutes) {
+            anomalies.add(RoutineAnomaly(
+              kind: RoutineAnomalyKind.lateArrival,
+              zoneId: zoneId,
+              zoneName: zone.name,
+              profileId: profileId,
+              expectedTime: TimeOfDay(hour: medianEnter ~/ 60, minute: medianEnter % 60),
+              minutesLate: nowMinutes - medianEnter,
+            ));
+          }
+        }
       }
     }
     return anomalies;

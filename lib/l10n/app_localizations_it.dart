@@ -440,6 +440,16 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String circlesAnomalyNotYetAt(String name, String zoneName) {
+    return '$name non risulta ancora a $zoneName';
+  }
+
+  @override
+  String circlesAnomalyLateArrival(String expected, int minutes) {
+    return 'Di solito arriva entro le $expected · $minutes min di ritardo';
+  }
+
+  @override
   String get circlesInviteCodeCopied => 'Codice invito copiato';
 
   @override

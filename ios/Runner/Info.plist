@@ -55,6 +55,12 @@
 	<string>Per scegliere una foto profilo dalla tua libreria.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Per scattare una foto profilo.</string>
+	<!-- Richiesta da CMMotionActivityManager (vedi AppDelegate.swift): senza
+	     questa chiave l'app si chiude di scatto (crash) nell'istante in cui
+	     il Tracciamento in background prova a leggere l'attività recente
+	     per decidere se vale la pena affinare una posizione approssimativa. -->
+	<key>NSMotionUsageDescription</key>
+	<string>Kinly usa i sensori di movimento per capire se ti stai spostando, così il tracciamento in background aggiorna la posizione solo quando serve davvero, risparmiando batteria.</string>
 	<!-- Senza questa chiave, allowBackgroundLocationUpdates di geolocator_apple
 	     (vedi LocationTracker._buildLocationSettings) non ha alcun effetto:
 	     iOS sospende comunque l'app pochi secondi dopo che va in background,

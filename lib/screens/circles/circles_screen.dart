@@ -171,7 +171,8 @@ class _RoutineAnomalyBanner extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final person = AppState.instance.personById(anomaly.profileId);
     final name = person?.name ?? l10n.commonSomeone;
-    final expected = anomaly.expectedExit.format(context);
+    final expected = anomaly.expectedTime.format(context);
+    final isArrival = anomaly.kind == RoutineAnomalyKind.lateArrival;
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(14),
@@ -190,12 +191,12 @@ class _RoutineAnomalyBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n.circlesAnomalyStillAt(name, anomaly.zoneName),
+                  isArrival ? l10n.circlesAnomalyNotYetAt(name, anomaly.zoneName) : l10n.circlesAnomalyStillAt(name, anomaly.zoneName),
                   style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: AppTheme.textPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  l10n.circlesAnomalyLate(expected, anomaly.minutesLate),
+                  isArrival ? l10n.circlesAnomalyLateArrival(expected, anomaly.minutesLate) : l10n.circlesAnomalyLate(expected, anomaly.minutesLate),
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
               ],

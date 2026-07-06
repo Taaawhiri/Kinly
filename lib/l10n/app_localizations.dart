@@ -824,6 +824,18 @@ abstract class AppLocalizations {
   /// **'Di solito esce entro le {expected} · {minutes} min di ritardo'**
   String circlesAnomalyLate(String expected, int minutes);
 
+  /// No description provided for @circlesAnomalyNotYetAt.
+  ///
+  /// In it, this message translates to:
+  /// **'{name} non risulta ancora a {zoneName}'**
+  String circlesAnomalyNotYetAt(String name, String zoneName);
+
+  /// No description provided for @circlesAnomalyLateArrival.
+  ///
+  /// In it, this message translates to:
+  /// **'Di solito arriva entro le {expected} · {minutes} min di ritardo'**
+  String circlesAnomalyLateArrival(String expected, int minutes);
+
   /// No description provided for @circlesInviteCodeCopied.
   ///
   /// In it, this message translates to:
