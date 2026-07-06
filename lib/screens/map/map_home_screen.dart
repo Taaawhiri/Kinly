@@ -1004,84 +1004,97 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   /// nel primo caso: senza, la lista usa il proprio scroll indipendente.
   Widget _buildCircleListBody(List<Person> people, {ScrollController? scrollController}) {
     final l10n = AppLocalizations.of(context)!;
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-          child: Row(
-            children: [
-              Text(l10n.mapYourCircle, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
-              const Spacer(),
-              Text(l10n.mapPeopleCount(people.length), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
-              // Un solo "+" con le due azioni scritte per esteso nel menu,
-              // invece di due icone senza testo affiancate: stesso numero di
-              // tocchi, ma non c'è più niente da imparare a memoria.
-              PopupMenuButton<VoidCallback>(
-                icon: Icon(Icons.add_circle_outline_rounded, size: 22, color: AppTheme.primary),
-                tooltip: '',
-                onSelected: (action) => action(),
-                itemBuilder: (context) => [
-                  PopupMenuItem<VoidCallback>(
-                    value: _openMeetingPointEntry,
-                    child: Row(
-                      children: [
-                        Icon(Icons.add_location_alt_outlined, size: 18, color: AppTheme.textSecondary),
-                        const SizedBox(width: 12),
-                        Text(l10n.mapNewMeetingPointTooltip),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem<VoidCallback>(
-                    value: _openLiveShareSheet,
-                    child: Row(
-                      children: [
-                        Icon(Icons.link_rounded, size: 18, color: AppTheme.textSecondary),
-                        const SizedBox(width: 12),
-                        Text(l10n.mapShareLocationLinkTooltip),
-                      ],
-                    ),
-                  ),
-                ],
+    // L'intestazione (titolo + "+") DEVE stare dentro la stessa lista che usa
+    // scrollController, non come fratello sopra a un Expanded(ListView(...)):
+    // il DraggableScrollableSheet capisce il gesto di trascinamento su/giù
+    // SOLO tramite le notifiche di scroll di quella lista, quindi qualunque
+    // contenuto fuori da essa (l'intestazione, prima) non partecipa nello
+    // stesso modo all'arena dei gesti — il tocco sul pulsante "+" veniva
+    // ogni tanto interpretato come inizio di un trascinamento del foglio
+    // invece che come tap, proprio perché stava fuori dalla lista.
+    final header = Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+      child: Row(
+        children: [
+          Text(l10n.mapYourCircle, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
+          const Spacer(),
+          Text(l10n.mapPeopleCount(people.length), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+          // Un solo "+" con le due azioni scritte per esteso nel menu,
+          // invece di due icone senza testo affiancate: stesso numero di
+          // tocchi, ma non c'è più niente da imparare a memoria.
+          PopupMenuButton<VoidCallback>(
+            icon: Icon(Icons.add_circle_outline_rounded, size: 22, color: AppTheme.primary),
+            tooltip: '',
+            onSelected: (action) => action(),
+            itemBuilder: (context) => [
+              PopupMenuItem<VoidCallback>(
+                value: _openMeetingPointEntry,
+                child: Row(
+                  children: [
+                    Icon(Icons.add_location_alt_outlined, size: 18, color: AppTheme.textSecondary),
+                    const SizedBox(width: 12),
+                    Text(l10n.mapNewMeetingPointTooltip),
+                  ],
+                ),
+              ),
+              PopupMenuItem<VoidCallback>(
+                value: _openLiveShareSheet,
+                child: Row(
+                  children: [
+                    Icon(Icons.link_rounded, size: 18, color: AppTheme.textSecondary),
+                    const SizedBox(width: 12),
+                    Text(l10n.mapShareLocationLinkTooltip),
+                  ],
+                ),
               ),
             ],
           ),
-        ),
-        Expanded(
-          child: people.isEmpty
-              // Anche vuoto, deve restare un ListView con lo stesso
-              // scrollController del DraggableScrollableSheet: è da lì
-              // che il foglio capisce il gesto di trascinamento su/giù.
-              // Un Center al posto della lista lo disconnetterebbe.
-              ? ListView(
-                  controller: scrollController,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  children: [
-                    EmptyStateView(
-                      icon: Icons.person_add_alt_1_rounded,
-                      title: l10n.mapEmptyCircleTitle,
-                      message: l10n.mapEmptyCircleMessage,
-                    ),
-                  ],
-                )
-              : ListView.separated(
-                  controller: scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  itemCount: people.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (context, i) {
-                    final p = people[i];
-                    return PersonListTile(
-                      person: p,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: p.id)),
-                      ),
-                      onAvatarTap: (p.lat != null && p.lng != null) ? () => _flyToPerson(p) : null,
-                    );
-                  },
-                ),
-        ),
-      ],
+        ],
+      ),
+    );
+
+    if (people.isEmpty) {
+      // Anche vuoto, deve restare un ListView con lo stesso scrollController
+      // del DraggableScrollableSheet: un Center al posto della lista lo
+      // disconnetterebbe dal gesto di trascinamento.
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          header,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: EmptyStateView(
+              icon: Icons.person_add_alt_1_rounded,
+              title: l10n.mapEmptyCircleTitle,
+              message: l10n.mapEmptyCircleMessage,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return ListView.separated(
+      controller: scrollController,
+      padding: const EdgeInsets.only(bottom: 6),
+      itemCount: people.length + 1,
+      separatorBuilder: (context, i) => i == 0
+          ? const SizedBox.shrink()
+          : const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Divider(height: 1)),
+      itemBuilder: (context, i) {
+        if (i == 0) return header;
+        final p = people[i - 1];
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: PersonListTile(
+            person: p,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => PersonDetailScreen(personId: p.id)),
+            ),
+            onAvatarTap: (p.lat != null && p.lng != null) ? () => _flyToPerson(p) : null,
+          ),
+        );
+      },
     );
   }
 
