@@ -9,6 +9,7 @@ import '../../widgets/person_avatar.dart';
 import '../circles/circles_screen.dart';
 import 'help_support_screen.dart';
 import 'profile_screen.dart';
+import '../../widgets/haptic_switch.dart';
 
 /// Versione di ProfileScreen per la Modalità Rapida: solo le azioni che
 /// contano quando si è scelta la schermata semplice — cerchie, non
@@ -82,7 +83,7 @@ class SimpleProfileScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Switch(
+                    HapticSwitch(
                       value: SimpleModeController.instance.enabled,
                       onChanged: (v) => SimpleModeController.instance.setEnabled(v),
                     ),

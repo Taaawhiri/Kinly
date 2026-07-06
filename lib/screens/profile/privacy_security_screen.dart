@@ -24,6 +24,7 @@ import '../circles/circles_screen.dart';
 import '../people/sos_contacts_screen.dart';
 import '../premium/paywall_screen.dart';
 import 'change_password_screen.dart';
+import '../../widgets/haptic_switch.dart';
 
 class PrivacySecurityScreen extends StatefulWidget {
   const PrivacySecurityScreen({super.key});
@@ -713,7 +714,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                         Expanded(
                           child: Text(l10n.privacyBiometricUnlock, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
                         ),
-                        Switch(value: _biometricEnabled, onChanged: _toggleBiometric),
+                        HapticSwitch(value: _biometricEnabled, onChanged: _toggleBiometric),
                       ],
                     ),
                   ),
@@ -750,7 +751,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                         if (_backgroundTrackingBusy)
                           const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.2))
                         else
-                          Switch(value: _backgroundTrackingEnabled, onChanged: _toggleBackgroundTracking),
+                          HapticSwitch(value: _backgroundTrackingEnabled, onChanged: _toggleBackgroundTracking),
                       ],
                     ),
                   ),
@@ -773,7 +774,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                           Expanded(
                             child: Text(l10n.privacyLimitHours, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
                           ),
-                          Switch(value: ghostScheduleEnabled, onChanged: _toggleGhostSchedule),
+                          HapticSwitch(value: ghostScheduleEnabled, onChanged: _toggleGhostSchedule),
                         ],
                       ),
                       if (ghostScheduleEnabled) ...[
@@ -857,7 +858,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                           ],
                         ),
                       ),
-                      Switch(value: _crashDetectionEnabled, onChanged: _toggleCrashDetection),
+                      HapticSwitch(value: _crashDetectionEnabled, onChanged: _toggleCrashDetection),
                     ],
                   ),
                 ),
@@ -879,7 +880,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                           Expanded(
                             child: Text(l10n.privacyEnableAlert, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
                           ),
-                          Switch(
+                          HapticSwitch(
                             value: speedAlertEnabled,
                             onChanged: (enabled) => AppState.instance.setSpeedAlert(enabled ? _speedThreshold : null),
                           ),
@@ -923,7 +924,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       Expanded(
                         child: Text(l10n.privacyReceiveSummary, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
                       ),
-                      Switch(
+                      HapticSwitch(
                         value: state.me.weeklySummaryEnabled,
                         onChanged: (v) => AppState.instance.setWeeklySummaryEnabled(v),
                       ),
@@ -989,7 +990,7 @@ class _PermissionRow extends StatelessWidget {
             ],
           ),
         ),
-        Switch(value: value, onChanged: onChanged),
+        HapticSwitch(value: value, onChanged: onChanged),
       ],
     );
   }

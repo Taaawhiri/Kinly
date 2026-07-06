@@ -7,7 +7,9 @@ import '../../state/simple_mode_controller.dart';
 import '../../state/theme_controller.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/dnd_label.dart';
+import '../../utils/haptics.dart';
 import '../../widgets/dnd_sheet.dart';
+import '../../widgets/haptic_switch.dart';
 import '../../widgets/person_avatar.dart';
 import '../circles/circles_screen.dart';
 import '../premium/paywall_screen.dart';
@@ -569,7 +571,10 @@ class _GhostModeCard extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           TextButton(
-            onPressed: () => active ? state.cancelTemporaryGhostMode() : state.startTemporaryGhostMode(_duration),
+            onPressed: () {
+              Haptics.medium();
+              active ? state.cancelTemporaryGhostMode() : state.startTemporaryGhostMode(_duration);
+            },
             child: Text(active ? l10n.ghostModeEndNow : l10n.ghostModeActivate),
           ),
         ],
@@ -615,7 +620,14 @@ class _DndModeCard extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           TextButton(
-            onPressed: () => active ? state.deactivateDnd() : showDndOptionsSheet(context),
+            onPressed: () {
+              if (active) {
+                Haptics.medium();
+                state.deactivateDnd();
+              } else {
+                showDndOptionsSheet(context);
+              }
+            },
             child: Text(active ? l10n.dndDeactivateButton : l10n.dndActivateButton),
           ),
         ],
@@ -662,7 +674,7 @@ class _SimpleModeCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Switch(
+              HapticSwitch(
                 value: active,
                 onChanged: (v) => SimpleModeController.instance.setEnabled(v),
               ),

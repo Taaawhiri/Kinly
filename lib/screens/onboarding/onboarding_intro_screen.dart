@@ -7,6 +7,7 @@ import '../../services/location_tracker.dart';
 import '../../services/onboarding_settings.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_logo.dart';
+import '../../widgets/haptic_switch.dart';
 
 /// Breve introduzione mostrata una volta sola, prima di creare/entrare in
 /// una cerchia: cosa fa Kinly, poi (se il dispositivo lo supporta) la
@@ -298,7 +299,7 @@ class _BiometricPage extends StatelessWidget {
                 Expanded(
                   child: Text(l10n.privacyBiometricUnlock, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.textPrimary)),
                 ),
-                Switch(value: enabled, onChanged: onChanged),
+                HapticSwitch(value: enabled, onChanged: onChanged),
               ],
             ),
           ),

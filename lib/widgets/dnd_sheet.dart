@@ -3,6 +3,7 @@ import '../l10n/app_localizations.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../utils/dnd_label.dart';
+import '../utils/haptics.dart';
 
 /// Foglio di attivazione/disattivazione di Non disturbare: stesso
 /// contenuto sia che si apra dalla card in Profilo sia dal pulsante rapido
@@ -78,6 +79,7 @@ class _DndOptionsSheet extends StatelessWidget {
                   const SizedBox(height: 14),
                   FilledButton(
                     onPressed: () {
+                      Haptics.medium();
                       state.deactivateDnd();
                       Navigator.of(context).pop();
                     },
@@ -88,6 +90,7 @@ class _DndOptionsSheet extends StatelessWidget {
                   _DndOptionTile(
                     label: l10n.dndOption1Hour,
                     onTap: () {
+                      Haptics.medium();
                       state.activateDnd(duration: const Duration(hours: 1));
                       Navigator.of(context).pop();
                     },
@@ -95,6 +98,7 @@ class _DndOptionsSheet extends StatelessWidget {
                   _DndOptionTile(
                     label: l10n.dndOption3Hours,
                     onTap: () {
+                      Haptics.medium();
                       state.activateDnd(duration: const Duration(hours: 3));
                       Navigator.of(context).pop();
                     },
@@ -102,6 +106,7 @@ class _DndOptionsSheet extends StatelessWidget {
                   _DndOptionTile(
                     label: l10n.dndOptionTonight,
                     onTap: () {
+                      Haptics.medium();
                       state.activateDnd(duration: _untilTonight());
                       Navigator.of(context).pop();
                     },
@@ -109,6 +114,7 @@ class _DndOptionsSheet extends StatelessWidget {
                   _DndOptionTile(
                     label: l10n.dndOptionManual,
                     onTap: () {
+                      Haptics.medium();
                       state.activateDnd();
                       Navigator.of(context).pop();
                     },

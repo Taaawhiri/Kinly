@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../l10n/app_localizations.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
+import '../utils/haptics.dart';
 import 'emergency_sms_settings.dart';
 
 /// Flusso SOS condiviso (conferma → posizione → invio → ripiego SMS se
@@ -66,6 +67,9 @@ class SosFlow {
       ),
     );
     if (confirmed != true || !context.mounted) return;
+    // Il momento più critico dell'app: il feedback tattile più forte
+    // disponibile, per far percepire subito che l'SOS è partito.
+    Haptics.heavy();
     Position? position;
     try {
       position = await Geolocator.getCurrentPosition();

@@ -25,6 +25,7 @@ import '../../services/walk_me_home_service.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/blurred_bottom_sheet.dart';
+import '../../utils/haptics.dart';
 import '../../widgets/circle_chip.dart';
 import '../../widgets/dnd_sheet.dart';
 import '../../widgets/empty_state.dart';
@@ -1941,7 +1942,10 @@ class _DndQuickButton extends StatelessWidget {
           shape: const CircleBorder(),
           elevation: 3,
           child: InkWell(
-            onTap: () => active ? state.deactivateDnd() : state.activateDnd(duration: const Duration(hours: 3)),
+            onTap: () {
+              Haptics.medium();
+              active ? state.deactivateDnd() : state.activateDnd(duration: const Duration(hours: 3));
+            },
             onLongPress: () => showDndOptionsSheet(context),
             customBorder: const CircleBorder(),
             child: Padding(
@@ -2016,6 +2020,7 @@ class _HelpRequestSheetState extends State<_HelpRequestSheet> {
       setState(() => _error = AppLocalizations.of(context)!.mapNeedCircleForHelp);
       return;
     }
+    Haptics.medium();
     setState(() {
       _sending = true;
       _error = null;
