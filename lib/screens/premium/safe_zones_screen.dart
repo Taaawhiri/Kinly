@@ -731,6 +731,31 @@ class _SafeZoneSheetState extends State<_SafeZoneSheet> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            // Chi crea un'area sicura spesso lo fa per un minore ("avvisami
+            // quando arriva a scuola") e tende a fidarsi della notifica come
+            // fosse una certezza: va detto qui che dipende da rete, GPS e
+            // permessi del telefono, quindi non è garantita.
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.accentCoral.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline_rounded, size: 17, color: AppTheme.accentCoral),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.safeZoneNotificationDisclaimer,
+                      style: TextStyle(fontSize: 12, height: 1.4, color: AppTheme.textSecondary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             if (_error != null) ...[
               const SizedBox(height: 12),
               Text(_error!, style: const TextStyle(color: AppTheme.accentCoral, fontSize: 13)),

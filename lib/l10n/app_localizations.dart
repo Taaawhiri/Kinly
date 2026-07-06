@@ -488,6 +488,12 @@ abstract class AppLocalizations {
   /// **'Sto bene, annulla'**
   String get mapImFine;
 
+  /// No description provided for @crashDetectionDisclaimer.
+  ///
+  /// In it, this message translates to:
+  /// **'Il rilevamento si basa sui sensori del telefono: può non accorgersi di un urto reale o scattare per un falso allarme (una frenata, una caduta). Non sostituisce una chiamata ai soccorsi: in un\'emergenza reale chiama sempre prima il 112.'**
+  String get crashDetectionDisclaimer;
+
   /// No description provided for @mapShareLocationLinkTitle.
   ///
   /// In it, this message translates to:
@@ -709,6 +715,12 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Avvisa la tua cerchia con un motivo e la tua posizione attuale. A differenza dell\'SOS, non cambia la tua modalità di condivisione.'**
   String get mapHelpRequestDescription;
+
+  /// No description provided for @helpRequestDisclaimer.
+  ///
+  /// In it, this message translates to:
+  /// **'Questa richiesta avvisa la tua cerchia, non i servizi di emergenza: per un pericolo reale chiama sempre prima il 112. La consegna dipende da rete, batteria e permessi del telefono e non è garantita.'**
+  String get helpRequestDisclaimer;
 
   /// No description provided for @mapCircleLabel.
   ///
@@ -2384,6 +2396,18 @@ abstract class AppLocalizations {
   /// **'La tua posizione continuerà ad aggiornarsi anche quando Kinly non è in primo piano. Consuma più batteria e iOS mostra una barra blu nella parte alta dello schermo mentre è attivo.'**
   String get privacyEnableBackgroundTrackingBodyIos;
 
+  /// No description provided for @backgroundTrackingDisclaimer.
+  ///
+  /// In it, this message translates to:
+  /// **'Alcuni telefoni interrompono comunque il tracciamento in background per risparmiare batteria, nonostante i permessi concessi: non è una garanzia assoluta di monitoraggio continuo.'**
+  String get backgroundTrackingDisclaimer;
+
+  /// No description provided for @safeZoneNotificationDisclaimer.
+  ///
+  /// In it, this message translates to:
+  /// **'La notifica di arrivo o uscita dipende da rete, GPS e permessi del telefono: può arrivare in ritardo o non arrivare. Non sostituisce un contatto diretto per essere sicuri che qualcuno sia arrivato.'**
+  String get safeZoneNotificationDisclaimer;
+
   /// No description provided for @privacyExtraStepTitle.
   ///
   /// In it, this message translates to:
@@ -2771,7 +2795,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacySpeedAlertHint.
   ///
   /// In it, this message translates to:
-  /// **'Imposta una tua soglia: chi ha Kinly+ nella tua cerchia riceve un avviso se la superi guidando.'**
+  /// **'Imposta una tua soglia: chi ha Kinly+ nella tua cerchia riceve un avviso se la superi guidando. L\'avviso dipende da GPS e connessione e può arrivare in ritardo: non è un sistema di sicurezza stradale.'**
   String get privacySpeedAlertHint;
 
   /// No description provided for @privacyEnableAlert.

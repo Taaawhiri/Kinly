@@ -590,7 +590,39 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
           return AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
             title: Text(l10n.mapCrashDetectedTitle),
-            content: Text(l10n.mapCrashDetectedBody(secondsLeft)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.mapCrashDetectedBody(secondsLeft)),
+                const SizedBox(height: 14),
+                // Stesso principio del disclaimer SOS (vedi sos_flow.dart):
+                // il rilevamento si basa sui sensori del telefono, può non
+                // accorgersi di un urto reale o scattare per un falso
+                // positivo, e non deve mai far pensare che sostituisca una
+                // chiamata vera ai soccorsi.
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentCoral.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.info_outline_rounded, size: 17, color: AppTheme.accentCoral),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.crashDetectionDisclaimer,
+                          style: TextStyle(fontSize: 12, height: 1.4, color: AppTheme.textSecondary),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             actions: [
               FilledButton(
                 onPressed: () {
@@ -2052,6 +2084,29 @@ class _HelpRequestSheetState extends State<_HelpRequestSheet> {
                 fillColor: AppTheme.surfaceAlt,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
                 contentPadding: const EdgeInsets.all(16),
+              ),
+            ),
+            const SizedBox(height: 4),
+            // Stesso principio del disclaimer SOS: questa richiesta avvisa
+            // la cerchia, non i soccorsi, e non è detto che arrivi subito.
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.accentCoral.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline_rounded, size: 17, color: AppTheme.accentCoral),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.helpRequestDisclaimer,
+                      style: TextStyle(fontSize: 12, height: 1.4, color: AppTheme.textSecondary),
+                    ),
+                  ),
+                ],
               ),
             ),
             if (_error != null) ...[

@@ -42,7 +42,7 @@ class SosFlow {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline_rounded, size: 17, color: AppTheme.accentCoral),
+                  const Icon(Icons.info_outline_rounded, size: 17, color: AppTheme.accentCoral),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(

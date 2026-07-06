@@ -239,7 +239,38 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: Text(l10n.privacyEnableBackgroundTrackingTitle),
-        content: Text(Platform.isIOS ? l10n.privacyEnableBackgroundTrackingBodyIos : l10n.privacyEnableBackgroundTrackingBody),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(Platform.isIOS ? l10n.privacyEnableBackgroundTrackingBodyIos : l10n.privacyEnableBackgroundTrackingBody),
+            const SizedBox(height: 14),
+            // Chi attiva questo interruttore (spesso un genitore, per un
+            // minore) tende a fidarsene come se fosse una garanzia assoluta:
+            // va detto qui, prima che lo accenda, che il sistema operativo
+            // può comunque interromperlo per risparmiare batteria.
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.accentCoral.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline_rounded, size: 17, color: AppTheme.accentCoral),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.backgroundTrackingDisclaimer,
+                      style: TextStyle(fontSize: 12, height: 1.4, color: AppTheme.textSecondary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonCancel)),
           FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.commonActivate)),

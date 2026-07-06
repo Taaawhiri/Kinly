@@ -230,6 +230,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapImFine => 'I\'m fine, cancel';
 
   @override
+  String get crashDetectionDisclaimer =>
+      'Detection relies on your phone\'s sensors: it may miss a real crash or trigger a false alarm (hard braking, a dropped phone). It doesn\'t replace a real emergency call: in a real emergency always call 112 first.';
+
+  @override
   String get mapShareLocationLinkTitle => 'Share your location with a link';
 
   @override
@@ -366,6 +370,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mapHelpRequestDescription =>
       'Notify your circle with a reason and your current location. Unlike SOS, this doesn\'t change your sharing mode.';
+
+  @override
+  String get helpRequestDisclaimer =>
+      'This request alerts your circle, not emergency services: in a real emergency always call 112 first. Delivery depends on network, battery and phone permissions and is not guaranteed.';
 
   @override
   String get mapCircleLabel => 'Circle';
@@ -1357,6 +1365,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your location will keep updating even when Kinly isn\'t in the foreground. It uses more battery and iOS shows a blue bar at the top of the screen while active.';
 
   @override
+  String get backgroundTrackingDisclaimer =>
+      'Some phones still stop background tracking to save battery, even with permissions granted: it\'s not an absolute guarantee of continuous monitoring.';
+
+  @override
+  String get safeZoneNotificationDisclaimer =>
+      'The arrival/exit notification depends on network, GPS and phone permissions: it can arrive late or not at all. It doesn\'t replace a direct check that someone has really arrived.';
+
+  @override
   String get privacyExtraStepTitle => 'One more step needed';
 
   @override
@@ -1575,7 +1591,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacySpeedAlertHint =>
-      'Set your own threshold: circle members with Kinly+ get an alert if you exceed it while driving.';
+      'Set your own threshold: circle members with Kinly+ get an alert if you exceed it while driving. The alert depends on GPS and connectivity and can arrive late: it isn\'t a road-safety system.';
 
   @override
   String get privacyEnableAlert => 'Enable alert';
