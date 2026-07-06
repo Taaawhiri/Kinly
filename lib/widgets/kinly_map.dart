@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'dart:math' show Point;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -497,15 +498,23 @@ class _KinlyMapState extends State<KinlyMap> with WidgetsBindingObserver {
     }
     if (!mounted || requestId != _positionRequestId) return;
 
+    // Su Android il plugin nativo (Projection.toScreenLocation) restituisce
+    // pixel fisici del dispositivo, non i pixel logici che Flutter usa per
+    // Positioned/Offset: senza dividere per il devicePixelRatio ogni pin
+    // finiva piazzato 2-4 volte più lontano del dovuto, ben fuori dallo
+    // schermo visibile — invisibile, ma senza nessun errore da intercettare.
+    // iOS (punti) e il web (pixel CSS) sono già in unità logiche.
+    final scale = (!kIsWeb && Platform.isAndroid) ? MediaQuery.of(context).devicePixelRatio : 1.0;
+
     final newPersonPositions = <String, Offset>{};
     for (var i = 0; i < people.length; i++) {
       final point = screenPoints[i];
-      newPersonPositions[people[i].id] = Offset(point.x.toDouble(), point.y.toDouble());
+      newPersonPositions[people[i].id] = Offset(point.x.toDouble() / scale, point.y.toDouble() / scale);
     }
     final newMeetingPositions = <String, Offset>{};
     for (var i = 0; i < points.length; i++) {
       final point = screenPoints[people.length + i];
-      newMeetingPositions[points[i].id] = Offset(point.x.toDouble(), point.y.toDouble());
+      newMeetingPositions[points[i].id] = Offset(point.x.toDouble() / scale, point.y.toDouble() / scale);
     }
 
     setState(() {
